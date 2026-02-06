@@ -1,0 +1,11 @@
+# See the OWNERS docs at https://go.k8s.io/owners
+
+aliases:
+  diki-operator-reviewers:
+  - AleksandarSavchev
+  - dimityrmirchev
+  - georgibaltiev
+  diki-operator-approvers:
+  - AleksandarSavchev
+  - dimityrmirchev
+  - georgibaltiev
