@@ -1,5 +1,14 @@
 <!-- Please ensure that you do not include company internal information. -->
 
+**How to categorize this PR?**
+<!--
+Please select the kind of this pull request, e.g.:
+/kind enhancement
+Tide will not merge your PR, if it is missing a `kind/*` label.
+"/kind" identifiers:    api-change|bug|cleanup|discussion|enhancement|epic|impediment|poc|post-mortem|question|regression|task|technical-debt|test
+-->
+/kind TODO
+
 **What this PR does / why we need it**:
 
 **Which issue(s) this PR fixes**:
@@ -8,15 +17,16 @@ Fixes #
 **Special notes for your reviewer**:
 
 **Release note**:
-<!--  Write your release note:
+<!--
+Write your release note:
 1. Enter your release note in the below block.
 2. If no release note is required, just write "NONE" within the block.
 
 Format of block header: <category> <target_group>
 Possible values:
-- category:       breaking|feature|bugfix|doc|other
+- category:       breaking|noteworthy|feature|bugfix|doc|other
 - target_group:   user|operator|developer|dependency
 -->
-```feature user
+```other operator
 
 ```
