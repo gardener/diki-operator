@@ -4,7 +4,7 @@
 
 ---
 images:
-- name: diki-runner
+- name: diki
   sourceRepository: github.com/gardener/diki
   repository: europe-docker.pkg.dev/gardener-project/releases/gardener/diki
   tag: "v0.24.0"
