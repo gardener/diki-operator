@@ -1,0 +1,20 @@
+apiVersion: diki.gardener.cloud/v1alpha1
+kind: ComplianceRun
+metadata:
+  name: example-compliancerun
+spec:
+  rulesets:
+    - id: disa-kubernetes-stig
+      version: v2r4 # defaults to latest
+      ruleOptions:
+        configMapRef:
+          name: diki-rule-options
+          namespace: kube-system
+          key: disa-kubernetes-stig # defaults to ID of the ruleset
+    - id: security-hardened-k8s
+      version: v0.1.0
+      ruleOptions:
+        configMapRef:
+          name: diki-rule-options
+          namespace: kube-system
+          key: security-hardened-k8s # defaults to ID of the ruleset
