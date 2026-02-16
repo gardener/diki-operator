@@ -74,13 +74,23 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*Findings)(nil), (*diki.Findings)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_Findings_To_diki_Findings(a.(*Findings), b.(*diki.Findings), scope)
+	if err := s.AddGeneratedConversionFunc((*Options)(nil), (*diki.Options)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_Options_To_diki_Options(a.(*Options), b.(*diki.Options), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*diki.Findings)(nil), (*Findings)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_diki_Findings_To_v1alpha1_Findings(a.(*diki.Findings), b.(*Findings), scope)
+	if err := s.AddGeneratedConversionFunc((*diki.Options)(nil), (*Options)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_Options_To_v1alpha1_Options(a.(*diki.Options), b.(*Options), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*OptionsConfigMapRef)(nil), (*diki.OptionsConfigMapRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_OptionsConfigMapRef_To_diki_OptionsConfigMapRef(a.(*OptionsConfigMapRef), b.(*diki.OptionsConfigMapRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.OptionsConfigMapRef)(nil), (*OptionsConfigMapRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(a.(*diki.OptionsConfigMapRef), b.(*OptionsConfigMapRef), scope)
 	}); err != nil {
 		return err
 	}
@@ -94,23 +104,33 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*RuleOptions)(nil), (*diki.RuleOptions)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_RuleOptions_To_diki_RuleOptions(a.(*RuleOptions), b.(*diki.RuleOptions), scope)
+	if err := s.AddGeneratedConversionFunc((*RulesFindings)(nil), (*diki.RulesFindings)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_RulesFindings_To_diki_RulesFindings(a.(*RulesFindings), b.(*diki.RulesFindings), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*diki.RuleOptions)(nil), (*RuleOptions)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_diki_RuleOptions_To_v1alpha1_RuleOptions(a.(*diki.RuleOptions), b.(*RuleOptions), scope)
+	if err := s.AddGeneratedConversionFunc((*diki.RulesFindings)(nil), (*RulesFindings)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_RulesFindings_To_v1alpha1_RulesFindings(a.(*diki.RulesFindings), b.(*RulesFindings), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*RuleOptionsConfigMapRef)(nil), (*diki.RuleOptionsConfigMapRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_RuleOptionsConfigMapRef_To_diki_RuleOptionsConfigMapRef(a.(*RuleOptionsConfigMapRef), b.(*diki.RuleOptionsConfigMapRef), scope)
+	if err := s.AddGeneratedConversionFunc((*RulesResults)(nil), (*diki.RulesResults)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_RulesResults_To_diki_RulesResults(a.(*RulesResults), b.(*diki.RulesResults), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*diki.RuleOptionsConfigMapRef)(nil), (*RuleOptionsConfigMapRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_diki_RuleOptionsConfigMapRef_To_v1alpha1_RuleOptionsConfigMapRef(a.(*diki.RuleOptionsConfigMapRef), b.(*RuleOptionsConfigMapRef), scope)
+	if err := s.AddGeneratedConversionFunc((*diki.RulesResults)(nil), (*RulesResults)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_RulesResults_To_v1alpha1_RulesResults(a.(*diki.RulesResults), b.(*RulesResults), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*RulesSummary)(nil), (*diki.RulesSummary)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_RulesSummary_To_diki_RulesSummary(a.(*RulesSummary), b.(*diki.RulesSummary), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.RulesSummary)(nil), (*RulesSummary)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_RulesSummary_To_v1alpha1_RulesSummary(a.(*diki.RulesSummary), b.(*RulesSummary), scope)
 	}); err != nil {
 		return err
 	}
@@ -124,6 +144,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*RulesetOptions)(nil), (*diki.RulesetOptions)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_RulesetOptions_To_diki_RulesetOptions(a.(*RulesetOptions), b.(*diki.RulesetOptions), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.RulesetOptions)(nil), (*RulesetOptions)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_RulesetOptions_To_v1alpha1_RulesetOptions(a.(*diki.RulesetOptions), b.(*RulesetOptions), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*RulesetSummary)(nil), (*diki.RulesetSummary)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_RulesetSummary_To_diki_RulesetSummary(a.(*RulesetSummary), b.(*diki.RulesetSummary), scope)
 	}); err != nil {
@@ -131,16 +161,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*diki.RulesetSummary)(nil), (*RulesetSummary)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_diki_RulesetSummary_To_v1alpha1_RulesetSummary(a.(*diki.RulesetSummary), b.(*RulesetSummary), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*Summary)(nil), (*diki.Summary)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_Summary_To_diki_Summary(a.(*Summary), b.(*diki.Summary), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*diki.Summary)(nil), (*Summary)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_diki_Summary_To_v1alpha1_Summary(a.(*diki.Summary), b.(*Summary), scope)
 	}); err != nil {
 		return err
 	}
@@ -275,28 +295,48 @@ func Convert_diki_Condition_To_v1alpha1_Condition(in *diki.Condition, out *Condi
 	return autoConvert_diki_Condition_To_v1alpha1_Condition(in, out, s)
 }
 
-func autoConvert_v1alpha1_Findings_To_diki_Findings(in *Findings, out *diki.Findings, s conversion.Scope) error {
-	out.Failed = *(*[]diki.Rule)(unsafe.Pointer(&in.Failed))
-	out.Errored = *(*[]diki.Rule)(unsafe.Pointer(&in.Errored))
-	out.Warning = *(*[]diki.Rule)(unsafe.Pointer(&in.Warning))
+func autoConvert_v1alpha1_Options_To_diki_Options(in *Options, out *diki.Options, s conversion.Scope) error {
+	out.ConfigMapRef = (*diki.OptionsConfigMapRef)(unsafe.Pointer(in.ConfigMapRef))
 	return nil
 }
 
-// Convert_v1alpha1_Findings_To_diki_Findings is an autogenerated conversion function.
-func Convert_v1alpha1_Findings_To_diki_Findings(in *Findings, out *diki.Findings, s conversion.Scope) error {
-	return autoConvert_v1alpha1_Findings_To_diki_Findings(in, out, s)
+// Convert_v1alpha1_Options_To_diki_Options is an autogenerated conversion function.
+func Convert_v1alpha1_Options_To_diki_Options(in *Options, out *diki.Options, s conversion.Scope) error {
+	return autoConvert_v1alpha1_Options_To_diki_Options(in, out, s)
 }
 
-func autoConvert_diki_Findings_To_v1alpha1_Findings(in *diki.Findings, out *Findings, s conversion.Scope) error {
-	out.Failed = *(*[]Rule)(unsafe.Pointer(&in.Failed))
-	out.Errored = *(*[]Rule)(unsafe.Pointer(&in.Errored))
-	out.Warning = *(*[]Rule)(unsafe.Pointer(&in.Warning))
+func autoConvert_diki_Options_To_v1alpha1_Options(in *diki.Options, out *Options, s conversion.Scope) error {
+	out.ConfigMapRef = (*OptionsConfigMapRef)(unsafe.Pointer(in.ConfigMapRef))
 	return nil
 }
 
-// Convert_diki_Findings_To_v1alpha1_Findings is an autogenerated conversion function.
-func Convert_diki_Findings_To_v1alpha1_Findings(in *diki.Findings, out *Findings, s conversion.Scope) error {
-	return autoConvert_diki_Findings_To_v1alpha1_Findings(in, out, s)
+// Convert_diki_Options_To_v1alpha1_Options is an autogenerated conversion function.
+func Convert_diki_Options_To_v1alpha1_Options(in *diki.Options, out *Options, s conversion.Scope) error {
+	return autoConvert_diki_Options_To_v1alpha1_Options(in, out, s)
+}
+
+func autoConvert_v1alpha1_OptionsConfigMapRef_To_diki_OptionsConfigMapRef(in *OptionsConfigMapRef, out *diki.OptionsConfigMapRef, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Namespace = in.Namespace
+	out.Key = (*string)(unsafe.Pointer(in.Key))
+	return nil
+}
+
+// Convert_v1alpha1_OptionsConfigMapRef_To_diki_OptionsConfigMapRef is an autogenerated conversion function.
+func Convert_v1alpha1_OptionsConfigMapRef_To_diki_OptionsConfigMapRef(in *OptionsConfigMapRef, out *diki.OptionsConfigMapRef, s conversion.Scope) error {
+	return autoConvert_v1alpha1_OptionsConfigMapRef_To_diki_OptionsConfigMapRef(in, out, s)
+}
+
+func autoConvert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in *diki.OptionsConfigMapRef, out *OptionsConfigMapRef, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Namespace = in.Namespace
+	out.Key = (*string)(unsafe.Pointer(in.Key))
+	return nil
+}
+
+// Convert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef is an autogenerated conversion function.
+func Convert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in *diki.OptionsConfigMapRef, out *OptionsConfigMapRef, s conversion.Scope) error {
+	return autoConvert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in, out, s)
 }
 
 func autoConvert_v1alpha1_Rule_To_diki_Rule(in *Rule, out *diki.Rule, s conversion.Scope) error {
@@ -321,54 +361,90 @@ func Convert_diki_Rule_To_v1alpha1_Rule(in *diki.Rule, out *Rule, s conversion.S
 	return autoConvert_diki_Rule_To_v1alpha1_Rule(in, out, s)
 }
 
-func autoConvert_v1alpha1_RuleOptions_To_diki_RuleOptions(in *RuleOptions, out *diki.RuleOptions, s conversion.Scope) error {
-	out.ConfigMapRef = (*diki.RuleOptionsConfigMapRef)(unsafe.Pointer(in.ConfigMapRef))
+func autoConvert_v1alpha1_RulesFindings_To_diki_RulesFindings(in *RulesFindings, out *diki.RulesFindings, s conversion.Scope) error {
+	out.Failed = *(*[]diki.Rule)(unsafe.Pointer(&in.Failed))
+	out.Errored = *(*[]diki.Rule)(unsafe.Pointer(&in.Errored))
+	out.Warning = *(*[]diki.Rule)(unsafe.Pointer(&in.Warning))
 	return nil
 }
 
-// Convert_v1alpha1_RuleOptions_To_diki_RuleOptions is an autogenerated conversion function.
-func Convert_v1alpha1_RuleOptions_To_diki_RuleOptions(in *RuleOptions, out *diki.RuleOptions, s conversion.Scope) error {
-	return autoConvert_v1alpha1_RuleOptions_To_diki_RuleOptions(in, out, s)
+// Convert_v1alpha1_RulesFindings_To_diki_RulesFindings is an autogenerated conversion function.
+func Convert_v1alpha1_RulesFindings_To_diki_RulesFindings(in *RulesFindings, out *diki.RulesFindings, s conversion.Scope) error {
+	return autoConvert_v1alpha1_RulesFindings_To_diki_RulesFindings(in, out, s)
 }
 
-func autoConvert_diki_RuleOptions_To_v1alpha1_RuleOptions(in *diki.RuleOptions, out *RuleOptions, s conversion.Scope) error {
-	out.ConfigMapRef = (*RuleOptionsConfigMapRef)(unsafe.Pointer(in.ConfigMapRef))
+func autoConvert_diki_RulesFindings_To_v1alpha1_RulesFindings(in *diki.RulesFindings, out *RulesFindings, s conversion.Scope) error {
+	out.Failed = *(*[]Rule)(unsafe.Pointer(&in.Failed))
+	out.Errored = *(*[]Rule)(unsafe.Pointer(&in.Errored))
+	out.Warning = *(*[]Rule)(unsafe.Pointer(&in.Warning))
 	return nil
 }
 
-// Convert_diki_RuleOptions_To_v1alpha1_RuleOptions is an autogenerated conversion function.
-func Convert_diki_RuleOptions_To_v1alpha1_RuleOptions(in *diki.RuleOptions, out *RuleOptions, s conversion.Scope) error {
-	return autoConvert_diki_RuleOptions_To_v1alpha1_RuleOptions(in, out, s)
+// Convert_diki_RulesFindings_To_v1alpha1_RulesFindings is an autogenerated conversion function.
+func Convert_diki_RulesFindings_To_v1alpha1_RulesFindings(in *diki.RulesFindings, out *RulesFindings, s conversion.Scope) error {
+	return autoConvert_diki_RulesFindings_To_v1alpha1_RulesFindings(in, out, s)
 }
 
-func autoConvert_v1alpha1_RuleOptionsConfigMapRef_To_diki_RuleOptionsConfigMapRef(in *RuleOptionsConfigMapRef, out *diki.RuleOptionsConfigMapRef, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Namespace = in.Namespace
-	out.Key = (*string)(unsafe.Pointer(in.Key))
+func autoConvert_v1alpha1_RulesResults_To_diki_RulesResults(in *RulesResults, out *diki.RulesResults, s conversion.Scope) error {
+	if err := Convert_v1alpha1_RulesSummary_To_diki_RulesSummary(&in.Summary, &out.Summary, s); err != nil {
+		return err
+	}
+	out.Rules = (*diki.RulesFindings)(unsafe.Pointer(in.Rules))
 	return nil
 }
 
-// Convert_v1alpha1_RuleOptionsConfigMapRef_To_diki_RuleOptionsConfigMapRef is an autogenerated conversion function.
-func Convert_v1alpha1_RuleOptionsConfigMapRef_To_diki_RuleOptionsConfigMapRef(in *RuleOptionsConfigMapRef, out *diki.RuleOptionsConfigMapRef, s conversion.Scope) error {
-	return autoConvert_v1alpha1_RuleOptionsConfigMapRef_To_diki_RuleOptionsConfigMapRef(in, out, s)
+// Convert_v1alpha1_RulesResults_To_diki_RulesResults is an autogenerated conversion function.
+func Convert_v1alpha1_RulesResults_To_diki_RulesResults(in *RulesResults, out *diki.RulesResults, s conversion.Scope) error {
+	return autoConvert_v1alpha1_RulesResults_To_diki_RulesResults(in, out, s)
 }
 
-func autoConvert_diki_RuleOptionsConfigMapRef_To_v1alpha1_RuleOptionsConfigMapRef(in *diki.RuleOptionsConfigMapRef, out *RuleOptionsConfigMapRef, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Namespace = in.Namespace
-	out.Key = (*string)(unsafe.Pointer(in.Key))
+func autoConvert_diki_RulesResults_To_v1alpha1_RulesResults(in *diki.RulesResults, out *RulesResults, s conversion.Scope) error {
+	if err := Convert_diki_RulesSummary_To_v1alpha1_RulesSummary(&in.Summary, &out.Summary, s); err != nil {
+		return err
+	}
+	out.Rules = (*RulesFindings)(unsafe.Pointer(in.Rules))
 	return nil
 }
 
-// Convert_diki_RuleOptionsConfigMapRef_To_v1alpha1_RuleOptionsConfigMapRef is an autogenerated conversion function.
-func Convert_diki_RuleOptionsConfigMapRef_To_v1alpha1_RuleOptionsConfigMapRef(in *diki.RuleOptionsConfigMapRef, out *RuleOptionsConfigMapRef, s conversion.Scope) error {
-	return autoConvert_diki_RuleOptionsConfigMapRef_To_v1alpha1_RuleOptionsConfigMapRef(in, out, s)
+// Convert_diki_RulesResults_To_v1alpha1_RulesResults is an autogenerated conversion function.
+func Convert_diki_RulesResults_To_v1alpha1_RulesResults(in *diki.RulesResults, out *RulesResults, s conversion.Scope) error {
+	return autoConvert_diki_RulesResults_To_v1alpha1_RulesResults(in, out, s)
+}
+
+func autoConvert_v1alpha1_RulesSummary_To_diki_RulesSummary(in *RulesSummary, out *diki.RulesSummary, s conversion.Scope) error {
+	out.Passed = in.Passed
+	out.Skipped = in.Skipped
+	out.Accepted = in.Accepted
+	out.Warning = in.Warning
+	out.Failed = in.Failed
+	out.Errored = in.Errored
+	return nil
+}
+
+// Convert_v1alpha1_RulesSummary_To_diki_RulesSummary is an autogenerated conversion function.
+func Convert_v1alpha1_RulesSummary_To_diki_RulesSummary(in *RulesSummary, out *diki.RulesSummary, s conversion.Scope) error {
+	return autoConvert_v1alpha1_RulesSummary_To_diki_RulesSummary(in, out, s)
+}
+
+func autoConvert_diki_RulesSummary_To_v1alpha1_RulesSummary(in *diki.RulesSummary, out *RulesSummary, s conversion.Scope) error {
+	out.Passed = in.Passed
+	out.Skipped = in.Skipped
+	out.Accepted = in.Accepted
+	out.Warning = in.Warning
+	out.Failed = in.Failed
+	out.Errored = in.Errored
+	return nil
+}
+
+// Convert_diki_RulesSummary_To_v1alpha1_RulesSummary is an autogenerated conversion function.
+func Convert_diki_RulesSummary_To_v1alpha1_RulesSummary(in *diki.RulesSummary, out *RulesSummary, s conversion.Scope) error {
+	return autoConvert_diki_RulesSummary_To_v1alpha1_RulesSummary(in, out, s)
 }
 
 func autoConvert_v1alpha1_RulesetConfig_To_diki_RulesetConfig(in *RulesetConfig, out *diki.RulesetConfig, s conversion.Scope) error {
 	out.ID = in.ID
 	out.Version = in.Version
-	out.RuleOptions = (*diki.RuleOptions)(unsafe.Pointer(in.RuleOptions))
+	out.Options = (*diki.RulesetOptions)(unsafe.Pointer(in.Options))
 	return nil
 }
 
@@ -380,7 +456,7 @@ func Convert_v1alpha1_RulesetConfig_To_diki_RulesetConfig(in *RulesetConfig, out
 func autoConvert_diki_RulesetConfig_To_v1alpha1_RulesetConfig(in *diki.RulesetConfig, out *RulesetConfig, s conversion.Scope) error {
 	out.ID = in.ID
 	out.Version = in.Version
-	out.RuleOptions = (*RuleOptions)(unsafe.Pointer(in.RuleOptions))
+	out.Options = (*RulesetOptions)(unsafe.Pointer(in.Options))
 	return nil
 }
 
@@ -389,13 +465,34 @@ func Convert_diki_RulesetConfig_To_v1alpha1_RulesetConfig(in *diki.RulesetConfig
 	return autoConvert_diki_RulesetConfig_To_v1alpha1_RulesetConfig(in, out, s)
 }
 
+func autoConvert_v1alpha1_RulesetOptions_To_diki_RulesetOptions(in *RulesetOptions, out *diki.RulesetOptions, s conversion.Scope) error {
+	out.Ruleset = (*diki.Options)(unsafe.Pointer(in.Ruleset))
+	out.Rules = (*diki.Options)(unsafe.Pointer(in.Rules))
+	return nil
+}
+
+// Convert_v1alpha1_RulesetOptions_To_diki_RulesetOptions is an autogenerated conversion function.
+func Convert_v1alpha1_RulesetOptions_To_diki_RulesetOptions(in *RulesetOptions, out *diki.RulesetOptions, s conversion.Scope) error {
+	return autoConvert_v1alpha1_RulesetOptions_To_diki_RulesetOptions(in, out, s)
+}
+
+func autoConvert_diki_RulesetOptions_To_v1alpha1_RulesetOptions(in *diki.RulesetOptions, out *RulesetOptions, s conversion.Scope) error {
+	out.Ruleset = (*Options)(unsafe.Pointer(in.Ruleset))
+	out.Rules = (*Options)(unsafe.Pointer(in.Rules))
+	return nil
+}
+
+// Convert_diki_RulesetOptions_To_v1alpha1_RulesetOptions is an autogenerated conversion function.
+func Convert_diki_RulesetOptions_To_v1alpha1_RulesetOptions(in *diki.RulesetOptions, out *RulesetOptions, s conversion.Scope) error {
+	return autoConvert_diki_RulesetOptions_To_v1alpha1_RulesetOptions(in, out, s)
+}
+
 func autoConvert_v1alpha1_RulesetSummary_To_diki_RulesetSummary(in *RulesetSummary, out *diki.RulesetSummary, s conversion.Scope) error {
 	out.ID = in.ID
 	out.Version = in.Version
-	if err := Convert_v1alpha1_Summary_To_diki_Summary(&in.Summary, &out.Summary, s); err != nil {
+	if err := Convert_v1alpha1_RulesResults_To_diki_RulesResults(&in.Results, &out.Results, s); err != nil {
 		return err
 	}
-	out.Findings = (*diki.Findings)(unsafe.Pointer(in.Findings))
 	return nil
 }
 
@@ -407,44 +504,13 @@ func Convert_v1alpha1_RulesetSummary_To_diki_RulesetSummary(in *RulesetSummary, 
 func autoConvert_diki_RulesetSummary_To_v1alpha1_RulesetSummary(in *diki.RulesetSummary, out *RulesetSummary, s conversion.Scope) error {
 	out.ID = in.ID
 	out.Version = in.Version
-	if err := Convert_diki_Summary_To_v1alpha1_Summary(&in.Summary, &out.Summary, s); err != nil {
+	if err := Convert_diki_RulesResults_To_v1alpha1_RulesResults(&in.Results, &out.Results, s); err != nil {
 		return err
 	}
-	out.Findings = (*Findings)(unsafe.Pointer(in.Findings))
 	return nil
 }
 
 // Convert_diki_RulesetSummary_To_v1alpha1_RulesetSummary is an autogenerated conversion function.
 func Convert_diki_RulesetSummary_To_v1alpha1_RulesetSummary(in *diki.RulesetSummary, out *RulesetSummary, s conversion.Scope) error {
 	return autoConvert_diki_RulesetSummary_To_v1alpha1_RulesetSummary(in, out, s)
-}
-
-func autoConvert_v1alpha1_Summary_To_diki_Summary(in *Summary, out *diki.Summary, s conversion.Scope) error {
-	out.Passed = in.Passed
-	out.Skipped = in.Skipped
-	out.Accepted = in.Accepted
-	out.Warning = in.Warning
-	out.Failed = in.Failed
-	out.Errored = in.Errored
-	return nil
-}
-
-// Convert_v1alpha1_Summary_To_diki_Summary is an autogenerated conversion function.
-func Convert_v1alpha1_Summary_To_diki_Summary(in *Summary, out *diki.Summary, s conversion.Scope) error {
-	return autoConvert_v1alpha1_Summary_To_diki_Summary(in, out, s)
-}
-
-func autoConvert_diki_Summary_To_v1alpha1_Summary(in *diki.Summary, out *Summary, s conversion.Scope) error {
-	out.Passed = in.Passed
-	out.Skipped = in.Skipped
-	out.Accepted = in.Accepted
-	out.Warning = in.Warning
-	out.Failed = in.Failed
-	out.Errored = in.Errored
-	return nil
-}
-
-// Convert_diki_Summary_To_v1alpha1_Summary is an autogenerated conversion function.
-func Convert_diki_Summary_To_v1alpha1_Summary(in *diki.Summary, out *Summary, s conversion.Scope) error {
-	return autoConvert_diki_Summary_To_v1alpha1_Summary(in, out, s)
 }

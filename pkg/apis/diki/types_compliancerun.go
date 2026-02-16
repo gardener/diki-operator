@@ -45,23 +45,32 @@ type RulesetConfig struct {
 	ID string
 	// Version is the version of the ruleset.
 	Version string
-	// RuleOptions describes the rule options for a ruleset.
-	RuleOptions *RuleOptions
+	// Options are options for a ruleset.
+	Options *RulesetOptions
 }
 
-// RuleOptions describes the rule options for a ruleset.
-type RuleOptions struct {
-	// ConfigMapRef references a ConfigMap containing rule options for the ruleset.
-	ConfigMapRef *RuleOptionsConfigMapRef
+// RulesetOptions are options for a ruleset.
+type RulesetOptions struct {
+	// Ruleset contains global options for the ruleset.
+	Ruleset *Options
+	// Rules contains references to rule options.
+	// Users can use these to configure the behaviour of specific rules.
+	Rules *Options
 }
 
-// RuleOptionsConfigMapRef references a ConfigMap containing rule options for the ruleset.
-type RuleOptionsConfigMapRef struct {
+// Options contains references to options.
+type Options struct {
+	// ConfigMapRef is a reference to a ConfigMap containing options.
+	ConfigMapRef *OptionsConfigMapRef
+}
+
+// OptionsConfigMapRef references a ConfigMap containing rule options for the ruleset.
+type OptionsConfigMapRef struct {
 	// Name is the name of the ConfigMap.
 	Name string
 	// Namespace is the namespace of the ConfigMap.
 	Namespace string
-	// Key is the key in the ConfigMap.
+	// Key is the key within the ConfigMap, where the options are stored.
 	Key *string
 }
 
@@ -95,35 +104,41 @@ type RulesetSummary struct {
 	ID string
 	// Version is the version of the ruleset that is summarized.
 	Version string
+	// Results contains the results of the ruleset.
+	Results RulesResults
+}
+
+// RulesResults contains the results of the rules in a ruleset.
+type RulesResults struct {
 	// Summary contains information about the amount of rules per each status.
-	Summary Summary
-	// Findings contains information about the specific rules that have errored/warned/failed
-	Findings *Findings
+	Summary RulesSummary
+	// Rules contains information about the specific rules that have errored/warned/failed.
+	Rules *RulesFindings
 }
 
-// Summary contains information about the amount of rules per each status.
-type Summary struct {
+// RulesSummary contains information about the amount of rules per each status.
+type RulesSummary struct {
 	// Passed counts the amount of rules in a specific ruleset that have passed.
-	Passed int
+	Passed int32
 	// Skipped counts the amount of rules in a specific ruleset that have been skipped.
-	Skipped int
+	Skipped int32
 	// Accepted counts the amount of rules in a specific ruleset that have been accepted.
-	Accepted int
+	Accepted int32
 	// Warning counts the amount of rules in a specific ruleset that have returned a warning.
-	Warning int
+	Warning int32
 	// Failed counts the amount of rules in a specific ruleset that have failed.
-	Failed int
+	Failed int32
 	// Errored counts the amount of rules in a specific ruleset that have errored.
-	Errored int
+	Errored int32
 }
 
-// Findings contains information about the specific rules that have errored/warned/failed.
-type Findings struct {
-	// Failed contains information about the rules that contain a Failed checkResult.
+// RulesFindings contains information about the specific rules that have errored/warned/failed.
+type RulesFindings struct {
+	// Failed contains information about the rules that have a Failed status.
 	Failed []Rule
-	// Errored contains information about the rules that contain a Errored checkResult.
+	// Errored contains information about the rules that have an Errored status.
 	Errored []Rule
-	// Warning contains information about the rules that contain a Warning checkResult.
+	// Warning contains information about the rules that have a Warning status.
 	Warning []Rule
 }
 
@@ -131,6 +146,42 @@ type Findings struct {
 type Rule struct {
 	// ID is the unique identifier of the rule which contains the finding.
 	ID string
-	// Name is name of the rule which contains the finding.
+	// Name is the name of the rule which contains the finding.
 	Name string
 }
+
+// Condition describes a condition of a ComplianceRun.
+type Condition struct {
+	// Type is the type of the condition.
+	Type ConditionType
+	// Status is the status of the condition.
+	Status ConditionStatus
+	// LastUpdateTime is the last time the condition was updated.
+	LastUpdateTime metav1.Time
+	// LastTransitionTime is the last time the condition transitioned from one status to another.
+	LastTransitionTime metav1.Time
+	// Reason is a brief reason for the condition's last transition.
+	Reason string
+	// Message is a human-readable message indicating details about the last transition.
+	Message string
+}
+
+// ConditionStatus is an alias for string representing the status of a condition.
+type ConditionStatus string
+
+// ConditionType is an alias for string representing the type of a condition.
+type ConditionType string
+
+const (
+	// ConditionTrue means a resource is in the condition.
+	ConditionTrue ConditionStatus = "True"
+	// ConditionFalse means a resource is not in the condition.
+	ConditionFalse ConditionStatus = "False"
+	// ConditionUnknown means that it cannot be decided if a resource is in the condition or not.
+	ConditionUnknown ConditionStatus = "Unknown"
+
+	// ConditionTypeCompleted indicates whether the ComplianceRun has completed.
+	ConditionTypeCompleted ConditionType = "Completed"
+	// ConditionTypeFailed indicates whether the ComplianceRun has failed.
+	ConditionTypeFailed ConditionType = "Failed"
+)

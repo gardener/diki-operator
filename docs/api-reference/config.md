@@ -189,7 +189,7 @@ ComplianceRunPhase
 <a href="#diki.gardener.cloud/v1alpha1.ComplianceRunStatus">ComplianceRunStatus</a>)
 </p>
 <p>
-<p>Condition described a condition of a ComplianceRun.</p>
+<p>Condition describes a condition of a ComplianceRun.</p>
 </p>
 <table>
 <thead>
@@ -209,7 +209,7 @@ ConditionType
 </em>
 </td>
 <td>
-<p>Type of condition.</p>
+<p>Type is the type of the condition.</p>
 </td>
 </tr>
 <tr>
@@ -222,7 +222,7 @@ ConditionStatus
 </em>
 </td>
 <td>
-<p>Status of the condition.</p>
+<p>Status is the status of the condition.</p>
 </td>
 </tr>
 <tr>
@@ -235,7 +235,7 @@ Kubernetes meta/v1.Time
 </em>
 </td>
 <td>
-<p>Last time the condition was updated.</p>
+<p>LastUpdateTime is the last time the condition was updated.</p>
 </td>
 </tr>
 <tr>
@@ -293,113 +293,14 @@ string
 <p>
 <p>ConditionType is an alias for string representing the type of a condition.</p>
 </p>
-<h3 id="diki.gardener.cloud/v1alpha1.Findings">Findings
+<h3 id="diki.gardener.cloud/v1alpha1.Options">Options
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetSummary">RulesetSummary</a>)
+<a href="#diki.gardener.cloud/v1alpha1.RulesetOptions">RulesetOptions</a>)
 </p>
 <p>
-<p>Findings contains information about the specific rules that have errored/warned/failed.</p>
-</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>failed</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.Rule">
-[]Rule
-</a>
-</em>
-</td>
-<td>
-<p>Failed contains information about the rules that contain a Failed checkResult.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>errored</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.Rule">
-[]Rule
-</a>
-</em>
-</td>
-<td>
-<p>Errored contains information about the rules that contain a Errored checkResult.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>warning</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.Rule">
-[]Rule
-</a>
-</em>
-</td>
-<td>
-<p>Warning contains information about the rules that contain a Warning checkResult.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="diki.gardener.cloud/v1alpha1.Rule">Rule
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.Findings">Findings</a>)
-</p>
-<p>
-<p>Rule contains information about the ID and the name of the rule that contains the findings.</p>
-</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>ruleID</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>ID is the unique identifier of the rule which contains the finding.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>ruleName</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Name is name of the rule which contains the finding.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="diki.gardener.cloud/v1alpha1.RuleOptions">RuleOptions
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetConfig">RulesetConfig</a>)
-</p>
-<p>
-<p>RuleOptions describes the rule options for a ruleset.</p>
+<p>Options contains references to options.</p>
 </p>
 <table>
 <thead>
@@ -413,25 +314,25 @@ string
 <td>
 <code>configMapRef</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.RuleOptionsConfigMapRef">
-RuleOptionsConfigMapRef
+<a href="#diki.gardener.cloud/v1alpha1.OptionsConfigMapRef">
+OptionsConfigMapRef
 </a>
 </em>
 </td>
 <td>
-<p>ConfigMapRef references a ConfigMap containing rule options for the ruleset.</p>
+<p>ConfigMapRef is a reference to a ConfigMap containing options.</p>
 </td>
 </tr>
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.RuleOptionsConfigMapRef">RuleOptionsConfigMapRef
+<h3 id="diki.gardener.cloud/v1alpha1.OptionsConfigMapRef">OptionsConfigMapRef
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RuleOptions">RuleOptions</a>)
+<a href="#diki.gardener.cloud/v1alpha1.Options">Options</a>)
 </p>
 <p>
-<p>RuleOptionsConfigMapRef references a ConfigMap containing rule options for the ruleset.</p>
+<p>OptionsConfigMapRef references a ConfigMap containing rule options for the ruleset.</p>
 </p>
 <table>
 <thead>
@@ -471,7 +372,236 @@ string
 </em>
 </td>
 <td>
-<p>Key is the key in the ConfigMap.</p>
+<p>Key is the key within the ConfigMap, where the options are stored.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.Rule">Rule
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.RulesFindings">RulesFindings</a>)
+</p>
+<p>
+<p>Rule contains information about the ID and the name of the rule that contains the findings.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>id</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ID is the unique identifier of the rule which contains the finding.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the rule which contains the finding.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.RulesFindings">RulesFindings
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.RulesResults">RulesResults</a>)
+</p>
+<p>
+<p>RulesFindings contains information about the specific rules that have errored/warned/failed.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>failed</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.Rule">
+[]Rule
+</a>
+</em>
+</td>
+<td>
+<p>Failed contains information about the rules that have a Failed status.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>errored</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.Rule">
+[]Rule
+</a>
+</em>
+</td>
+<td>
+<p>Errored contains information about the rules that have an Errored status.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>warning</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.Rule">
+[]Rule
+</a>
+</em>
+</td>
+<td>
+<p>Warning contains information about the rules that have a Warning status.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.RulesResults">RulesResults
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.RulesetSummary">RulesetSummary</a>)
+</p>
+<p>
+<p>RulesResults contains the results of the rules in a ruleset.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>summary</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.RulesSummary">
+RulesSummary
+</a>
+</em>
+</td>
+<td>
+<p>Summary contains information about the amount of rules per each status.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>rules</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.RulesFindings">
+RulesFindings
+</a>
+</em>
+</td>
+<td>
+<p>Rules contains information about the specific rules that have errored/warned/failed.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.RulesSummary">RulesSummary
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.RulesResults">RulesResults</a>)
+</p>
+<p>
+<p>RulesSummary contains information about the amount of rules per each status.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>passed</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Passed counts the amount of rules in a specific ruleset that have passed.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>skipped</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Skipped counts the amount of rules in a specific ruleset that have been skipped.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>accepted</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Accepted counts the amount of rules in a specific ruleset that have been accepted.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>warning</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Warning counts the amount of rules in a specific ruleset that have returned a warning.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>failed</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Failed counts the amount of rules in a specific ruleset that have failed.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>errored</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Errored counts the amount of rules in a specific ruleset that have errored.</p>
 </td>
 </tr>
 </tbody>
@@ -517,15 +647,61 @@ string
 </tr>
 <tr>
 <td>
-<code>ruleOptions</code></br>
+<code>options</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.RuleOptions">
-RuleOptions
+<a href="#diki.gardener.cloud/v1alpha1.RulesetOptions">
+RulesetOptions
 </a>
 </em>
 </td>
 <td>
-<p>RuleOptions describes the rule options for a ruleset.</p>
+<p>Options are options for a ruleset.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.RulesetOptions">RulesetOptions
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.RulesetConfig">RulesetConfig</a>)
+</p>
+<p>
+<p>RulesetOptions are options for a ruleset.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>ruleset</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.Options">
+Options
+</a>
+</em>
+</td>
+<td>
+<p>Ruleset contains global options for the ruleset.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>rules</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.Options">
+Options
+</a>
+</em>
+</td>
+<td>
+<p>Rules contains references to rule options.
+Users can use these to configure the behaviour of specific rules.</p>
 </td>
 </tr>
 </tbody>
@@ -571,113 +747,15 @@ string
 </tr>
 <tr>
 <td>
-<code>summary</code></br>
+<code>results</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.Summary">
-Summary
+<a href="#diki.gardener.cloud/v1alpha1.RulesResults">
+RulesResults
 </a>
 </em>
 </td>
 <td>
-<p>Summary contains information about the amount of rules per each status.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>findings</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.Findings">
-Findings
-</a>
-</em>
-</td>
-<td>
-<p>Findings contains information about the specific rules that have errored/warned/failed</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="diki.gardener.cloud/v1alpha1.Summary">Summary
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetSummary">RulesetSummary</a>)
-</p>
-<p>
-<p>Summary contains information about the amount of rules per each status.</p>
-</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>passed</code></br>
-<em>
-int
-</em>
-</td>
-<td>
-<p>Passed counts the amount of rules in a specific ruleset that have passed.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>skipped</code></br>
-<em>
-int
-</em>
-</td>
-<td>
-<p>Skipped counts the amount of rules in a specific ruleset that have been skipped.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>accepted</code></br>
-<em>
-int
-</em>
-</td>
-<td>
-<p>Accepted counts the amount of rules in a specific ruleset that have been accepted.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>warning</code></br>
-<em>
-int
-</em>
-</td>
-<td>
-<p>Warning counts the amount of rules in a specific ruleset that have returned a warning.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>failed</code></br>
-<em>
-int
-</em>
-</td>
-<td>
-<p>Failed counts the amount of rules in a specific ruleset that have failed.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>errored</code></br>
-<em>
-int
-</em>
-</td>
-<td>
-<p>Errored counts the amount of rules in a specific ruleset that have errored.</p>
+<p>Results contains the results of the ruleset.</p>
 </td>
 </tr>
 </tbody>
