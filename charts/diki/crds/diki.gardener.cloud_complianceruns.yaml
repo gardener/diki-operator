@@ -1,0 +1,261 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.0
+  name: complianceruns.diki.gardener.cloud
+spec:
+  group: diki.gardener.cloud
+  names:
+    kind: ComplianceRun
+    listKind: ComplianceRunList
+    plural: complianceruns
+    shortNames:
+    - crun
+    singular: compliancerun
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - description: Current phase of the compliance run
+      jsonPath: .status.phase
+      name: Phase
+      type: string
+    - description: Creation timestamp
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ComplianceRun describes a compliance run.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec contains the specification of this compliance run.
+            properties:
+              rulesets:
+                description: Rulesets describe the rulesets to be applied during the
+                  compliance run.
+                items:
+                  description: RulesetConfig describes the configuration of a ruleset.
+                  properties:
+                    id:
+                      description: ID is the identifier of the ruleset.
+                      type: string
+                    ruleOptions:
+                      description: RuleOptions describes the rule options for a ruleset.
+                      properties:
+                        configMapRef:
+                          description: ConfigMapRef references a ConfigMap containing
+                            rule options for the ruleset.
+                          properties:
+                            key:
+                              description: Key is the key in the ConfigMap.
+                              type: string
+                            name:
+                              description: Name is the name of the ConfigMap.
+                              type: string
+                            namespace:
+                              description: Namespace is the namespace of the ConfigMap.
+                              type: string
+                          required:
+                          - name
+                          - namespace
+                          type: object
+                      type: object
+                    version:
+                      description: Version is the version of the ruleset.
+                      type: string
+                  required:
+                  - id
+                  - version
+                  type: object
+                type: array
+            type: object
+          status:
+            description: Status contains the status of this compliance run.
+            properties:
+              conditions:
+                description: Conditions contains the conditions of the ComplianceRun.
+                items:
+                  description: Condition described a condition of a ComplianceRun.
+                  properties:
+                    lastTransitionTime:
+                      description: LastTransitionTime is the last time the condition
+                        transitioned from one status to another.
+                      format: date-time
+                      type: string
+                    lastUpdateTime:
+                      description: Last time the condition was updated.
+                      format: date-time
+                      type: string
+                    message:
+                      description: Message is a human-readable message indicating
+                        details about the last transition.
+                      type: string
+                    reason:
+                      description: Reason is a brief reason for the condition's last
+                        transition.
+                      type: string
+                    status:
+                      description: Status of the condition.
+                      type: string
+                    type:
+                      description: Type of condition.
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - lastUpdateTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              phase:
+                description: Phase represents the current phase of the ComplianceRun.
+                type: string
+              rulesets:
+                description: Rulesets contains the ruleset summaries of the ComplianceRun.
+                items:
+                  description: RulesetSummary contains the identifiers and the summary
+                    for a specific ruleset.
+                  properties:
+                    findings:
+                      description: Findings contains information about the specific
+                        rules that have errored/warned/failed
+                      properties:
+                        errored:
+                          description: Errored contains information about the rules
+                            that contain a Errored checkResult.
+                          items:
+                            description: Rule contains information about the ID and
+                              the name of the rule that contains the findings.
+                            properties:
+                              ruleID:
+                                description: ID is the unique identifier of the rule
+                                  which contains the finding.
+                                type: string
+                              ruleName:
+                                description: Name is name of the rule which contains
+                                  the finding.
+                                type: string
+                            required:
+                            - ruleID
+                            - ruleName
+                            type: object
+                          type: array
+                        failed:
+                          description: Failed contains information about the rules
+                            that contain a Failed checkResult.
+                          items:
+                            description: Rule contains information about the ID and
+                              the name of the rule that contains the findings.
+                            properties:
+                              ruleID:
+                                description: ID is the unique identifier of the rule
+                                  which contains the finding.
+                                type: string
+                              ruleName:
+                                description: Name is name of the rule which contains
+                                  the finding.
+                                type: string
+                            required:
+                            - ruleID
+                            - ruleName
+                            type: object
+                          type: array
+                        warning:
+                          description: Warning contains information about the rules
+                            that contain a Warning checkResult.
+                          items:
+                            description: Rule contains information about the ID and
+                              the name of the rule that contains the findings.
+                            properties:
+                              ruleID:
+                                description: ID is the unique identifier of the rule
+                                  which contains the finding.
+                                type: string
+                              ruleName:
+                                description: Name is name of the rule which contains
+                                  the finding.
+                                type: string
+                            required:
+                            - ruleID
+                            - ruleName
+                            type: object
+                          type: array
+                      type: object
+                    id:
+                      description: ID is the identifier of the ruleset that is summarized.
+                      type: string
+                    summary:
+                      description: Summary contains information about the amount of
+                        rules per each status.
+                      properties:
+                        accepted:
+                          description: Accepted counts the amount of rules in a specific
+                            ruleset that have been accepted.
+                          type: integer
+                        errored:
+                          description: Errored counts the amount of rules in a specific
+                            ruleset that have errored.
+                          type: integer
+                        failed:
+                          description: Failed counts the amount of rules in a specific
+                            ruleset that have failed.
+                          type: integer
+                        passed:
+                          description: Passed counts the amount of rules in a specific
+                            ruleset that have passed.
+                          type: integer
+                        skipped:
+                          description: Skipped counts the amount of rules in a specific
+                            ruleset that have been skipped.
+                          type: integer
+                        warning:
+                          description: Warning counts the amount of rules in a specific
+                            ruleset that have returned a warning.
+                          type: integer
+                      required:
+                      - accepted
+                      - errored
+                      - failed
+                      - passed
+                      - skipped
+                      - warning
+                      type: object
+                    version:
+                      description: Version is the version of the ruleset that is summarized.
+                      type: string
+                  required:
+                  - id
+                  - summary
+                  - version
+                  type: object
+                type: array
+            required:
+            - phase
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
