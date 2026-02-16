@@ -1,10 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: diki-rule-options
+  name: diki-options
   namespace: kube-system
 data:
-  disa-kubernetes-stig: |
+  disa-kubernetes-stig: ""
+  disa-kubernetes-stig-rules: |
     - ruleID: "242393"
       args:
         nodeGroupByLabels:
@@ -79,7 +80,7 @@ data:
       args:
         nodeGroupByLabels:
         - worker.gardener.cloud/pool
-  security-hardened-k8s: |
+  security-hardened-k8s-rules: |
     - ruleID: "2000"
       args:
         acceptedNamespaces:
