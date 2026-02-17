@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: config.diki.gardener.cloud/v1alpha1
+kind: DikiOperatorConfiguration
+
+# logLevel: info
+# logFormat: json
+
+# controllers:
+#   complianceRun:
+#     syncPeriod: 1h
+#     dikiRunner:
+#       waitInterval: 5s
+#       podCompletionTimeout: 10m
+#       execTimeout: 2m
+#       namespace: kube-system
+# server:
+#   healthProbes:
+#     port: 8081
+#   metrics:
+#     port: 8080
+# leaderElection:
+#   resourceName: diki-operator-leader-election
+#   resourceNamespace: kube-system
+#   leaderElect: true
+#   leaseDuration: 15s
+#   renewDeadline: 10s
+#   retryPeriod: 2s
+#   resourceLock: leases

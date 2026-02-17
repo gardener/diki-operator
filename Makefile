@@ -24,7 +24,7 @@ include $(GARDENER_HACK_DIR)/tools.mk
 .PHONY: start
 start:
 	go run ./cmd/diki-operator/main.go \
-	    --config=$(REPO_ROOT)/examples/config.yaml \
+	    --config=$(REPO_ROOT)/examples/00-config.yaml \
 		--kubeconfig $(KUBECONFIG)
 
 .PHONY: install
