@@ -24,7 +24,7 @@ include $(GARDENER_HACK_DIR)/tools.mk
 .PHONY: start
 start:
 	go run ./cmd/diki-operator/main.go \
-	    --config=$(REPO_ROOT)/examples/00-config.yaml \
+	    --config=$(REPO_ROOT)/example/00-config.yaml \
 		--kubeconfig $(KUBECONFIG)
 
 .PHONY: install
@@ -56,6 +56,7 @@ check-generate:
 check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM) $(YQ) $(TYPOS) 
 	go vet ./...
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/... ./internal/...
+	@GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) hack/check-skaffold-deps.sh
 	@bash $(GARDENER_HACK_DIR)/check-typos.sh
 	@bash $(GARDENER_HACK_DIR)/check-file-names.sh
 	@bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
@@ -92,4 +93,22 @@ test-clean:
 verify: check format test sast
 
 .PHONY: verify-extended
-verify-extended: check-generate check format test test-cov test-clean sast-report checklicense
+verify-extended: check-generate check format test test-cov test-clean sast-report
+
+kind-up kind-down: export KIND_KUBECONFIG = $(KIND_LOCAL_KUBECONFIG)
+kind-up kind-down operator-up: export KUBECONFIG = $(KIND_LOCAL_KUBECONFIG)
+
+.PHONY: kind-up
+kind-up: $(KIND) $(KUBECTL) $(YQ)
+	@bash $(HACK_DIR)/kind-up.sh
+
+.PHONY: kind-down
+kind-down: $(KIND)
+	@bash $(HACK_DIR)/kind-down.sh
+
+operator-up: export LD_FLAGS = $(bash $(GARDENER_HACK_DIR)/hack/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION diki-operator $(BUILD_DATE))
+
+.PHONY: operator-up
+operator-up: $(SKAFFOLD) $(HELM) $(KUBECTL)
+	@$(KUBECTL) apply -f ./charts/diki/crds/
+	@$(SKAFFOLD) run
