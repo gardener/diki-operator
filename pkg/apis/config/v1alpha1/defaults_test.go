@@ -7,6 +7,7 @@ package v1alpha1_test
 import (
 	"time"
 
+	"github.com/gardener/gardener/pkg/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +15,6 @@ import (
 	"k8s.io/utils/ptr"
 
 	. "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
-	"github.com/gardener/gardener/pkg/logger"
 )
 
 var _ = Describe("Defaults", func() {
@@ -25,43 +25,51 @@ var _ = Describe("Defaults", func() {
 			obj = &DikiOperatorConfiguration{}
 		})
 
-		Context("LogLevel", func() {
-			It("should default log level", func() {
-				SetDefaults_DikiOperatorConfiguration(obj)
-
-				Expect(obj.LogLevel).To(Equal(logger.InfoLevel))
-			})
-
-			It("should not overwrite already set value for log level", func() {
-				obj.LogLevel = "warning"
-
-				SetDefaults_DikiOperatorConfiguration(obj)
-
-				Expect(obj.LogLevel).To(Equal("warning"))
-			})
-		})
-
-		Context("LogFormat", func() {
-			It("should default log format", func() {
-				SetDefaults_DikiOperatorConfiguration(obj)
-
-				Expect(obj.LogFormat).To(Equal(logger.FormatJSON))
-			})
-
-			It("should not overwrite already set value for log format", func() {
-				obj.LogFormat = "md"
-
-				SetDefaults_DikiOperatorConfiguration(obj)
-
-				Expect(obj.LogFormat).To(Equal("md"))
-			})
-		})
-
 		Context("LeaderElection", func() {
 			It("should initialize LeaderElection when nil", func() {
 				SetDefaults_DikiOperatorConfiguration(obj)
 
 				Expect(obj.LeaderElection).NotTo(BeNil())
+			})
+		})
+	})
+
+	Describe("#SetDefaults_Log", func() {
+		var obj *Log
+
+		BeforeEach(func() {
+			obj = &Log{}
+		})
+
+		Context("LogLevel", func() {
+			It("should default log level", func() {
+				SetDefaults_Log(obj)
+
+				Expect(obj.Level).To(Equal(logger.InfoLevel))
+			})
+
+			It("should not overwrite already set value for log level", func() {
+				obj.Level = "warning"
+
+				SetDefaults_Log(obj)
+
+				Expect(obj.Level).To(Equal("warning"))
+			})
+		})
+
+		Context("LogFormat", func() {
+			It("should default log format", func() {
+				SetDefaults_Log(obj)
+
+				Expect(obj.Format).To(Equal(logger.FormatJSON))
+			})
+
+			It("should not overwrite already set value for log format", func() {
+				obj.Format = "md"
+
+				SetDefaults_Log(obj)
+
+				Expect(obj.Format).To(Equal("md"))
 			})
 		})
 	})
@@ -109,36 +117,6 @@ var _ = Describe("Defaults", func() {
 				SetDefaults_DikiRunnerConfig(obj)
 
 				Expect(obj.Namespace).To(Equal("default"))
-			})
-		})
-
-		Context("WaitInterval", func() {
-			It("should default wait interval", func() {
-				SetDefaults_DikiRunnerConfig(obj)
-
-				Expect(obj.WaitInterval).To(Equal(&metav1.Duration{Duration: 5 * time.Second}))
-			})
-
-			It("should not overwrite already set value for wait interval", func() {
-				obj.WaitInterval = &metav1.Duration{Duration: 10 * time.Second}
-				SetDefaults_DikiRunnerConfig(obj)
-
-				Expect(obj.WaitInterval).To(Equal(&metav1.Duration{Duration: 10 * time.Second}))
-			})
-		})
-
-		Context("ExecTimeout", func() {
-			It("should default exec timeout", func() {
-				SetDefaults_DikiRunnerConfig(obj)
-
-				Expect(obj.ExecTimeout).To(Equal(&metav1.Duration{Duration: 30 * time.Second}))
-			})
-
-			It("should not overwrite already set value for exec timeout", func() {
-				obj.ExecTimeout = &metav1.Duration{Duration: 10 * time.Second}
-				SetDefaults_DikiRunnerConfig(obj)
-
-				Expect(obj.ExecTimeout).To(Equal(&metav1.Duration{Duration: 10 * time.Second}))
 			})
 		})
 

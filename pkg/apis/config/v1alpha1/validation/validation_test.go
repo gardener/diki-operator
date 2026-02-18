@@ -24,8 +24,10 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 
 	BeforeEach(func() {
 		conf = &v1alpha1.DikiOperatorConfiguration{
-			LogLevel:  "info",
-			LogFormat: "json",
+			Log: v1alpha1.Log{
+				Level:  "info",
+				Format: "json",
+			},
 			Controllers: v1alpha1.ControllerConfiguration{
 				ComplianceRun: v1alpha1.ComplianceRunConfig{
 					DikiRunner: v1alpha1.DikiRunnerConfig{
@@ -33,8 +35,6 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 						Labels: map[string]string{
 							"app": "diki-runner",
 						},
-						WaitInterval:         &metav1.Duration{Duration: 30 * time.Second},
-						ExecTimeout:          &metav1.Duration{Duration: 5 * time.Minute},
 						PodCompletionTimeout: &metav1.Duration{Duration: 10 * time.Minute},
 					},
 				},
@@ -72,7 +72,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 	})
 
 	It("should fail validation when LogLevel is invalid", func() {
-		conf.LogLevel = "invalid"
+		conf.Log.Level = "invalid"
 
 		errorList := ValidateDikiOperatorConfiguration(conf)
 		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
@@ -83,7 +83,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 	})
 
 	It("should fail validation when LogFormat is invalid", func() {
-		conf.LogFormat = "invalid"
+		conf.Log.Format = "invalid"
 
 		errorList := ValidateDikiOperatorConfiguration(conf)
 		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
@@ -106,28 +106,6 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 		}))))
 	})
 
-	It("should faile validation when WaitInterval is less than or equal to 0", func() {
-		conf.Controllers.ComplianceRun.DikiRunner.WaitInterval = &metav1.Duration{Duration: -1 * time.Second}
-
-		errorList := ValidateDikiOperatorConfiguration(conf)
-		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
-			"Type":     Equal(field.ErrorTypeInvalid),
-			"Field":    Equal("controllers.complianceRun.dikiRunner.waitInterval"),
-			"BadValue": Equal(&metav1.Duration{Duration: -1 * time.Second}),
-		}))))
-	})
-
-	It("should fail validation when ExecTimeout is less than or equal to 0", func() {
-		conf.Controllers.ComplianceRun.DikiRunner.ExecTimeout = &metav1.Duration{Duration: 0}
-
-		errorList := ValidateDikiOperatorConfiguration(conf)
-		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
-			"Type":     Equal(field.ErrorTypeInvalid),
-			"Field":    Equal("controllers.complianceRun.dikiRunner.execTimeout"),
-			"BadValue": Equal(&metav1.Duration{Duration: 0}),
-		}))))
-	})
-
 	It("should fail validation when PodCompletionTimeout is less than or equal to 0", func() {
 		conf.Controllers.ComplianceRun.DikiRunner.PodCompletionTimeout = &metav1.Duration{Duration: -5 * time.Minute}
 
@@ -136,6 +114,17 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			"Type":     Equal(field.ErrorTypeInvalid),
 			"Field":    Equal("controllers.complianceRun.dikiRunner.podCompletionTimeout"),
 			"BadValue": Equal(&metav1.Duration{Duration: -5 * time.Minute}),
+		}))))
+	})
+
+	It("should fail validation when PodCompletionTimeout is greater than 1 hour", func() {
+		conf.Controllers.ComplianceRun.DikiRunner.PodCompletionTimeout = &metav1.Duration{Duration: 2 * time.Hour}
+
+		errorList := ValidateDikiOperatorConfiguration(conf)
+		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+			"Type":     Equal(field.ErrorTypeInvalid),
+			"Field":    Equal("controllers.complianceRun.dikiRunner.podCompletionTimeout"),
+			"BadValue": Equal(&metav1.Duration{Duration: 2 * time.Hour}),
 		}))))
 	})
 })

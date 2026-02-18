@@ -5,6 +5,8 @@
 package validation
 
 import (
+	"time"
+
 	"github.com/gardener/gardener/pkg/logger"
 	validationutils "github.com/gardener/gardener/pkg/utils/validation"
 	metav1validation "k8s.io/apimachinery/pkg/apis/meta/v1/validation"
@@ -18,20 +20,28 @@ import (
 func ValidateDikiOperatorConfiguration(conf *v1alpha1.DikiOperatorConfiguration) field.ErrorList {
 	allErrs := field.ErrorList{}
 
-	if conf.LogLevel != "" {
-		if !sets.New(logger.AllLogLevels...).Has(conf.LogLevel) {
-			allErrs = append(allErrs, field.NotSupported(field.NewPath("logLevel"), conf.LogLevel, logger.AllLogLevels))
-		}
-	}
-
-	if conf.LogFormat != "" {
-		if !sets.New(logger.AllLogFormats...).Has(conf.LogFormat) {
-			allErrs = append(allErrs, field.NotSupported(field.NewPath("logFormat"), conf.LogFormat, logger.AllLogFormats))
-		}
-	}
-
+	allErrs = append(allErrs, validateLog(&conf.Log, field.NewPath("log"))...)
 	allErrs = append(allErrs, validateControllers(&conf.Controllers, field.NewPath("controllers"))...)
 	allErrs = append(allErrs, validationutils.ValidateLeaderElectionConfiguration(conf.LeaderElection, field.NewPath("leaderElection"))...)
+
+	return allErrs
+}
+
+// validateLog validates the log configuration.
+func validateLog(log *v1alpha1.Log, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	if log.Level != "" {
+		if !sets.New(logger.AllLogLevels...).Has(log.Level) {
+			allErrs = append(allErrs, field.NotSupported(fldPath.Child("level"), log.Level, logger.AllLogLevels))
+		}
+	}
+
+	if log.Format != "" {
+		if !sets.New(logger.AllLogFormats...).Has(log.Format) {
+			allErrs = append(allErrs, field.NotSupported(fldPath.Child("format"), log.Format, logger.AllLogFormats))
+		}
+	}
 
 	return allErrs
 }
@@ -51,14 +61,8 @@ func validateDikiRunner(dikiRunner v1alpha1.DikiRunnerConfig, fldPath *field.Pat
 
 	allErrs = append(allErrs, metav1validation.ValidateLabels(dikiRunner.Labels, fldPath.Child("labels"))...)
 
-	if dikiRunner.WaitInterval != nil && dikiRunner.WaitInterval.Duration <= 0 {
-		allErrs = append(allErrs, field.Invalid(fldPath.Child("waitInterval"), dikiRunner.WaitInterval, "waitInterval must be greater than 0"))
-	}
-	if dikiRunner.ExecTimeout != nil && dikiRunner.ExecTimeout.Duration <= 0 {
-		allErrs = append(allErrs, field.Invalid(fldPath.Child("execTimeout"), dikiRunner.ExecTimeout, "execTimeout must be greater than 0"))
-	}
-	if dikiRunner.PodCompletionTimeout != nil && dikiRunner.PodCompletionTimeout.Duration <= 0 {
-		allErrs = append(allErrs, field.Invalid(fldPath.Child("podCompletionTimeout"), dikiRunner.PodCompletionTimeout, "podCompletionTimeout must be greater than 0"))
+	if dikiRunner.PodCompletionTimeout != nil && (dikiRunner.PodCompletionTimeout.Duration <= 0 || dikiRunner.PodCompletionTimeout.Duration > 1*time.Hour) {
+		allErrs = append(allErrs, field.Invalid(fldPath.Child("podCompletionTimeout"), dikiRunner.PodCompletionTimeout, "podCompletionTimeout must be greater than 0 and less than or equal to 1 hour"))
 	}
 
 	return allErrs

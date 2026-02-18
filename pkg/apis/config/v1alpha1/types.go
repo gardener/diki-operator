@@ -18,12 +18,8 @@ const (
 	DefaultLockObjectName = "diki-operator-leader-election"
 	// DefaultDikiRunnerNamespace is the default namespace where DikiRunner pods are created.
 	DefaultDikiRunnerNamespace = "kube-system"
-	// DefaultWaitInterval is the default duration to wait between status checks.
-	DefaultWaitInterval = 5 * time.Second
 	// DefaultPodCompletionTimeout is the default maximum duration to wait for pod completion.
 	DefaultPodCompletionTimeout = 10 * time.Minute
-	// DefaultExecTimeout is the default maximum duration to wait for exec commands.
-	DefaultExecTimeout = 30 * time.Second
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -32,17 +28,25 @@ const (
 type DikiOperatorConfiguration struct {
 	metav1.TypeMeta `json:",inline"`
 
+	// Log contains the logging configuration for the audit log forwarder.
+	Log Log `json:"log"`
 	// LeaderElection defines the configuration of leader election client.
 	// +optional
 	LeaderElection *componentbaseconfigv1alpha1.LeaderElectionConfiguration `json:"leaderElection,omitempty"`
-	// LogLevel is the level/severity for the logs. Must be one of [info,debug,error].
-	LogLevel string `json:"logLevel"`
-	// LogFormat is the output format for the logs. Must be one of [text,json].
-	LogFormat string `json:"logFormat"`
 	// Controllers defines the configuration of the controllers.
 	Controllers ControllerConfiguration `json:"controllers"`
 	// Server defines the configuration of the HTTP server.
 	Server ServerConfiguration `json:"server"`
+}
+
+// Log defines the logging configuration for the audit log forwarder.
+type Log struct {
+	// Level is the level/severity for the logs. Must be one of [info,debug,error].
+	// +optional
+	Level string `json:"level,omitempty"`
+	// Format is the output format for the logs. Must be one of [text,json].
+	// +optional
+	Format string `json:"format,omitempty"`
 }
 
 // ControllerConfiguration defines the configuration of the controllers.
@@ -68,15 +72,9 @@ type DikiRunnerConfig struct {
 	// Labels are the labels to be added to DikiRunner pods.
 	// +optional
 	Labels map[string]string `json:"labels,omitempty"`
-	// WaitInterval is the duration to wait between status checks for pod creation and completion.
-	// +optional
-	WaitInterval *metav1.Duration `json:"waitInterval,omitempty"`
 	// PodCompletionTimeout is the maximum duration to wait for a DikiRunner pod to complete.
 	// +optional
 	PodCompletionTimeout *metav1.Duration `json:"podCompletionTimeout,omitempty"`
-	// ExecTimeout is the maximum duration to wait for a pod exec command to complete.
-	// +optional
-	ExecTimeout *metav1.Duration `json:"execTimeout,omitempty"`
 }
 
 // ServerConfiguration contains details for the HTTP(S) servers.

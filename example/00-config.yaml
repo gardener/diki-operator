@@ -12,9 +12,7 @@ kind: DikiOperatorConfiguration
 #   complianceRun:
 #     syncPeriod: 1h
 #     dikiRunner:
-#       waitInterval: 5s
 #       podCompletionTimeout: 10m
-#       execTimeout: 2m
 #       namespace: kube-system
 # server:
 #   healthProbes:

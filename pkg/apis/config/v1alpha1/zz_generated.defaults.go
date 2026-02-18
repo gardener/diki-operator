@@ -23,6 +23,7 @@ func RegisterDefaults(scheme *runtime.Scheme) error {
 
 func SetObjectDefaults_DikiOperatorConfiguration(in *DikiOperatorConfiguration) {
 	SetDefaults_DikiOperatorConfiguration(in)
+	SetDefaults_Log(&in.Log)
 	if in.LeaderElection != nil {
 		SetDefaults_LeaderElectionConfiguration(in.LeaderElection)
 	}

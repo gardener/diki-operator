@@ -19,14 +19,18 @@ func addDefaultingFuncs(scheme *runtime.Scheme) error {
 
 // SetDefaults_DikiOperatorConfiguration sets defaults for the configuration of the diki operator.
 func SetDefaults_DikiOperatorConfiguration(obj *DikiOperatorConfiguration) {
-	if obj.LogLevel == "" {
-		obj.LogLevel = logger.InfoLevel
-	}
-	if obj.LogFormat == "" {
-		obj.LogFormat = logger.FormatJSON
-	}
 	if obj.LeaderElection == nil {
 		obj.LeaderElection = &componentbaseconfigv1alpha1.LeaderElectionConfiguration{}
+	}
+}
+
+// SetDefaults_Log sets defaults for the Log object.
+func SetDefaults_Log(obj *Log) {
+	if len(obj.Level) == 0 {
+		obj.Level = logger.InfoLevel
+	}
+	if len(obj.Format) == 0 {
+		obj.Format = logger.FormatJSON
 	}
 }
 
@@ -41,12 +45,6 @@ func SetDefaults_ComplianceRunConfig(obj *ComplianceRunConfig) {
 func SetDefaults_DikiRunnerConfig(obj *DikiRunnerConfig) {
 	if obj.Namespace == "" {
 		obj.Namespace = DefaultDikiRunnerNamespace
-	}
-	if obj.WaitInterval == nil {
-		obj.WaitInterval = &metav1.Duration{Duration: DefaultWaitInterval}
-	}
-	if obj.ExecTimeout == nil {
-		obj.ExecTimeout = &metav1.Duration{Duration: DefaultExecTimeout}
 	}
 	if obj.PodCompletionTimeout == nil {
 		obj.PodCompletionTimeout = &metav1.Duration{Duration: DefaultPodCompletionTimeout}
