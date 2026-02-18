@@ -77,7 +77,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 		errorList := ValidateDikiOperatorConfiguration(conf)
 		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 			"Type":     Equal(field.ErrorTypeNotSupported),
-			"Field":    Equal("logLevel"),
+			"Field":    Equal("log.level"),
 			"BadValue": Equal("invalid"),
 		}))))
 	})
@@ -88,7 +88,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 		errorList := ValidateDikiOperatorConfiguration(conf)
 		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 			"Type":     Equal(field.ErrorTypeNotSupported),
-			"Field":    Equal("logFormat"),
+			"Field":    Equal("log.format"),
 			"BadValue": Equal("invalid"),
 		}))))
 	})

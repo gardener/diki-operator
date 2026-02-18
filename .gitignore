@@ -19,6 +19,8 @@ testbin
 # ignore test kubeconfigs
 .kube
 
+# Local dev artifacts
+dev/
 /hack/tools/bin
 
 # gosec

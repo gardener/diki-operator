@@ -5,8 +5,9 @@
 apiVersion: config.diki.gardener.cloud/v1alpha1
 kind: DikiOperatorConfiguration
 
-# logLevel: info
-# logFormat: json
+# log:
+#   level: info
+#   format: json
 
 # controllers:
 #   complianceRun:

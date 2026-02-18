@@ -82,4 +82,3 @@ spec:
       - name: diki-operator-config
         configMap:
           name: diki-operator
-
