@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-apiVersion: v1
-kind: ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
   name: diki-operator
   namespace: {{ .Release.Namespace }}
@@ -11,3 +11,12 @@ metadata:
     app.kubernetes.io/name: diki-operator
     helm.sh/chart: diki-operator
     app.kubernetes.io/instance: {{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: diki-operator
+  namespace: {{ .Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: diki-operator
+  namespace: {{ .Release.Namespace }}

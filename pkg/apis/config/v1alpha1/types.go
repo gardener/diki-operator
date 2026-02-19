@@ -90,7 +90,7 @@ type ServerConfiguration struct {
 // Server contains information for HTTP(S) server configuration.
 type Server struct {
 	// Port is the port on which to serve requests.
-	Port int `json:"port"`
+	Port int32 `json:"port"`
 	// BindAddress is the IP address on which to listen for the specified port.
 	BindAddress string `json:"bindAddress"`
 }

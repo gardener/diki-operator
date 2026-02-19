@@ -25,7 +25,7 @@ const (
 	// ReconciliationTimeout is the timeout passed to the context of the Reconcile call.
 	ReconciliationTimeout = 10 * time.Minute
 	// MaxConcurrentReconciles is the maximum number of concurrent Reconcile calls.
-	MaxConcurrentReconciles = 50
+	MaxConcurrentReconciles = 5
 )
 
 // SetupWithManager specifies how the controller is built to watch ComplianceRun resources.

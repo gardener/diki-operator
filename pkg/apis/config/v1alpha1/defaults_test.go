@@ -148,7 +148,7 @@ var _ = Describe("Defaults", func() {
 				SetDefaults_ServerConfiguration(obj)
 
 				Expect(obj.HealthProbes).NotTo(BeNil())
-				Expect(obj.HealthProbes.Port).To(Equal(8081))
+				Expect(obj.HealthProbes.Port).To(Equal(int32(8081)))
 			})
 		})
 
@@ -157,7 +157,7 @@ var _ = Describe("Defaults", func() {
 				SetDefaults_ServerConfiguration(obj)
 
 				Expect(obj.Metrics).NotTo(BeNil())
-				Expect(obj.Metrics.Port).To(Equal(8080))
+				Expect(obj.Metrics.Port).To(Equal(int32(8080)))
 			})
 		})
 
@@ -167,7 +167,7 @@ var _ = Describe("Defaults", func() {
 
 				SetDefaults_ServerConfiguration(obj)
 
-				Expect(obj.HealthProbes.Port).To(Equal(9090))
+				Expect(obj.HealthProbes.Port).To(Equal(int32(9090)))
 			})
 
 			It("should not overwrite already set Metrics", func() {
@@ -175,7 +175,7 @@ var _ = Describe("Defaults", func() {
 
 				SetDefaults_ServerConfiguration(obj)
 
-				Expect(obj.Metrics.Port).To(Equal(9092))
+				Expect(obj.Metrics.Port).To(Equal(int32(9092)))
 			})
 		})
 	})

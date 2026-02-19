@@ -28,20 +28,8 @@ rules:
   resources:
   - configmaps
   verbs:
-  - create
   - get
   - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  - pods/exec
-  verbs:
-  - create
-  - get
-  - list
-  - delete
   - watch
 - apiGroups:
   - ""

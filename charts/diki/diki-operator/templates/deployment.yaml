@@ -25,6 +25,11 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       serviceAccountName: diki-operator
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
       containers:
       - name: diki-operator
         image: {{ include "image" . }}
@@ -40,10 +45,11 @@ spec:
             protocol: TCP
         securityContext:
           allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
         volumeMounts:
-        - name: serviceaccount-token
-          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-          readOnly: true
         - name: diki-operator-config
           mountPath: /etc/diki-operator/config
           readOnly: true
@@ -64,24 +70,7 @@ spec:
 {{ toYaml .Values.resources | trim | indent 10 }}
         {{- end }}
       volumes:
-      - name: serviceaccount-token
-        projected:
-          defaultMode: 0444
-          sources:
-            - serviceAccountToken:
-                expirationSeconds: 3600
-                path: token
-            - configMap:
-                name: kube-root-ca.crt
-                items:
-                  - key: ca.crt
-                    path: ca.crt
-            - downwardAPI:
-                items:
-                  - path: namespace
-                    fieldRef:
-                      apiVersion: v1
-                      fieldPath: metadata.namespace
       - name: diki-operator-config
         configMap:
+          defaultMode: 0440
           name: diki-operator

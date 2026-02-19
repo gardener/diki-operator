@@ -24,8 +24,14 @@ This setup will deploy the diki-operator in the `kube-system` namespace.
 Verify that `ComplianceRun` resources are successfully processed.
 
 ```bash
-k apply -f ./example/80-dikioptionscm.yaml
+k apply -f ./example/80-diki-options-configmap.yaml
 k apply -f ./example/90-compliancerun.yaml
+```
+
+Check that reconciliation has started by looking at the logs of the operator:
+
+```bash
+k -n kube-system logs -l app.kubernetes.io/instance=diki-operator
 ```
 
 ## Cleanup
