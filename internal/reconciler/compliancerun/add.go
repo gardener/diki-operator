@@ -52,7 +52,7 @@ func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// Predicate returns a predicate to filter ComplianceRun events
+// Predicate returns a predicate to filter ComplianceRun events.
 func (r *Reconciler) Predicate() predicate.Predicate {
 	return predicate.Funcs{
 		CreateFunc:  func(_ event.CreateEvent) bool { return true },
