@@ -26,6 +26,8 @@ spec:
     spec:
       serviceAccountName: diki-operator
       securityContext:
+        seccompProfile:
+          type: RuntimeDefault
         runAsNonRoot: true
         runAsUser: 65532
         runAsGroup: 65532
@@ -37,12 +39,12 @@ spec:
         args:
         - --config=/etc/diki-operator/config/config.yaml
         ports:
-          - name: health
-            containerPort: {{ .Values.config.server.healthProbes.port }}
-            protocol: TCP
-          - name: metrics
-            containerPort: {{ .Values.config.server.metrics.port }}
-            protocol: TCP
+        - name: health
+          containerPort: {{ .Values.config.server.healthProbes.port }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.config.server.metrics.port }}
+          protocol: TCP
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
