@@ -24,10 +24,10 @@ rules:
   - pods
   - pods/exec
   verbs:
-  - create
   - get
   - list
   - watch
+  - create
 - apiGroups:
   - ""
   - events.k8s.io
@@ -42,9 +42,9 @@ rules:
   resources:
   - leases
   verbs:
-  - create
   - get
   - list
   - watch
+  - create
   - update
   - patch
