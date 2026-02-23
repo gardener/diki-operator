@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+image:
+  repository: europe-docker.pkg.dev/gardener-project/public/gardener/diki-operator
+  pullPolicy: IfNotPresent
+  tag: latest
+
+replicaCount: 1
+resources: {}
+
+# Controller configuration values, passed as a config file
+config:
+  log:
+    level: info
+    format: json
+  server:
+    healthProbes:
+      port: 8081
+    metrics:
+      port: 8080
+  leaderElection:
+    leaderElect: true
+    leaseDuration: 15s
+    renewDeadline: 10s
+    retryPeriod: 2s
+    resourceLock: leases
+  controllers:
+    complianceRun:
+      syncPeriod: 1h
+      dikiRunner:
+        waitInterval: 5s
+        podCompletionTimeout: 10m
+        execTimeout: 30s

@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: diki-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: diki-operator
+    helm.sh/chart: diki-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  revisionHistoryLimit: 2
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: diki-operator
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: diki-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: diki-operator
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+      containers:
+      - name: diki-operator
+        image: {{ include "image" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+        - --config=/etc/diki-operator/config/config.yaml
+        ports:
+        - name: health
+          containerPort: {{ .Values.config.server.healthProbes.port }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.config.server.metrics.port }}
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: diki-operator-config
+          mountPath: /etc/diki-operator/config
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.server.healthProbes.port }}
+            scheme: HTTP
+          initialDelaySeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: {{ .Values.config.server.healthProbes.port }}
+            scheme: HTTP
+          initialDelaySeconds: 5
+        {{- if .Values.resources }}
+        resources:
+{{ toYaml .Values.resources | trim | indent 10 }}
+        {{- end }}
+      volumes:
+      - name: diki-operator-config
+        configMap:
+          defaultMode: 0440
+          name: diki-operator

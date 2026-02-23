@@ -50,21 +50,25 @@ type RulesetConfig struct {
 	// Version is the version of the ruleset.
 	Version string `json:"version"`
 	// Options are options for a ruleset.
+	// +optional
 	Options *RulesetOptions `json:"options,omitempty"`
 }
 
 // RulesetOptions are options for a ruleset.
 type RulesetOptions struct {
 	// Ruleset contains global options for the ruleset.
+	// +optional
 	Ruleset *Options `json:"ruleset,omitempty"`
 	// Rules contains references to rule options.
 	// Users can use these to configure the behaviour of specific rules.
+	// +optional
 	Rules *Options `json:"rules,omitempty"`
 }
 
 // Options contains references to options.
 type Options struct {
 	// ConfigMapRef is a reference to a ConfigMap containing options.
+	// +optional
 	ConfigMapRef *OptionsConfigMapRef `json:"configMapRef,omitempty"`
 }
 
@@ -75,16 +79,19 @@ type OptionsConfigMapRef struct {
 	// Namespace is the namespace of the ConfigMap.
 	Namespace string `json:"namespace"`
 	// Key is the key within the ConfigMap, where the options are stored.
+	// +optional
 	Key *string `json:"key,omitempty"`
 }
 
 // ComplianceRunStatus contains the status of a ComplianceRun.
 type ComplianceRunStatus struct {
 	// Conditions contains the conditions of the ComplianceRun.
+	// +optional
 	Conditions []Condition `json:"conditions,omitempty"`
 	// Phase represents the current phase of the ComplianceRun.
 	Phase ComplianceRunPhase `json:"phase"`
 	// Rulesets contains the ruleset summaries of the ComplianceRun.
+	// +optional
 	Rulesets []RulesetSummary `json:"rulesets,omitempty"`
 }
 
@@ -117,6 +124,7 @@ type RulesResults struct {
 	// Summary contains information about the amount of rules per each status.
 	Summary RulesSummary `json:"summary"`
 	// Rules contains information about the specific rules that have errored/warned/failed.
+	// +optional
 	Rules *RulesFindings `json:"rules,omitempty"`
 }
 
@@ -139,10 +147,13 @@ type RulesSummary struct {
 // RulesFindings contains information about the specific rules that have errored/warned/failed.
 type RulesFindings struct {
 	// Failed contains information about the rules that have a Failed status.
+	// +optional
 	Failed []Rule `json:"failed,omitempty"`
 	// Errored contains information about the rules that have an Errored status.
+	// +optional
 	Errored []Rule `json:"errored,omitempty"`
 	// Warning contains information about the rules that have a Warning status.
+	// +optional
 	Warning []Rule `json:"warning,omitempty"`
 }
 

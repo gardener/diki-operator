@@ -1,0 +1,42 @@
+apiVersion: skaffold/v4beta12
+kind: Config
+metadata:
+  name: diki-operator
+build:
+  artifacts:
+    - image: local-skaffold/diki-operator
+      ko:
+        dependencies:
+          paths:
+            - cmd/diki-operator
+            - cmd/diki-operator/app
+            - internal/reconciler/compliancerun
+            - pkg/apis/config/v1alpha1
+            - pkg/apis/config/v1alpha1/validation
+            - pkg/apis/diki
+            - pkg/apis/diki/install
+            - pkg/apis/diki/v1alpha1
+            - VERSION
+        ldflags:
+          - '{{.LD_FLAGS}}'
+        main: ./cmd/diki-operator
+  tagPolicy:
+    customTemplate:
+      template: '{{.version}}-{{.sha}}'
+      components:
+        - name: sha
+          gitCommit:
+            variant: AbbrevCommitSha
+deploy:
+  helm:
+    releases:
+      - name: diki-operator
+        chartPath: charts/diki/diki-operator
+        valuesFiles:
+          - charts/diki/diki-operator/values.yaml
+        namespace: kube-system
+        setValueTemplates:
+          image.repository: '{{.IMAGE_REPO_local_skaffold_diki_operator}}'
+          image.tag: '{{.IMAGE_TAG_local_skaffold_diki_operator}}@{{.IMAGE_DIGEST_local_skaffold_diki_operator}}'
+        createNamespace: false
+        wait: true

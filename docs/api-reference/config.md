@@ -151,6 +151,7 @@ ComplianceRunStatus
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Conditions contains the conditions of the ComplianceRun.</p>
 </td>
 </tr>
@@ -177,6 +178,7 @@ ComplianceRunPhase
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Rulesets contains the ruleset summaries of the ComplianceRun.</p>
 </td>
 </tr>
@@ -320,6 +322,7 @@ OptionsConfigMapRef
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>ConfigMapRef is a reference to a ConfigMap containing options.</p>
 </td>
 </tr>
@@ -372,6 +375,7 @@ string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Key is the key within the ConfigMap, where the options are stored.</p>
 </td>
 </tr>
@@ -445,6 +449,7 @@ string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Failed contains information about the rules that have a Failed status.</p>
 </td>
 </tr>
@@ -458,6 +463,7 @@ string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Errored contains information about the rules that have an Errored status.</p>
 </td>
 </tr>
@@ -471,6 +477,7 @@ string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Warning contains information about the rules that have a Warning status.</p>
 </td>
 </tr>
@@ -516,6 +523,7 @@ RulesFindings
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Rules contains information about the specific rules that have errored/warned/failed.</p>
 </td>
 </tr>
@@ -655,6 +663,7 @@ RulesetOptions
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Options are options for a ruleset.</p>
 </td>
 </tr>
@@ -687,6 +696,7 @@ Options
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Ruleset contains global options for the ruleset.</p>
 </td>
 </tr>
@@ -700,6 +710,7 @@ Options
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Rules contains references to rule options.
 Users can use these to configure the behaviour of specific rules.</p>
 </td>
