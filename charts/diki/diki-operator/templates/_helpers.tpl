@@ -52,11 +52,7 @@ server:
     port: {{ .Values.config.server.metrics.port }}
 leaderElection:
   resourceName: {{ include "leaderelectionid" . }}
-  {{- if .Values.config.leaderElection.resourceNamespace}}
-  resourceNamespace: {{ .Values.config.leaderElection.resourceNamespace }}
-  {{- else }}
   resourceNamespace: {{ .Release.Namespace }}
-  {{- end }}
   {{- if .Values.config.leaderElection.leaderElect }}
   leaderElect: {{ .Values.config.leaderElection.leaderElect }}
   {{- end }}
