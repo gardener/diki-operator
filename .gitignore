@@ -21,8 +21,7 @@ testbin
 
 # Local dev artifacts
 dev/
-/hack/tools/bin/*
-!/hack/tools/bin/.gitkeep
+/hack/tools/bin
 
 # gosec
 gosec-report.sarif
