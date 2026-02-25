@@ -15,7 +15,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: diki-operator
-  namespace: {{ .Release.Namespace }}
 subjects:
 - kind: ServiceAccount
   name: diki-operator
