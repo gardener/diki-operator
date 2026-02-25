@@ -5,6 +5,7 @@
 package reconciler
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
@@ -74,20 +75,23 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, complianceRun *v1a
 		Providers: []dikiconfig.ProviderConfig{managedk8sProvider},
 	}
 
-	dikiConfigYAML, err := yaml.Marshal(dikiConfig)
-	if err != nil {
+	var buf bytes.Buffer
+	encoder := yaml.NewEncoder(&buf)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(dikiConfig); err != nil {
 		return nil, fmt.Errorf("failed to marshal diki config: %w", err)
 	}
+	dikiConfigYAML := buf.Bytes()
 
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName:    "diki-config-",
-			Namespace:       r.Config.DikiRunner.Namespace,
-			OwnerReferences: r.getOwnerReference(complianceRun),
-			Labels:          r.getLabels(),
+			GenerateName: ConfigMapGenerateNamePrefix,
+			Namespace:    r.Config.DikiRunner.Namespace,
+			//OwnerReferences: r.getOwnerReference(job),
+			Labels: r.getLabels(complianceRun),
 		},
 		Data: map[string]string{
-			"config.yaml": string(dikiConfigYAML),
+			ConfigMapKeyConfigYAML: string(dikiConfigYAML),
 		},
 	}
 
@@ -103,7 +107,7 @@ func (r *Reconciler) getRuleOptions(ctx context.Context, options *v1alpha1.Rules
 		return []dikiconfig.RuleOptionsConfig{}, nil
 	}
 
-	ruleOptionsYAML, err := r.getConfigMapKeyValue(ctx, *options.Rules.ConfigMapRef, fmt.Sprintf("%s-rules", rulesetID))
+	ruleOptionsYAML, err := r.getConfigMapKeyValue(ctx, *options.Rules.ConfigMapRef, fmt.Sprintf("%s%s", rulesetID, RuleOptionsSuffix))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rule options from configMap: %w", err)
 	}
@@ -147,12 +151,12 @@ func (r *Reconciler) getConfigMapKeyValue(ctx context.Context, configMapRef v1al
 	}
 
 	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(configMap), configMap); err != nil {
-		return "", fmt.Errorf("failed to get configMap %s/%s: %w", configMapRef.Namespace, configMapRef.Name, err)
+		return "", fmt.Errorf("failed to get configMap %s: %w", client.ObjectKeyFromObject(configMap), err)
 	}
 
 	ruleOptions, exists := configMap.Data[key]
 	if !exists {
-		return "", fmt.Errorf("key '%s' does not exist in configMap %s/%s", key, configMapRef.Namespace, configMapRef.Name)
+		return "", fmt.Errorf("key '%s' does not exist in configMap %s", key, client.ObjectKeyFromObject(configMap))
 	}
 
 	return ruleOptions, nil

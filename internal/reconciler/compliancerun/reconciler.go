@@ -28,7 +28,7 @@ type Reconciler struct {
 
 // Reconcile handles reconciliation requests for ComplianceRun resources.
 func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logf.FromContext(ctx)
+	log := logf.FromContext(ctx).WithValues("name", req.Name)
 
 	complianceRun := &v1alpha1.ComplianceRun{}
 
@@ -41,7 +41,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	}
 
 	if len(complianceRun.Status.Phase) > 0 {
-		log.Info("ComplianceRun already processed, stop reconciling", "name", complianceRun.Name, "phase", complianceRun.Status.Phase)
+		log.Info("ComplianceRun already processed, stop reconciling", "phase", complianceRun.Status.Phase)
 		return reconcile.Result{}, nil
 	}
 
@@ -50,17 +50,29 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	// TODO(AleksandarSavchev): Update conditions here.
 	complianceRun.Status.Phase = v1alpha1.ComplianceRunRunning
 	if err := r.Client.Status().Patch(ctx, complianceRun, patch); err != nil {
-		return reconcile.Result{}, r.handleFailedRun(ctx, complianceRun, err)
+		return reconcile.Result{}, r.handleFailedRun(ctx, complianceRun, log, err)
 	}
 
-	log.Info("Updated ComplianceRun phase to Running", "name", complianceRun.Name)
+	log.Info("Updated ComplianceRun phase to Running")
 
-	dikiConfig, err := r.deployDikiConfigMap(ctx, complianceRun)
+	// TODO(AleksandarSavchev): Create diki-runner job here.
+
+	configMap, err := r.deployDikiConfigMap(ctx, complianceRun)
 	if err != nil {
-		return reconcile.Result{}, r.handleFailedRun(ctx, complianceRun, err)
+		return reconcile.Result{}, r.handleFailedRun(ctx, complianceRun, log, err)
 	}
 
-	log.Info(fmt.Sprintf("Created ConfigMap %s/%s", dikiConfig.Namespace, dikiConfig.Name))
+	log.Info(fmt.Sprintf("Created ConfigMap %s", client.ObjectKeyFromObject(configMap)))
+
+	// Update phase to Completed
+	patch = client.MergeFrom(complianceRun.DeepCopy())
+	complianceRun.Status.Phase = v1alpha1.ComplianceRunCompleted
+	// TODO(AleksandarSavchev): Update conditions here.
+	if err := r.Client.Status().Patch(ctx, complianceRun, patch); err != nil {
+		return reconcile.Result{}, r.handleFailedRun(ctx, complianceRun, log, err)
+	}
+
+	log.Info("Updated ComplianceRun phase to Completed")
 
 	return ctrl.Result{}, nil
 }
