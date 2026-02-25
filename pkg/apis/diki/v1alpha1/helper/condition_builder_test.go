@@ -39,7 +39,7 @@ var _ = Describe("Builder", func() {
 		var (
 			result  v1alpha1.Condition
 			updated bool
-			bldr    ConditionBuilder
+			bldr    *ConditionBuilder
 		)
 
 		JustBeforeEach(func() {

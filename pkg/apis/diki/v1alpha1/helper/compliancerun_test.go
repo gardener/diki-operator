@@ -31,78 +31,11 @@ var _ = Describe("ComplianceRun Helpers", func() {
 		defaultTime = metav1.NewTime(time.Unix(2, 2))
 	})
 
-	Describe("#RemoveComplianceRunCondition", func() {
-		It("should remove the condition with the specified type", func() {
-			conditions := []v1alpha1.Condition{
-				{
-					Type:               v1alpha1.ConditionType("bar"),
-					Status:             v1alpha1.ConditionStatus("False"),
-					Reason:             "ReasonB",
-					Message:            "MessageB",
-					LastTransitionTime: defaultTime,
-				},
-				{
-					Type:               v1alpha1.ConditionType("foo"),
-					Status:             v1alpha1.ConditionStatus("True"),
-					Reason:             "ReasonA",
-					Message:            "MessageA",
-					LastTransitionTime: defaultTime,
-				},
-				{
-					Type:               v1alpha1.ConditionType("baz"),
-					Status:             v1alpha1.ConditionStatus("Unknown"),
-					Reason:             "ReasonC",
-					Message:            "MessageC",
-					LastTransitionTime: defaultTime,
-				},
-			}
-
-			result := RemoveComplianceRunCondition(conditions, v1alpha1.ConditionType("bar"))
-
-			Expect(result).To(HaveLen(2))
-			Expect(result[0].Type).To(Equal(v1alpha1.ConditionType("foo")))
-			Expect(result[1].Type).To(Equal(v1alpha1.ConditionType("baz")))
-		})
-
-		It("should return the same conditions if the type is not found", func() {
-			conditions := []v1alpha1.Condition{
-				{
-					Type:               v1alpha1.ConditionType("foo"),
-					Status:             v1alpha1.ConditionStatus("True"),
-					Reason:             "ReasonA",
-					Message:            "MessageA",
-					LastTransitionTime: defaultTime,
-				},
-			}
-
-			result := RemoveComplianceRunCondition(conditions, v1alpha1.ConditionType("bar"))
-
-			Expect(result).To(HaveLen(1))
-			Expect(result[0].Type).To(Equal(v1alpha1.ConditionType("foo")))
-		})
-
-		It("should return an empty slice when removing the only condition", func() {
-			conditions := []v1alpha1.Condition{
-				{
-					Type:               v1alpha1.ConditionType("foo"),
-					Status:             v1alpha1.ConditionStatus("True"),
-					Reason:             "ReasonA",
-					Message:            "MessageA",
-					LastTransitionTime: defaultTime,
-				},
-			}
-
-			result := RemoveComplianceRunCondition(conditions, v1alpha1.ConditionType("foo"))
-
-			Expect(result).To(BeEmpty())
-		})
-	})
-
 	Describe("#UpdateComplianceRunConditions", func() {
 		It("should add a new condition to an empty slice", func() {
 			conditions := []v1alpha1.Condition{}
 
-			result := UpdateComplianceRunConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
+			result := UpdateConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
 
 			Expect(result).To(HaveLen(1))
 			Expect(result).To(ContainElement(v1alpha1.Condition{
@@ -118,7 +51,7 @@ var _ = Describe("ComplianceRun Helpers", func() {
 		It("should add a new condition when type doesn't exist", func() {
 			conditions := []v1alpha1.Condition{{Type: v1alpha1.ConditionType("Existing")}}
 
-			result := UpdateComplianceRunConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
+			result := UpdateConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
 
 			Expect(result).To(HaveLen(2))
 			Expect(result).To(ContainElement(v1alpha1.Condition{
@@ -143,7 +76,7 @@ var _ = Describe("ComplianceRun Helpers", func() {
 				},
 			}
 
-			result := UpdateComplianceRunConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
+			result := UpdateConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
 
 			Expect(result).To(HaveLen(1))
 			Expect(result).To(ContainElement(v1alpha1.Condition{
@@ -168,7 +101,7 @@ var _ = Describe("ComplianceRun Helpers", func() {
 				},
 			}
 
-			result := UpdateComplianceRunConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
+			result := UpdateConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
 
 			Expect(result).To(HaveLen(1))
 			Expect(result).To(ContainElement(v1alpha1.Condition{
@@ -207,7 +140,7 @@ var _ = Describe("ComplianceRun Helpers", func() {
 				},
 			}
 
-			result := UpdateComplianceRunConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
+			result := UpdateConditions(conditions, conditionType, fooStatus, bazReason, fubarMessage, defaultTime.Time)
 
 			Expect(result).To(ConsistOf(
 				v1alpha1.Condition{

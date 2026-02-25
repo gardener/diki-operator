@@ -5,6 +5,7 @@
 package helper
 
 import (
+	"cmp"
 	"time"
 
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
@@ -13,18 +14,8 @@ import (
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-// ConditionBuilder build a Condition.
-type ConditionBuilder interface {
-	WithOldCondition(old v1alpha1.Condition) ConditionBuilder
-	WithStatus(status v1alpha1.ConditionStatus) ConditionBuilder
-	WithReason(reason string) ConditionBuilder
-	WithMessage(message string) ConditionBuilder
-	WithTime(now time.Time) ConditionBuilder
-	Build() (new v1alpha1.Condition, updated bool)
-}
-
-// defaultConditionBuilder build a Condition.
-type defaultConditionBuilder struct {
+// ConditionBuilder builds a Condition.
+type ConditionBuilder struct {
 	old           v1alpha1.Condition
 	status        v1alpha1.ConditionStatus
 	conditionType v1alpha1.ConditionType
@@ -34,8 +25,8 @@ type defaultConditionBuilder struct {
 }
 
 // NewConditionBuilder returns a ConditionBuilder for a specific condition.
-func NewConditionBuilder(conditionType v1alpha1.ConditionType) ConditionBuilder {
-	return &defaultConditionBuilder{
+func NewConditionBuilder(conditionType v1alpha1.ConditionType) *ConditionBuilder {
+	return &ConditionBuilder{
 		conditionType: conditionType,
 		time:          time.Now(),
 	}
@@ -43,86 +34,69 @@ func NewConditionBuilder(conditionType v1alpha1.ConditionType) ConditionBuilder 
 
 // WithOldCondition sets the old condition. It can be used to provide default values.
 // The old's condition type is overridden to the one specified in the builder.
-func (b *defaultConditionBuilder) WithOldCondition(old v1alpha1.Condition) ConditionBuilder {
-	old.Type = b.conditionType
-	b.old = old
+func (cb *ConditionBuilder) WithOldCondition(old v1alpha1.Condition) *ConditionBuilder {
+	old.Type = cb.conditionType
+	cb.old = old
 
-	return b
+	return cb
 }
 
 // WithStatus sets the status of the condition.
-func (b *defaultConditionBuilder) WithStatus(status v1alpha1.ConditionStatus) ConditionBuilder {
-	b.status = status
-	return b
+func (cb *ConditionBuilder) WithStatus(status v1alpha1.ConditionStatus) *ConditionBuilder {
+	cb.status = status
+	return cb
 }
 
 // WithReason sets the reason of the condition.
-func (b *defaultConditionBuilder) WithReason(reason string) ConditionBuilder {
-	b.reason = reason
-	return b
+func (cb *ConditionBuilder) WithReason(reason string) *ConditionBuilder {
+	cb.reason = reason
+	return cb
 }
 
 // WithMessage sets the message of the condition.
-func (b *defaultConditionBuilder) WithMessage(message string) ConditionBuilder {
-	b.message = message
-	return b
+func (cb *ConditionBuilder) WithMessage(message string) *ConditionBuilder {
+	cb.message = message
+	return cb
 }
 
 // WithTime sets the time for the condition.
-func (b *defaultConditionBuilder) WithTime(now time.Time) ConditionBuilder {
-	b.time = now
+func (cb *ConditionBuilder) WithTime(time time.Time) *ConditionBuilder {
+	cb.time = time
 
-	return b
+	return cb
 }
 
 // Build creates the condition and returns if there are modifications with the OldCondition.
 // If OldCondition is provided:
 // - Any changes to status set the `LastTransitionTime`
 // - Any updates to the message or reason cause set `LastUpdateTime` to the current time.
-func (b *defaultConditionBuilder) Build() (c v1alpha1.Condition, updated bool) {
+func (cb *ConditionBuilder) Build() (c v1alpha1.Condition, updated bool) {
 	var (
-		now       = metav1.Time{Time: b.time}
-		emptyTime = metav1.Time{}
+		time     = metav1.Time{Time: cb.time}
+		zeroTime = metav1.Time{}
 	)
 
-	c = *b.old.DeepCopy()
+	c = *cb.old.DeepCopy()
 
-	if c.LastTransitionTime == emptyTime {
-		c.LastTransitionTime = now
+	if c.LastTransitionTime == zeroTime {
+		c.LastTransitionTime = time
+	}
+	if c.LastUpdateTime == zeroTime {
+		c.LastUpdateTime = time
 	}
 
-	if c.LastUpdateTime == emptyTime {
-		c.LastUpdateTime = now
+	c.Type = cb.conditionType
+	c.Status = cmp.Or(cb.status, c.Status, v1alpha1.ConditionUnknown)
+	c.Reason = cmp.Or(cb.reason, c.Reason, "Unspecified")
+	c.Message = cmp.Or(cb.message, c.Message, "No message given.")
+
+	if c.Status != cb.old.Status {
+		c.LastTransitionTime = time
+	}
+	if c.Reason != cb.old.Reason ||
+		c.Message != cb.old.Message {
+		c.LastUpdateTime = time
 	}
 
-	c.Type = b.conditionType
-
-	if len(b.status) != 0 {
-		c.Status = b.status
-	} else if len(c.Status) == 0 {
-		c.Status = v1alpha1.ConditionUnknown
-	}
-
-	if len(b.reason) > 0 {
-		c.Reason = b.reason
-	} else if len(c.Reason) == 0 {
-		c.Reason = "Unspecified"
-	}
-
-	if len(b.message) > 0 {
-		c.Message = b.message
-	} else if len(c.Message) == 0 {
-		c.Message = "No message given."
-	}
-
-	if c.Status != b.old.Status {
-		c.LastTransitionTime = now
-	}
-
-	if c.Reason != b.old.Reason ||
-		c.Message != b.old.Message {
-		c.LastUpdateTime = now
-	}
-
-	return c, !apiequality.Semantic.DeepEqual(c, b.old)
+	return c, !apiequality.Semantic.DeepEqual(c, cb.old)
 }
