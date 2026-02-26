@@ -100,7 +100,7 @@ var _ = Describe("Controller", func() {
 
 		var patchCallCount int
 		fakeError := errors.New("err-foo")
-		
+
 		errClient := fake.NewClientBuilder().
 			WithScheme(fakeClient.Scheme()).
 			WithStatusSubresource(&dikiv1alpha1.ComplianceRun{}).
@@ -115,7 +115,7 @@ var _ = Describe("Controller", func() {
 				},
 			}).
 			Build()
-		
+
 		cr.Client = errClient
 
 		res, err := cr.Reconcile(ctx, request)
