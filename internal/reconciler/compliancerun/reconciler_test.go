@@ -98,31 +98,30 @@ var _ = Describe("Controller", func() {
 	It("should handle failed compliance run reconcile", func() {
 		Expect(fakeClient.Create(ctx, complianceRun)).To(Succeed())
 
-		var patchCallCount int
-		fakeError := errors.New("err-foo")
-
-		errClient := fake.NewClientBuilder().
+		cr.Client = fake.NewClientBuilder().
 			WithScheme(fakeClient.Scheme()).
 			WithStatusSubresource(&dikiv1alpha1.ComplianceRun{}).
 			WithObjects(complianceRun).
 			WithInterceptorFuncs(interceptor.Funcs{
 				SubResourcePatch: func(ctx context.Context, client client.Client, subResourceName string, obj client.Object, patch client.Patch, opts ...client.SubResourcePatchOption) error {
-					patchCallCount++
-					if patchCallCount == 1 {
+					var (
+						cr        = obj.(*dikiv1alpha1.ComplianceRun)
+						fakeError = errors.New("err-foo")
+					)
+
+					if cr.Status.Phase == dikiv1alpha1.ComplianceRunRunning {
 						return fakeError
 					}
+
 					return client.SubResource(subResourceName).Patch(ctx, obj, patch, opts...)
 				},
-			}).
-			Build()
-
-		cr.Client = errClient
+			}).Build()
 
 		res, err := cr.Reconcile(ctx, request)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res).To(Equal(reconcile.Result{}))
 
-		Expect(errClient.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
+		Expect(cr.Client.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
 		Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunFailed))
 	})
 

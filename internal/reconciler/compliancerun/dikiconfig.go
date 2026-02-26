@@ -91,7 +91,7 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, complianceRun *v1a
 			Labels: r.getLabels(complianceRun),
 		},
 		Data: map[string]string{
-			ConfigMapKeyConfigYAML: string(dikiConfigYAML),
+			DikiConfigKey: string(dikiConfigYAML),
 		},
 	}
 
@@ -104,10 +104,10 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, complianceRun *v1a
 
 func (r *Reconciler) getRuleOptions(ctx context.Context, options *v1alpha1.RulesetOptions, rulesetID string) ([]dikiconfig.RuleOptionsConfig, error) {
 	if options == nil || options.Rules == nil || options.Rules.ConfigMapRef == nil {
-		return []dikiconfig.RuleOptionsConfig{}, nil
+		return nil, nil
 	}
 
-	ruleOptionsYAML, err := r.getConfigMapKeyValue(ctx, *options.Rules.ConfigMapRef, fmt.Sprintf("%s%s", rulesetID, RuleOptionsSuffix))
+	ruleOptionsYAML, err := r.getConfigMapKeyValue(ctx, *options.Rules.ConfigMapRef, rulesetID+RuleOptionsSuffix)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rule options from configMap: %w", err)
 	}
