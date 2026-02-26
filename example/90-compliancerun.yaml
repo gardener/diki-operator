@@ -11,7 +11,7 @@ spec:
           configMapRef:
             name: diki-options
             namespace: kube-system
-            key: security-hardened-k8s # defaults to ID of the ruleset
+            key: disa-kubernetes-stig # defaults to ID of the ruleset
         rules:
           configMapRef:
             name: diki-options
