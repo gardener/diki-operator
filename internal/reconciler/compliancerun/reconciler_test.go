@@ -6,6 +6,7 @@ package reconciler_test
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/gardener/gardener/pkg/client/kubernetes"
@@ -19,6 +20,7 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	logzap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -91,6 +93,37 @@ var _ = Describe("Controller", func() {
 
 		Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
 		Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunCompleted))
+	})
+
+	It("should handle failed compliance run reconcile", func() {
+		Expect(fakeClient.Create(ctx, complianceRun)).To(Succeed())
+
+		var patchCallCount int
+		fakeError := errors.New("err-foo")
+		
+		errClient := fake.NewClientBuilder().
+			WithScheme(fakeClient.Scheme()).
+			WithStatusSubresource(&dikiv1alpha1.ComplianceRun{}).
+			WithObjects(complianceRun).
+			WithInterceptorFuncs(interceptor.Funcs{
+				SubResourcePatch: func(ctx context.Context, client client.Client, subResourceName string, obj client.Object, patch client.Patch, opts ...client.SubResourcePatchOption) error {
+					patchCallCount++
+					if patchCallCount == 1 {
+						return fakeError
+					}
+					return client.SubResource(subResourceName).Patch(ctx, obj, patch, opts...)
+				},
+			}).
+			Build()
+		
+		cr.Client = errClient
+
+		res, err := cr.Reconcile(ctx, request)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(res).To(Equal(reconcile.Result{}))
+
+		Expect(errClient.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
+		Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunFailed))
 	})
 
 	var _ = Describe("diki config ConfigMap", func() {
@@ -173,6 +206,7 @@ var _ = Describe("Controller", func() {
 			Expect(fakeClient.Create(ctx, optionsConfigMap)).To(Succeed())
 			configMapList = &corev1.ConfigMapList{}
 		})
+
 		It("should create a diki config ConfigMap", func() {
 			Expect(fakeClient.Create(ctx, complianceRun)).To(Succeed())
 
