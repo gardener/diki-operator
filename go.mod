@@ -22,7 +22,7 @@ require (
 	github.com/onsi/gomega v1.39.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
-	go.yaml.in/yaml/v4 v4.0.0-rc.3
+	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	golang.org/x/time v0.14.0
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.0
