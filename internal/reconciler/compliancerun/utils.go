@@ -8,17 +8,30 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"slices"
+	"time"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
+	v1alpha1helper "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1/helper"
 )
 
 func (r *Reconciler) handleFailedRun(ctx context.Context, complianceRun *v1alpha1.ComplianceRun, log logr.Logger, err error) error {
 	patch := client.MergeFrom(complianceRun.DeepCopy())
 	complianceRun.Status.Phase = v1alpha1.ComplianceRunFailed
-	// TODO(AleksandarSavchev): Update conditions here.
+	complianceRun.Status.Conditions = v1alpha1helper.UpdateConditions(
+		complianceRun.Status.Conditions,
+		v1alpha1.ConditionTypeFailed,
+		v1alpha1.ConditionTrue,
+		ConditionReasonFailed,
+		fmt.Sprintf("ComplianceRun failed with error: %s", err.Error()),
+		time.Now(),
+	)
+	complianceRun.Status.Conditions = slices.DeleteFunc(complianceRun.Status.Conditions, func(c v1alpha1.Condition) bool {
+		return c.Type == v1alpha1.ConditionTypeCompleted
+	})
 
 	if err2 := r.Client.Status().Patch(ctx, complianceRun, patch); err2 != nil {
 		return fmt.Errorf("failed to update ComplianceRun status to Failed: %w, original error: %w", err2, err)

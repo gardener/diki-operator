@@ -25,4 +25,11 @@ const (
 
 	// RuleOptionsSuffix is the suffix appended to ruleset IDs when looking up rule options in ConfigMaps.
 	RuleOptionsSuffix = "-rules"
+
+	// ConditionReasonRunning is the reason for ComplianceRun condition when it is running.
+	ConditionReasonRunning = "ComplianceRunRunning"
+	// ConditionReasonCompleted is the reason for ComplianceRun condition when it has completed successfully.
+	ConditionReasonCompleted = "ComplianceRunCompleted"
+	// ConditionReasonFailed is the reason for ComplianceRun condition when it has failed.
+	ConditionReasonFailed = "ComplianceRunFailed"
 )

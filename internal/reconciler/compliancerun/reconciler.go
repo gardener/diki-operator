@@ -7,6 +7,7 @@ package reconciler
 import (
 	"context"
 	"fmt"
+	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/rest"
@@ -15,15 +16,16 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	v1alpha1config "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
+	configv1alpha1 "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
+	dikiv1alpha1helper "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1/helper"
 )
 
 // Reconciler reconciles compliance runs.
 type Reconciler struct {
 	Client     client.Client
 	RESTConfig *rest.Config
-	Config     v1alpha1config.ComplianceRunConfig
+	Config     configv1alpha1.ComplianceRunConfig
 }
 
 // Reconcile handles reconciliation requests for ComplianceRun resources.
@@ -47,7 +49,14 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 	// Update phase to Running
 	patch := client.MergeFrom(complianceRun.DeepCopy())
-	// TODO(AleksandarSavchev): Update conditions here.
+	complianceRun.Status.Conditions = dikiv1alpha1helper.UpdateConditions(
+		complianceRun.Status.Conditions,
+		v1alpha1.ConditionTypeCompleted,
+		v1alpha1.ConditionFalse,
+		ConditionReasonRunning,
+		"ComplianceRun is running",
+		time.Now(),
+	)
 	complianceRun.Status.Phase = v1alpha1.ComplianceRunRunning
 	if err := r.Client.Status().Patch(ctx, complianceRun, patch); err != nil {
 		return reconcile.Result{}, r.handleFailedRun(ctx, complianceRun, log, err)
@@ -67,7 +76,14 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	// Update phase to Completed
 	patch = client.MergeFrom(complianceRun.DeepCopy())
 	complianceRun.Status.Phase = v1alpha1.ComplianceRunCompleted
-	// TODO(AleksandarSavchev): Update conditions here.
+	complianceRun.Status.Conditions = dikiv1alpha1helper.UpdateConditions(
+		complianceRun.Status.Conditions,
+		v1alpha1.ConditionTypeCompleted,
+		v1alpha1.ConditionTrue,
+		ConditionReasonCompleted,
+		"ComplianceRun has completed successfully",
+		time.Now(),
+	)
 	if err := r.Client.Status().Patch(ctx, complianceRun, patch); err != nil {
 		return reconcile.Result{}, r.handleFailedRun(ctx, complianceRun, log, err)
 	}
