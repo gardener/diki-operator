@@ -16,6 +16,7 @@ build:
             - pkg/apis/diki
             - pkg/apis/diki/install
             - pkg/apis/diki/v1alpha1
+            - pkg/apis/diki/v1alpha1/helper
             - VERSION
         ldflags:
           - '{{.LD_FLAGS}}'
