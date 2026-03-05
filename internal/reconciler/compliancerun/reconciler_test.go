@@ -12,6 +12,7 @@ import (
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -93,6 +94,14 @@ var _ = Describe("Controller", func() {
 
 		Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
 		Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunCompleted))
+		Expect(complianceRun.Status.Conditions).To(ConsistOf(
+			MatchFields(IgnoreExtras, Fields{
+				"Type":    Equal(dikiv1alpha1.ConditionTypeCompleted),
+				"Status":  Equal(dikiv1alpha1.ConditionTrue),
+				"Reason":  Equal(compliancerun.ConditionReasonCompleted),
+				"Message": Equal("ComplianceRun has completed successfully"),
+			}),
+		))
 	})
 
 	It("should handle failed compliance run reconcile", func() {
@@ -123,6 +132,14 @@ var _ = Describe("Controller", func() {
 
 		Expect(cr.Client.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
 		Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunFailed))
+		Expect(complianceRun.Status.Conditions).To(ConsistOf(
+			MatchFields(IgnoreExtras, Fields{
+				"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+				"Status":  Equal(dikiv1alpha1.ConditionTrue),
+				"Reason":  Equal(compliancerun.ConditionReasonFailed),
+				"Message": Equal("ComplianceRun failed with error: err-foo"),
+			}),
+		))
 	})
 
 	var _ = Describe("diki config ConfigMap", func() {
