@@ -24,43 +24,43 @@ func init() {
 // RegisterConversions adds conversion functions to the given scheme.
 // Public to allow building arbitrary schemes.
 func RegisterConversions(s *runtime.Scheme) error {
-	if err := s.AddGeneratedConversionFunc((*ComplianceRun)(nil), (*diki.ComplianceRun)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_ComplianceRun_To_diki_ComplianceRun(a.(*ComplianceRun), b.(*diki.ComplianceRun), scope)
+	if err := s.AddGeneratedConversionFunc((*ComplianceScan)(nil), (*diki.ComplianceScan)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ComplianceScan_To_diki_ComplianceScan(a.(*ComplianceScan), b.(*diki.ComplianceScan), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*diki.ComplianceRun)(nil), (*ComplianceRun)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_diki_ComplianceRun_To_v1alpha1_ComplianceRun(a.(*diki.ComplianceRun), b.(*ComplianceRun), scope)
+	if err := s.AddGeneratedConversionFunc((*diki.ComplianceScan)(nil), (*ComplianceScan)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ComplianceScan_To_v1alpha1_ComplianceScan(a.(*diki.ComplianceScan), b.(*ComplianceScan), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*ComplianceRunList)(nil), (*diki.ComplianceRunList)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_ComplianceRunList_To_diki_ComplianceRunList(a.(*ComplianceRunList), b.(*diki.ComplianceRunList), scope)
+	if err := s.AddGeneratedConversionFunc((*ComplianceScanList)(nil), (*diki.ComplianceScanList)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ComplianceScanList_To_diki_ComplianceScanList(a.(*ComplianceScanList), b.(*diki.ComplianceScanList), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*diki.ComplianceRunList)(nil), (*ComplianceRunList)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_diki_ComplianceRunList_To_v1alpha1_ComplianceRunList(a.(*diki.ComplianceRunList), b.(*ComplianceRunList), scope)
+	if err := s.AddGeneratedConversionFunc((*diki.ComplianceScanList)(nil), (*ComplianceScanList)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ComplianceScanList_To_v1alpha1_ComplianceScanList(a.(*diki.ComplianceScanList), b.(*ComplianceScanList), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*ComplianceRunSpec)(nil), (*diki.ComplianceRunSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_ComplianceRunSpec_To_diki_ComplianceRunSpec(a.(*ComplianceRunSpec), b.(*diki.ComplianceRunSpec), scope)
+	if err := s.AddGeneratedConversionFunc((*ComplianceScanSpec)(nil), (*diki.ComplianceScanSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(a.(*ComplianceScanSpec), b.(*diki.ComplianceScanSpec), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*diki.ComplianceRunSpec)(nil), (*ComplianceRunSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_diki_ComplianceRunSpec_To_v1alpha1_ComplianceRunSpec(a.(*diki.ComplianceRunSpec), b.(*ComplianceRunSpec), scope)
+	if err := s.AddGeneratedConversionFunc((*diki.ComplianceScanSpec)(nil), (*ComplianceScanSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(a.(*diki.ComplianceScanSpec), b.(*ComplianceScanSpec), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*ComplianceRunStatus)(nil), (*diki.ComplianceRunStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_ComplianceRunStatus_To_diki_ComplianceRunStatus(a.(*ComplianceRunStatus), b.(*diki.ComplianceRunStatus), scope)
+	if err := s.AddGeneratedConversionFunc((*ComplianceScanStatus)(nil), (*diki.ComplianceScanStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus(a.(*ComplianceScanStatus), b.(*diki.ComplianceScanStatus), scope)
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*diki.ComplianceRunStatus)(nil), (*ComplianceRunStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_diki_ComplianceRunStatus_To_v1alpha1_ComplianceRunStatus(a.(*diki.ComplianceRunStatus), b.(*ComplianceRunStatus), scope)
+	if err := s.AddGeneratedConversionFunc((*diki.ComplianceScanStatus)(nil), (*ComplianceScanStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus(a.(*diki.ComplianceScanStatus), b.(*ComplianceScanStatus), scope)
 	}); err != nil {
 		return err
 	}
@@ -167,102 +167,102 @@ func RegisterConversions(s *runtime.Scheme) error {
 	return nil
 }
 
-func autoConvert_v1alpha1_ComplianceRun_To_diki_ComplianceRun(in *ComplianceRun, out *diki.ComplianceRun, s conversion.Scope) error {
+func autoConvert_v1alpha1_ComplianceScan_To_diki_ComplianceScan(in *ComplianceScan, out *diki.ComplianceScan, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_v1alpha1_ComplianceRunSpec_To_diki_ComplianceRunSpec(&in.Spec, &out.Spec, s); err != nil {
+	if err := Convert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(&in.Spec, &out.Spec, s); err != nil {
 		return err
 	}
-	if err := Convert_v1alpha1_ComplianceRunStatus_To_diki_ComplianceRunStatus(&in.Status, &out.Status, s); err != nil {
+	if err := Convert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus(&in.Status, &out.Status, s); err != nil {
 		return err
 	}
 	return nil
 }
 
-// Convert_v1alpha1_ComplianceRun_To_diki_ComplianceRun is an autogenerated conversion function.
-func Convert_v1alpha1_ComplianceRun_To_diki_ComplianceRun(in *ComplianceRun, out *diki.ComplianceRun, s conversion.Scope) error {
-	return autoConvert_v1alpha1_ComplianceRun_To_diki_ComplianceRun(in, out, s)
+// Convert_v1alpha1_ComplianceScan_To_diki_ComplianceScan is an autogenerated conversion function.
+func Convert_v1alpha1_ComplianceScan_To_diki_ComplianceScan(in *ComplianceScan, out *diki.ComplianceScan, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ComplianceScan_To_diki_ComplianceScan(in, out, s)
 }
 
-func autoConvert_diki_ComplianceRun_To_v1alpha1_ComplianceRun(in *diki.ComplianceRun, out *ComplianceRun, s conversion.Scope) error {
+func autoConvert_diki_ComplianceScan_To_v1alpha1_ComplianceScan(in *diki.ComplianceScan, out *ComplianceScan, s conversion.Scope) error {
 	out.ObjectMeta = in.ObjectMeta
-	if err := Convert_diki_ComplianceRunSpec_To_v1alpha1_ComplianceRunSpec(&in.Spec, &out.Spec, s); err != nil {
+	if err := Convert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(&in.Spec, &out.Spec, s); err != nil {
 		return err
 	}
-	if err := Convert_diki_ComplianceRunStatus_To_v1alpha1_ComplianceRunStatus(&in.Status, &out.Status, s); err != nil {
+	if err := Convert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus(&in.Status, &out.Status, s); err != nil {
 		return err
 	}
 	return nil
 }
 
-// Convert_diki_ComplianceRun_To_v1alpha1_ComplianceRun is an autogenerated conversion function.
-func Convert_diki_ComplianceRun_To_v1alpha1_ComplianceRun(in *diki.ComplianceRun, out *ComplianceRun, s conversion.Scope) error {
-	return autoConvert_diki_ComplianceRun_To_v1alpha1_ComplianceRun(in, out, s)
+// Convert_diki_ComplianceScan_To_v1alpha1_ComplianceScan is an autogenerated conversion function.
+func Convert_diki_ComplianceScan_To_v1alpha1_ComplianceScan(in *diki.ComplianceScan, out *ComplianceScan, s conversion.Scope) error {
+	return autoConvert_diki_ComplianceScan_To_v1alpha1_ComplianceScan(in, out, s)
 }
 
-func autoConvert_v1alpha1_ComplianceRunList_To_diki_ComplianceRunList(in *ComplianceRunList, out *diki.ComplianceRunList, s conversion.Scope) error {
+func autoConvert_v1alpha1_ComplianceScanList_To_diki_ComplianceScanList(in *ComplianceScanList, out *diki.ComplianceScanList, s conversion.Scope) error {
 	out.ListMeta = in.ListMeta
-	out.Items = *(*[]diki.ComplianceRun)(unsafe.Pointer(&in.Items))
+	out.Items = *(*[]diki.ComplianceScan)(unsafe.Pointer(&in.Items))
 	return nil
 }
 
-// Convert_v1alpha1_ComplianceRunList_To_diki_ComplianceRunList is an autogenerated conversion function.
-func Convert_v1alpha1_ComplianceRunList_To_diki_ComplianceRunList(in *ComplianceRunList, out *diki.ComplianceRunList, s conversion.Scope) error {
-	return autoConvert_v1alpha1_ComplianceRunList_To_diki_ComplianceRunList(in, out, s)
+// Convert_v1alpha1_ComplianceScanList_To_diki_ComplianceScanList is an autogenerated conversion function.
+func Convert_v1alpha1_ComplianceScanList_To_diki_ComplianceScanList(in *ComplianceScanList, out *diki.ComplianceScanList, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ComplianceScanList_To_diki_ComplianceScanList(in, out, s)
 }
 
-func autoConvert_diki_ComplianceRunList_To_v1alpha1_ComplianceRunList(in *diki.ComplianceRunList, out *ComplianceRunList, s conversion.Scope) error {
+func autoConvert_diki_ComplianceScanList_To_v1alpha1_ComplianceScanList(in *diki.ComplianceScanList, out *ComplianceScanList, s conversion.Scope) error {
 	out.ListMeta = in.ListMeta
-	out.Items = *(*[]ComplianceRun)(unsafe.Pointer(&in.Items))
+	out.Items = *(*[]ComplianceScan)(unsafe.Pointer(&in.Items))
 	return nil
 }
 
-// Convert_diki_ComplianceRunList_To_v1alpha1_ComplianceRunList is an autogenerated conversion function.
-func Convert_diki_ComplianceRunList_To_v1alpha1_ComplianceRunList(in *diki.ComplianceRunList, out *ComplianceRunList, s conversion.Scope) error {
-	return autoConvert_diki_ComplianceRunList_To_v1alpha1_ComplianceRunList(in, out, s)
+// Convert_diki_ComplianceScanList_To_v1alpha1_ComplianceScanList is an autogenerated conversion function.
+func Convert_diki_ComplianceScanList_To_v1alpha1_ComplianceScanList(in *diki.ComplianceScanList, out *ComplianceScanList, s conversion.Scope) error {
+	return autoConvert_diki_ComplianceScanList_To_v1alpha1_ComplianceScanList(in, out, s)
 }
 
-func autoConvert_v1alpha1_ComplianceRunSpec_To_diki_ComplianceRunSpec(in *ComplianceRunSpec, out *diki.ComplianceRunSpec, s conversion.Scope) error {
+func autoConvert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in *ComplianceScanSpec, out *diki.ComplianceScanSpec, s conversion.Scope) error {
 	out.Rulesets = *(*[]diki.RulesetConfig)(unsafe.Pointer(&in.Rulesets))
 	return nil
 }
 
-// Convert_v1alpha1_ComplianceRunSpec_To_diki_ComplianceRunSpec is an autogenerated conversion function.
-func Convert_v1alpha1_ComplianceRunSpec_To_diki_ComplianceRunSpec(in *ComplianceRunSpec, out *diki.ComplianceRunSpec, s conversion.Scope) error {
-	return autoConvert_v1alpha1_ComplianceRunSpec_To_diki_ComplianceRunSpec(in, out, s)
+// Convert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec is an autogenerated conversion function.
+func Convert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in *ComplianceScanSpec, out *diki.ComplianceScanSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in, out, s)
 }
 
-func autoConvert_diki_ComplianceRunSpec_To_v1alpha1_ComplianceRunSpec(in *diki.ComplianceRunSpec, out *ComplianceRunSpec, s conversion.Scope) error {
+func autoConvert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(in *diki.ComplianceScanSpec, out *ComplianceScanSpec, s conversion.Scope) error {
 	out.Rulesets = *(*[]RulesetConfig)(unsafe.Pointer(&in.Rulesets))
 	return nil
 }
 
-// Convert_diki_ComplianceRunSpec_To_v1alpha1_ComplianceRunSpec is an autogenerated conversion function.
-func Convert_diki_ComplianceRunSpec_To_v1alpha1_ComplianceRunSpec(in *diki.ComplianceRunSpec, out *ComplianceRunSpec, s conversion.Scope) error {
-	return autoConvert_diki_ComplianceRunSpec_To_v1alpha1_ComplianceRunSpec(in, out, s)
+// Convert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec is an autogenerated conversion function.
+func Convert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(in *diki.ComplianceScanSpec, out *ComplianceScanSpec, s conversion.Scope) error {
+	return autoConvert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(in, out, s)
 }
 
-func autoConvert_v1alpha1_ComplianceRunStatus_To_diki_ComplianceRunStatus(in *ComplianceRunStatus, out *diki.ComplianceRunStatus, s conversion.Scope) error {
+func autoConvert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus(in *ComplianceScanStatus, out *diki.ComplianceScanStatus, s conversion.Scope) error {
 	out.Conditions = *(*[]diki.Condition)(unsafe.Pointer(&in.Conditions))
-	out.Phase = diki.ComplianceRunPhase(in.Phase)
+	out.Phase = diki.ComplianceScanPhase(in.Phase)
 	out.Rulesets = *(*[]diki.RulesetSummary)(unsafe.Pointer(&in.Rulesets))
 	return nil
 }
 
-// Convert_v1alpha1_ComplianceRunStatus_To_diki_ComplianceRunStatus is an autogenerated conversion function.
-func Convert_v1alpha1_ComplianceRunStatus_To_diki_ComplianceRunStatus(in *ComplianceRunStatus, out *diki.ComplianceRunStatus, s conversion.Scope) error {
-	return autoConvert_v1alpha1_ComplianceRunStatus_To_diki_ComplianceRunStatus(in, out, s)
+// Convert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus is an autogenerated conversion function.
+func Convert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus(in *ComplianceScanStatus, out *diki.ComplianceScanStatus, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus(in, out, s)
 }
 
-func autoConvert_diki_ComplianceRunStatus_To_v1alpha1_ComplianceRunStatus(in *diki.ComplianceRunStatus, out *ComplianceRunStatus, s conversion.Scope) error {
+func autoConvert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus(in *diki.ComplianceScanStatus, out *ComplianceScanStatus, s conversion.Scope) error {
 	out.Conditions = *(*[]Condition)(unsafe.Pointer(&in.Conditions))
-	out.Phase = ComplianceRunPhase(in.Phase)
+	out.Phase = ComplianceScanPhase(in.Phase)
 	out.Rulesets = *(*[]RulesetSummary)(unsafe.Pointer(&in.Rulesets))
 	return nil
 }
 
-// Convert_diki_ComplianceRunStatus_To_v1alpha1_ComplianceRunStatus is an autogenerated conversion function.
-func Convert_diki_ComplianceRunStatus_To_v1alpha1_ComplianceRunStatus(in *diki.ComplianceRunStatus, out *ComplianceRunStatus, s conversion.Scope) error {
-	return autoConvert_diki_ComplianceRunStatus_To_v1alpha1_ComplianceRunStatus(in, out, s)
+// Convert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus is an autogenerated conversion function.
+func Convert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus(in *diki.ComplianceScanStatus, out *ComplianceScanStatus, s conversion.Scope) error {
+	return autoConvert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus(in, out, s)
 }
 
 func autoConvert_v1alpha1_Condition_To_diki_Condition(in *Condition, out *diki.Condition, s conversion.Scope) error {

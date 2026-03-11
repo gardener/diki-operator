@@ -51,12 +51,12 @@ type Log struct {
 
 // ControllerConfiguration defines the configuration of the controllers.
 type ControllerConfiguration struct {
-	// ComplianceRun is the configuration for the compliance run controller.
-	ComplianceRun ComplianceRunConfig `json:"complianceRun"`
+	// ComplianceScan is the configuration for the compliance run controller.
+	ComplianceScan ComplianceScanConfig `json:"complianceScan"`
 }
 
-// ComplianceRunConfig contains configuration for the ComplianceRun controller.
-type ComplianceRunConfig struct {
+// ComplianceScanConfig contains configuration for the ComplianceScan controller.
+type ComplianceScanConfig struct {
 	// SyncPeriod is the duration how often the controller performs its reconciliation.
 	// +optional
 	SyncPeriod *metav1.Duration `json:"syncPeriod,omitempty"`

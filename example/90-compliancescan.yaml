@@ -1,7 +1,7 @@
 apiVersion: diki.gardener.cloud/v1alpha1
-kind: ComplianceRun
+kind: ComplianceScan
 metadata:
-  name: example-compliancerun
+  name: example-compliancescan
 spec:
   rulesets:
     - id: disa-kubernetes-stig

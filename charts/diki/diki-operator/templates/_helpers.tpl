@@ -31,14 +31,14 @@ log:
    level: {{ .Values.config.log.level }}
    format: {{ .Values.config.log.format }}
 controllers:
-  complianceRun:
-    syncPeriod: {{ .Values.config.controllers.complianceRun.syncPeriod }}
+  complianceScan:
+    syncPeriod: {{ .Values.config.controllers.complianceScan.syncPeriod }}
     dikiRunner:
-      waitInterval: {{ .Values.config.controllers.complianceRun.dikiRunner.waitInterval }}
-      podCompletionTimeout: {{ .Values.config.controllers.complianceRun.dikiRunner.podCompletionTimeout }}
-      execTimeout: {{ .Values.config.controllers.complianceRun.dikiRunner.execTimeout }}
-      {{- if .Values.config.controllers.complianceRun.dikiRunner.namespace }}
-      namespace: {{ .Values.config.controllers.complianceRun.dikiRunner.namespace }}
+      waitInterval: {{ .Values.config.controllers.complianceScan.dikiRunner.waitInterval }}
+      podCompletionTimeout: {{ .Values.config.controllers.complianceScan.dikiRunner.podCompletionTimeout }}
+      execTimeout: {{ .Values.config.controllers.complianceScan.dikiRunner.execTimeout }}
+      {{- if .Values.config.controllers.complianceScan.dikiRunner.namespace }}
+      namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace }}
       {{- else }}
       namespace: {{ .Release.Namespace }}
       {{- end }}

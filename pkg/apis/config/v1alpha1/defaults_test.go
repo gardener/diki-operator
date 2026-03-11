@@ -74,16 +74,16 @@ var _ = Describe("Defaults", func() {
 		})
 	})
 
-	Describe("#SetDefaults_ComplianceRunConfig", func() {
-		var obj *ComplianceRunConfig
+	Describe("#SetDefaults_ComplianceScanConfig", func() {
+		var obj *ComplianceScanConfig
 
 		BeforeEach(func() {
-			obj = &ComplianceRunConfig{}
+			obj = &ComplianceScanConfig{}
 		})
 
 		Context("SyncPeriod", func() {
 			It("should default sync period", func() {
-				SetDefaults_ComplianceRunConfig(obj)
+				SetDefaults_ComplianceScanConfig(obj)
 
 				Expect(obj.SyncPeriod).To(Equal(&metav1.Duration{Duration: time.Hour}))
 			})
@@ -91,7 +91,7 @@ var _ = Describe("Defaults", func() {
 			It("should not overwrite already set value for sync period", func() {
 				obj.SyncPeriod = &metav1.Duration{Duration: time.Minute}
 
-				SetDefaults_ComplianceRunConfig(obj)
+				SetDefaults_ComplianceScanConfig(obj)
 
 				Expect(obj.SyncPeriod).To(Equal(&metav1.Duration{Duration: time.Minute}))
 			})

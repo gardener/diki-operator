@@ -10,10 +10,10 @@
 </p>
 Resource Types:
 <ul></ul>
-<h3 id="diki.gardener.cloud/v1alpha1.ComplianceRun">ComplianceRun
+<h3 id="diki.gardener.cloud/v1alpha1.ComplianceScan">ComplianceScan
 </h3>
 <p>
-<p>ComplianceRun describes a compliance run.</p>
+<p>ComplianceScan describes a compliance run.</p>
 </p>
 <table>
 <thead>
@@ -42,8 +42,8 @@ Refer to the Kubernetes API documentation for the fields of the
 <td>
 <code>spec</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRunSpec">
-ComplianceRunSpec
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">
+ComplianceScanSpec
 </a>
 </em>
 </td>
@@ -72,8 +72,8 @@ ComplianceRunSpec
 <td>
 <code>status</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRunStatus">
-ComplianceRunStatus
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">
+ComplianceScanStatus
 </a>
 </em>
 </td>
@@ -83,23 +83,23 @@ ComplianceRunStatus
 </tr>
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ComplianceRunPhase">ComplianceRunPhase
+<h3 id="diki.gardener.cloud/v1alpha1.ComplianceScanPhase">ComplianceScanPhase
 (<code>string</code> alias)</p></h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRunStatus">ComplianceRunStatus</a>)
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus</a>)
 </p>
 <p>
-<p>ComplianceRunPhase is an alias for string representing the phase of a ComplianceRun.</p>
+<p>ComplianceScanPhase is an alias for string representing the phase of a ComplianceScan.</p>
 </p>
-<h3 id="diki.gardener.cloud/v1alpha1.ComplianceRunSpec">ComplianceRunSpec
+<h3 id="diki.gardener.cloud/v1alpha1.ComplianceScanSpec">ComplianceScanSpec
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRun">ComplianceRun</a>)
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScan">ComplianceScan</a>)
 </p>
 <p>
-<p>ComplianceRunSpec is the specification of a ComplianceRun.</p>
+<p>ComplianceScanSpec is the specification of a ComplianceScan.</p>
 </p>
 <table>
 <thead>
@@ -124,14 +124,14 @@ ComplianceRunStatus
 </tr>
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ComplianceRunStatus">ComplianceRunStatus
+<h3 id="diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRun">ComplianceRun</a>)
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScan">ComplianceScan</a>)
 </p>
 <p>
-<p>ComplianceRunStatus contains the status of a ComplianceRun.</p>
+<p>ComplianceScanStatus contains the status of a ComplianceScan.</p>
 </p>
 <table>
 <thead>
@@ -152,20 +152,20 @@ ComplianceRunStatus
 </td>
 <td>
 <em>(Optional)</em>
-<p>Conditions contains the conditions of the ComplianceRun.</p>
+<p>Conditions contains the conditions of the ComplianceScan.</p>
 </td>
 </tr>
 <tr>
 <td>
 <code>phase</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRunPhase">
-ComplianceRunPhase
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanPhase">
+ComplianceScanPhase
 </a>
 </em>
 </td>
 <td>
-<p>Phase represents the current phase of the ComplianceRun.</p>
+<p>Phase represents the current phase of the ComplianceScan.</p>
 </td>
 </tr>
 <tr>
@@ -179,7 +179,7 @@ ComplianceRunPhase
 </td>
 <td>
 <em>(Optional)</em>
-<p>Rulesets contains the ruleset summaries of the ComplianceRun.</p>
+<p>Rulesets contains the ruleset summaries of the ComplianceScan.</p>
 </td>
 </tr>
 </tbody>
@@ -188,10 +188,10 @@ ComplianceRunPhase
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRunStatus">ComplianceRunStatus</a>)
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus</a>)
 </p>
 <p>
-<p>Condition describes a condition of a ComplianceRun.</p>
+<p>Condition describes a condition of a ComplianceScan.</p>
 </p>
 <table>
 <thead>
@@ -618,7 +618,7 @@ int32
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRunSpec">ComplianceRunSpec</a>)
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">ComplianceScanSpec</a>)
 </p>
 <p>
 <p>RulesetConfig describes the configuration of a ruleset.</p>
@@ -721,7 +721,7 @@ Users can use these to configure the behaviour of specific rules.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceRunStatus">ComplianceRunStatus</a>)
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus</a>)
 </p>
 <p>
 <p>RulesetSummary contains the identifiers and the summary for a specific ruleset.</p>

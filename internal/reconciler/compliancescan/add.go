@@ -20,15 +20,15 @@ import (
 )
 
 const (
-	// ControllerName is the name of the compliancerun controller.
-	ControllerName = "compliancerun"
+	// ControllerName is the name of the compliancescan controller.
+	ControllerName = "compliancescan"
 	// ReconciliationTimeout is the timeout passed to the context of the Reconcile call.
 	ReconciliationTimeout = 10 * time.Minute
 	// MaxConcurrentReconciles is the maximum number of concurrent Reconcile calls.
 	MaxConcurrentReconciles = 5
 )
 
-// SetupWithManager specifies how the controller is built to watch ComplianceRun resources.
+// SetupWithManager specifies how the controller is built to watch ComplianceScan resources.
 func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if r.Client == nil {
 		r.Client = mgr.GetClient()
@@ -40,7 +40,7 @@ func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return builder.ControllerManagedBy(mgr).
 		Named(ControllerName).
-		For(&dikiv1alpha1.ComplianceRun{}, builder.WithPredicates(r.Predicate())).
+		For(&dikiv1alpha1.ComplianceScan{}, builder.WithPredicates(r.Predicate())).
 		WithOptions(controller.Options{
 			MaxConcurrentReconciles: MaxConcurrentReconciles,
 			RateLimiter: workqueue.NewTypedMaxOfRateLimiter(
@@ -52,7 +52,7 @@ func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// Predicate returns a predicate to filter ComplianceRun events.
+// Predicate returns a predicate to filter ComplianceScan events.
 func (r *Reconciler) Predicate() predicate.Predicate {
 	return predicate.Funcs{
 		CreateFunc:  func(_ event.CreateEvent) bool { return true },

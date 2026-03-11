@@ -31,7 +31,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	compliancerun "github.com/gardener/diki-operator/internal/reconciler/compliancerun"
+	compliancescan "github.com/gardener/diki-operator/internal/reconciler/compliancescan"
 	configv1alpha1 "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 )
@@ -142,11 +142,11 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		return err
 	}
 
-	// Setup ComplianceRun controller
-	if err := (&compliancerun.Reconciler{
-		Config: cfg.Controllers.ComplianceRun,
+	// Setup ComplianceScan controller
+	if err := (&compliancescan.Reconciler{
+		Config: cfg.Controllers.ComplianceScan,
 	}).SetupWithManager(mgr); err != nil {
-		return fmt.Errorf("unable to create complianceRun reconcile controller: %w", err)
+		return fmt.Errorf("unable to create complianceScan reconcile controller: %w", err)
 	}
 
 	log.Info("Starting manager")

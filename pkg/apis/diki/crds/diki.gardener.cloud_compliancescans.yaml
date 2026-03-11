@@ -4,16 +4,16 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.0
-  name: complianceruns.diki.gardener.cloud
+  name: compliancescans.diki.gardener.cloud
 spec:
   group: diki.gardener.cloud
   names:
-    kind: ComplianceRun
-    listKind: ComplianceRunList
-    plural: complianceruns
+    kind: ComplianceScan
+    listKind: ComplianceScanList
+    plural: compliancescans
     shortNames:
     - crun
-    singular: compliancerun
+    singular: compliancescan
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -28,7 +28,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ComplianceRun describes a compliance run.
+        description: ComplianceScan describes a compliance run.
         properties:
           apiVersion:
             description: |-
@@ -122,9 +122,9 @@ spec:
             description: Status contains the status of this compliance run.
             properties:
               conditions:
-                description: Conditions contains the conditions of the ComplianceRun.
+                description: Conditions contains the conditions of the ComplianceScan.
                 items:
-                  description: Condition describes a condition of a ComplianceRun.
+                  description: Condition describes a condition of a ComplianceScan.
                   properties:
                     lastTransitionTime:
                       description: LastTransitionTime is the last time the condition
@@ -160,10 +160,10 @@ spec:
                   type: object
                 type: array
               phase:
-                description: Phase represents the current phase of the ComplianceRun.
+                description: Phase represents the current phase of the ComplianceScan.
                 type: string
               rulesets:
-                description: Rulesets contains the ruleset summaries of the ComplianceRun.
+                description: Rulesets contains the ruleset summaries of the ComplianceScan.
                 items:
                   description: RulesetSummary contains the identifiers and the summary
                     for a specific ruleset.

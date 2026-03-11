@@ -16,7 +16,7 @@ const GroupName = "diki.gardener.cloud"
 var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: runtime.APIVersionInternal}
 
 var (
-	// SchemeBuilder used to register the ComplianceRun resource.
+	// SchemeBuilder used to register the ComplianceScan resource.
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 	// AddToScheme is a pointer to SchemeBuilder.AddToScheme.
 	AddToScheme = SchemeBuilder.AddToScheme
@@ -25,8 +25,8 @@ var (
 // Adds the list of known types to api.Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&ComplianceRun{},
-		&ComplianceRunList{},
+		&ComplianceScan{},
+		&ComplianceScanList{},
 	)
 	return nil
 }

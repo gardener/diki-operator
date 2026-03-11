@@ -18,38 +18,38 @@ import (
 	v1alpha1helper "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1/helper"
 )
 
-func (r *Reconciler) handleFailedRun(ctx context.Context, complianceRun *v1alpha1.ComplianceRun, log logr.Logger, err error) error {
-	patch := client.MergeFrom(complianceRun.DeepCopy())
-	complianceRun.Status.Phase = v1alpha1.ComplianceRunFailed
-	complianceRun.Status.Conditions = v1alpha1helper.UpdateConditions(
-		complianceRun.Status.Conditions,
+func (r *Reconciler) handleFailedRun(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger, err error) error {
+	patch := client.MergeFrom(complianceScan.DeepCopy())
+	complianceScan.Status.Phase = v1alpha1.ComplianceScanFailed
+	complianceScan.Status.Conditions = v1alpha1helper.UpdateConditions(
+		complianceScan.Status.Conditions,
 		v1alpha1.ConditionTypeFailed,
 		v1alpha1.ConditionTrue,
 		ConditionReasonFailed,
-		fmt.Sprintf("ComplianceRun failed with error: %s", err.Error()),
+		fmt.Sprintf("ComplianceScan failed with error: %s", err.Error()),
 		time.Now(),
 	)
-	complianceRun.Status.Conditions = slices.DeleteFunc(complianceRun.Status.Conditions, func(c v1alpha1.Condition) bool {
+	complianceScan.Status.Conditions = slices.DeleteFunc(complianceScan.Status.Conditions, func(c v1alpha1.Condition) bool {
 		return c.Type == v1alpha1.ConditionTypeCompleted
 	})
 
-	if err2 := r.Client.Status().Patch(ctx, complianceRun, patch); err2 != nil {
-		return fmt.Errorf("failed to update ComplianceRun status to Failed: %w, original error: %w", err2, err)
+	if err2 := r.Client.Status().Patch(ctx, complianceScan, patch); err2 != nil {
+		return fmt.Errorf("failed to update ComplianceScan status to Failed: %w, original error: %w", err2, err)
 	}
 
-	log.Info("Updated ComplianceRun phase to Failed", "error", err.Error())
+	log.Info("Updated ComplianceScan phase to Failed", "error", err.Error())
 
 	return nil
 }
 
-func (r *Reconciler) getLabels(complianceRun *v1alpha1.ComplianceRun) map[string]string {
+func (r *Reconciler) getLabels(complianceScan *v1alpha1.ComplianceScan) map[string]string {
 	labels := map[string]string{
 		LabelAppName:      LabelValueDiki,
 		LabelAppManagedBy: LabelValueDikiOperator,
 	}
 
 	maps.Copy(labels, r.Config.DikiRunner.Labels)
-	labels[ComplianceRunLabel] = string(complianceRun.UID)
+	labels[ComplianceScanLabel] = string(complianceScan.UID)
 
 	return labels
 }

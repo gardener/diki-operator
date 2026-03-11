@@ -21,11 +21,11 @@ This setup will deploy the diki-operator in the `kube-system` namespace.
 
 ### 2. Verify setup
 
-Verify that `ComplianceRun` resources are successfully processed.
+Verify that `ComplianceScan` resources are successfully processed.
 
 ```bash
 k apply -f ./example/80-diki-options-configmap.yaml
-k apply -f ./example/90-compliancerun.yaml
+k apply -f ./example/90-compliancescan.yaml
 ```
 
 Check that reconciliation has started by looking at the logs of the operator:

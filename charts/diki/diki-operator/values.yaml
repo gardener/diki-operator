@@ -27,7 +27,7 @@ config:
     retryPeriod: 2s
     resourceLock: leases
   controllers:
-    complianceRun:
+    complianceScan:
       syncPeriod: 1h
       dikiRunner:
         waitInterval: 5s

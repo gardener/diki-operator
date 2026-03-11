@@ -21,13 +21,13 @@ import (
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-func (r *Reconciler) deployDikiConfigMap(ctx context.Context, complianceRun *v1alpha1.ComplianceRun) (*corev1.ConfigMap, error) {
+func (r *Reconciler) deployDikiConfigMap(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) (*corev1.ConfigMap, error) {
 	managedk8sProvider := dikiconfig.ProviderConfig{
 		ID:   managedk8s.ProviderID,
 		Name: managedk8s.ProviderName,
 	}
 
-	for _, ruleset := range complianceRun.Spec.Rulesets {
+	for _, ruleset := range complianceScan.Spec.Rulesets {
 		switch ruleset.ID {
 		case disak8sstig.RulesetID:
 			ruleOptions, err := r.getRuleOptions(ctx, ruleset.Options, disak8sstig.RulesetID)
@@ -88,7 +88,7 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, complianceRun *v1a
 			GenerateName: ConfigMapGenerateNamePrefix,
 			Namespace:    r.Config.DikiRunner.Namespace,
 			//OwnerReferences: r.getOwnerReference(job),
-			Labels: r.getLabels(complianceRun),
+			Labels: r.getLabels(complianceScan),
 		},
 		Data: map[string]string{
 			DikiConfigKey: string(dikiConfigYAML),

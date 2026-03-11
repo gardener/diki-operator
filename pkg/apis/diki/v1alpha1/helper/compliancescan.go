@@ -10,7 +10,7 @@ import (
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-// UpdateConditions updates or adds a ComplianceRun condition.
+// UpdateConditions updates or adds a ComplianceScan condition.
 func UpdateConditions(conditions []v1alpha1.Condition, cType v1alpha1.ConditionType, status v1alpha1.ConditionStatus, reason, message string, time time.Time) []v1alpha1.Condition {
 	builder := NewConditionBuilder(cType).
 		WithStatus(status).
