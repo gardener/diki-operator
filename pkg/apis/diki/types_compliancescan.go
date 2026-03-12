@@ -10,21 +10,21 @@ import (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ComplianceScan describes a compliance run.
+// ComplianceScan describes a compliance scan.
 type ComplianceScan struct {
 	metav1.TypeMeta
 	// Standard object metadata.
 	metav1.ObjectMeta
 
-	// Spec contains the specification of this compliance run.
+	// Spec contains the specification of this compliance scan.
 	Spec ComplianceScanSpec
-	// Status contains the status of this compliance run.
+	// Status contains the status of this compliance scan.
 	Status ComplianceScanStatus
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ComplianceScanList describes a list of compliance runs.
+// ComplianceScanList describes a list of compliance scans.
 type ComplianceScanList struct {
 	metav1.TypeMeta
 	metav1.ListMeta
@@ -35,7 +35,7 @@ type ComplianceScanList struct {
 
 // ComplianceScanSpec is the specification of a ComplianceScan.
 type ComplianceScanSpec struct {
-	// Rulesets describe the rulesets to be applied during the compliance run.
+	// Rulesets describe the rulesets to be applied during the compliance scan.
 	Rulesets []RulesetConfig
 }
 

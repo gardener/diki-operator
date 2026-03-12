@@ -9,26 +9,26 @@ import (
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +kubebuilder:resource:scope=Cluster,path=compliancescans,shortName=crun,singular=compliancescan
+// +kubebuilder:resource:scope=Cluster,path=compliancescans,shortName=cscan,singular=compliancescan
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`,description="Current phase of the compliance run"
+// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`,description="Current phase of the compliance scan"
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`,description="Creation timestamp"
 
-// ComplianceScan describes a compliance run.
+// ComplianceScan describes a compliance scan.
 type ComplianceScan struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard object metadata.
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// Spec contains the specification of this compliance run.
+	// Spec contains the specification of this compliance scan.
 	Spec ComplianceScanSpec `json:"spec,omitempty"`
-	// Status contains the status of this compliance run.
+	// Status contains the status of this compliance scan.
 	Status ComplianceScanStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ComplianceScanList describes a list of compliance runs.
+// ComplianceScanList describes a list of compliance scans.
 type ComplianceScanList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -39,7 +39,7 @@ type ComplianceScanList struct {
 
 // ComplianceScanSpec is the specification of a ComplianceScan.
 type ComplianceScanSpec struct {
-	// Rulesets describe the rulesets to be applied during the compliance run.
+	// Rulesets describe the rulesets to be applied during the compliance scan.
 	Rulesets []RulesetConfig `json:"rulesets,omitempty"`
 }
 

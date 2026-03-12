@@ -12,12 +12,12 @@ spec:
     listKind: ComplianceScanList
     plural: compliancescans
     shortNames:
-    - crun
+    - cscan
     singular: compliancescan
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - description: Current phase of the compliance run
+    - description: Current phase of the compliance scan
       jsonPath: .status.phase
       name: Phase
       type: string
@@ -28,7 +28,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ComplianceScan describes a compliance run.
+        description: ComplianceScan describes a compliance scan.
         properties:
           apiVersion:
             description: |-
@@ -48,11 +48,11 @@ spec:
           metadata:
             type: object
           spec:
-            description: Spec contains the specification of this compliance run.
+            description: Spec contains the specification of this compliance scan.
             properties:
               rulesets:
                 description: Rulesets describe the rulesets to be applied during the
-                  compliance run.
+                  compliance scan.
                 items:
                   description: RulesetConfig describes the configuration of a ruleset.
                   properties:
@@ -119,7 +119,7 @@ spec:
                 type: array
             type: object
           status:
-            description: Status contains the status of this compliance run.
+            description: Status contains the status of this compliance scan.
             properties:
               conditions:
                 description: Conditions contains the conditions of the ComplianceScan.

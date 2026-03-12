@@ -21,7 +21,7 @@ import (
 	dikiv1alpha1helper "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1/helper"
 )
 
-// Reconciler reconciles compliance runs.
+// Reconciler reconciles compliance scans.
 type Reconciler struct {
 	Client     client.Client
 	RESTConfig *rest.Config

@@ -13,7 +13,7 @@ Resource Types:
 <h3 id="diki.gardener.cloud/v1alpha1.ComplianceScan">ComplianceScan
 </h3>
 <p>
-<p>ComplianceScan describes a compliance run.</p>
+<p>ComplianceScan describes a compliance scan.</p>
 </p>
 <table>
 <thead>
@@ -48,7 +48,7 @@ ComplianceScanSpec
 </em>
 </td>
 <td>
-<p>Spec contains the specification of this compliance run.</p>
+<p>Spec contains the specification of this compliance scan.</p>
 <br/>
 <br/>
 <table>
@@ -62,7 +62,7 @@ ComplianceScanSpec
 </em>
 </td>
 <td>
-<p>Rulesets describe the rulesets to be applied during the compliance run.</p>
+<p>Rulesets describe the rulesets to be applied during the compliance scan.</p>
 </td>
 </tr>
 </table>
@@ -78,7 +78,7 @@ ComplianceScanStatus
 </em>
 </td>
 <td>
-<p>Status contains the status of this compliance run.</p>
+<p>Status contains the status of this compliance scan.</p>
 </td>
 </tr>
 </tbody>
@@ -119,7 +119,7 @@ ComplianceScanStatus
 </em>
 </td>
 <td>
-<p>Rulesets describe the rulesets to be applied during the compliance run.</p>
+<p>Rulesets describe the rulesets to be applied during the compliance scan.</p>
 </td>
 </tr>
 </tbody>

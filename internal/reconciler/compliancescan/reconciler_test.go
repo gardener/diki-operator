@@ -85,7 +85,7 @@ var _ = Describe("Controller", func() {
 		}}
 	})
 
-	It("should successfully complete a compliance run", func() {
+	It("should successfully complete a compliance scan", func() {
 		Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, request)
@@ -104,7 +104,7 @@ var _ = Describe("Controller", func() {
 		))
 	})
 
-	It("should handle failed compliance run reconcile", func() {
+	It("should handle failed compliance scan reconcile", func() {
 		Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
 		cr.Client = fake.NewClientBuilder().

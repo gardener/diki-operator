@@ -51,7 +51,7 @@ type Log struct {
 
 // ControllerConfiguration defines the configuration of the controllers.
 type ControllerConfiguration struct {
-	// ComplianceScan is the configuration for the compliance run controller.
+	// ComplianceScan is the configuration for the compliance scan controller.
 	ComplianceScan ComplianceScanConfig `json:"complianceScan"`
 }
 
