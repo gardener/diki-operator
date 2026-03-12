@@ -15,7 +15,7 @@ tool (
 go 1.25.5
 
 require (
-	github.com/gardener/diki v0.24.0
+	github.com/gardener/diki v0.25.0
 	github.com/gardener/gardener v1.135.1
 	github.com/go-logr/logr v1.4.3
 	github.com/onsi/ginkgo/v2 v2.28.1
