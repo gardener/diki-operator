@@ -25,3 +25,5 @@ spec:
             name: diki-options
             namespace: kube-system
             key: security-hardened-k8s-rules # defaults to "<rulesetID>-rules"
+  outputs:
+    - name: example-configmap-output
