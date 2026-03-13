@@ -9,7 +9,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
@@ -30,6 +29,7 @@ import (
 	configv1alpha1 "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 )
 
 var _ = Describe("Controller", func() {
@@ -47,7 +47,7 @@ var _ = Describe("Controller", func() {
 
 	BeforeEach(func() {
 		scheme := runtime.NewScheme()
-		Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
+		Expect(clientgoscheme.AddToScheme(scheme)).To(Succeed())
 		Expect(dikiinstall.AddToScheme(scheme)).To(Succeed())
 
 		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).Build()
