@@ -50,7 +50,7 @@ func validateLog(log *v1alpha1.Log, fldPath *field.Path) field.ErrorList {
 func validateControllers(controllers *v1alpha1.ControllerConfiguration, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
-	allErrs = append(allErrs, validateDikiRunner(controllers.ComplianceRun.DikiRunner, fldPath.Child("complianceRun", "dikiRunner"))...)
+	allErrs = append(allErrs, validateDikiRunner(controllers.ComplianceScan.DikiRunner, fldPath.Child("complianceScan", "dikiRunner"))...)
 
 	return allErrs
 }

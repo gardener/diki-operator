@@ -26,7 +26,7 @@ import (
 	logzap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	compliancerun "github.com/gardener/diki-operator/internal/reconciler/compliancerun"
+	compliancescan "github.com/gardener/diki-operator/internal/reconciler/compliancescan"
 	configv1alpha1 "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
@@ -36,13 +36,13 @@ var _ = Describe("Controller", func() {
 	var (
 		ctx = logf.IntoContext(context.Background(), logzap.New(logzap.WriteTo(GinkgoWriter)))
 
-		cr         *compliancerun.Reconciler
+		cr         *compliancescan.Reconciler
 		fakeClient client.Client
 		fakeConfig *rest.Config
 
 		request reconcile.Request
 
-		complianceRun *dikiv1alpha1.ComplianceRun
+		complianceScan *dikiv1alpha1.ComplianceScan
 	)
 
 	BeforeEach(func() {
@@ -50,14 +50,14 @@ var _ = Describe("Controller", func() {
 		Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
 		Expect(dikiinstall.AddToScheme(scheme)).To(Succeed())
 
-		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&dikiv1alpha1.ComplianceRun{}).Build()
+		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).Build()
 		fakeConfig = &rest.Config{
 			Host: "foo",
 		}
-		cr = &compliancerun.Reconciler{
+		cr = &compliancescan.Reconciler{
 			Client:     fakeClient,
 			RESTConfig: fakeConfig,
-			Config: configv1alpha1.ComplianceRunConfig{
+			Config: configv1alpha1.ComplianceScanConfig{
 				SyncPeriod: &metav1.Duration{Duration: time.Hour},
 				DikiRunner: configv1alpha1.DikiRunnerConfig{
 					PodCompletionTimeout: &metav1.Duration{Duration: time.Second * 5},
@@ -65,12 +65,12 @@ var _ = Describe("Controller", func() {
 			},
 		}
 
-		complianceRun = &dikiv1alpha1.ComplianceRun{
+		complianceScan = &dikiv1alpha1.ComplianceScan{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "compliancerun",
+				Name: "compliancescan",
 				UID:  types.UID("1"),
 			},
-			Spec: dikiv1alpha1.ComplianceRunSpec{
+			Spec: dikiv1alpha1.ComplianceScanSpec{
 				Rulesets: []dikiv1alpha1.RulesetConfig{
 					{
 						ID:      "FAKE",
@@ -81,44 +81,44 @@ var _ = Describe("Controller", func() {
 		}
 
 		request = reconcile.Request{NamespacedName: types.NamespacedName{
-			Name: complianceRun.Name,
+			Name: complianceScan.Name,
 		}}
 	})
 
-	It("should successfully complete a compliance run", func() {
-		Expect(fakeClient.Create(ctx, complianceRun)).To(Succeed())
+	It("should successfully complete a compliance scan", func() {
+		Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, request)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res).To(Equal(reconcile.Result{}))
 
-		Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
-		Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunCompleted))
-		Expect(complianceRun.Status.Conditions).To(ConsistOf(
+		Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+		Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
+		Expect(complianceScan.Status.Conditions).To(ConsistOf(
 			MatchFields(IgnoreExtras, Fields{
 				"Type":    Equal(dikiv1alpha1.ConditionTypeCompleted),
 				"Status":  Equal(dikiv1alpha1.ConditionTrue),
-				"Reason":  Equal(compliancerun.ConditionReasonCompleted),
-				"Message": Equal("ComplianceRun has completed successfully"),
+				"Reason":  Equal(compliancescan.ConditionReasonCompleted),
+				"Message": Equal("ComplianceScan has completed successfully"),
 			}),
 		))
 	})
 
-	It("should handle failed compliance run reconcile", func() {
-		Expect(fakeClient.Create(ctx, complianceRun)).To(Succeed())
+	It("should handle failed compliance scan reconcile", func() {
+		Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
 		cr.Client = fake.NewClientBuilder().
 			WithScheme(fakeClient.Scheme()).
-			WithStatusSubresource(&dikiv1alpha1.ComplianceRun{}).
-			WithObjects(complianceRun).
+			WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).
+			WithObjects(complianceScan).
 			WithInterceptorFuncs(interceptor.Funcs{
 				SubResourcePatch: func(ctx context.Context, client client.Client, subResourceName string, obj client.Object, patch client.Patch, opts ...client.SubResourcePatchOption) error {
 					var (
-						cr        = obj.(*dikiv1alpha1.ComplianceRun)
+						cr        = obj.(*dikiv1alpha1.ComplianceScan)
 						fakeError = errors.New("err-foo")
 					)
 
-					if cr.Status.Phase == dikiv1alpha1.ComplianceRunRunning {
+					if cr.Status.Phase == dikiv1alpha1.ComplianceScanRunning {
 						return fakeError
 					}
 
@@ -130,14 +130,14 @@ var _ = Describe("Controller", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(res).To(Equal(reconcile.Result{}))
 
-		Expect(cr.Client.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
-		Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunFailed))
-		Expect(complianceRun.Status.Conditions).To(ConsistOf(
+		Expect(cr.Client.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+		Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+		Expect(complianceScan.Status.Conditions).To(ConsistOf(
 			MatchFields(IgnoreExtras, Fields{
 				"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
 				"Status":  Equal(dikiv1alpha1.ConditionTrue),
-				"Reason":  Equal(compliancerun.ConditionReasonFailed),
-				"Message": Equal("ComplianceRun failed with error: err-foo"),
+				"Reason":  Equal(compliancescan.ConditionReasonFailed),
+				"Message": Equal("ComplianceScan failed with error: err-foo"),
 			}),
 		))
 	})
@@ -224,17 +224,17 @@ var _ = Describe("Controller", func() {
 		})
 
 		It("should create a diki config ConfigMap", func() {
-			Expect(fakeClient.Create(ctx, complianceRun)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{}))
 
-			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
-			Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunCompleted))
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
 
 			Expect(fakeClient.List(ctx, configMapList,
-				client.MatchingLabels{"diki.gardener.cloud/compliancerun": "1"},
+				client.MatchingLabels{"diki.gardener.cloud/compliancescan": "1"},
 			)).To(Succeed())
 			Expect(len(configMapList.Items)).To(Equal(1))
 
@@ -245,7 +245,7 @@ var _ = Describe("Controller", func() {
 		})
 
 		It("should create a diki config for all rulesets without options", func() {
-			complianceRun.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
 				{
 					ID:      "disa-kubernetes-stig",
 					Version: "v1",
@@ -255,17 +255,17 @@ var _ = Describe("Controller", func() {
 					Version: "v1",
 				},
 			}
-			Expect(fakeClient.Create(ctx, complianceRun)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{}))
 
-			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
-			Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunCompleted))
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
 
 			Expect(fakeClient.List(ctx, configMapList,
-				client.MatchingLabels{"diki.gardener.cloud/compliancerun": "1"},
+				client.MatchingLabels{"diki.gardener.cloud/compliancescan": "1"},
 			)).To(Succeed())
 			Expect(len(configMapList.Items)).To(Equal(1))
 
@@ -280,7 +280,7 @@ var _ = Describe("Controller", func() {
 		})
 
 		It("should create a diki config for all rulesets with options", func() {
-			complianceRun.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
 				{
 					ID:      "disa-kubernetes-stig",
 					Version: "v1",
@@ -320,17 +320,17 @@ var _ = Describe("Controller", func() {
 					},
 				},
 			}
-			Expect(fakeClient.Create(ctx, complianceRun)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{}))
 
-			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceRun.Name}, complianceRun)).To(Succeed())
-			Expect(complianceRun.Status.Phase).To(Equal(dikiv1alpha1.ComplianceRunCompleted))
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
 
 			Expect(fakeClient.List(ctx, configMapList,
-				client.MatchingLabels{"diki.gardener.cloud/compliancerun": "1"},
+				client.MatchingLabels{"diki.gardener.cloud/compliancescan": "1"},
 			)).To(Succeed())
 			Expect(len(configMapList.Items)).To(Equal(1))
 

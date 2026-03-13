@@ -9,37 +9,37 @@ import (
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-// +kubebuilder:resource:scope=Cluster,path=complianceruns,shortName=crun,singular=compliancerun
+// +kubebuilder:resource:scope=Cluster,path=compliancescans,shortName=cscan,singular=compliancescan
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`,description="Current phase of the compliance run"
+// +kubebuilder:printcolumn:name="Phase",type=string,JSONPath=`.status.phase`,description="Current phase of the compliance scan"
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`,description="Creation timestamp"
 
-// ComplianceRun describes a compliance run.
-type ComplianceRun struct {
+// ComplianceScan describes a compliance scan.
+type ComplianceScan struct {
 	metav1.TypeMeta `json:",inline"`
 	// Standard object metadata.
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// Spec contains the specification of this compliance run.
-	Spec ComplianceRunSpec `json:"spec,omitempty"`
-	// Status contains the status of this compliance run.
-	Status ComplianceRunStatus `json:"status,omitempty"`
+	// Spec contains the specification of this compliance scan.
+	Spec ComplianceScanSpec `json:"spec,omitempty"`
+	// Status contains the status of this compliance scan.
+	Status ComplianceScanStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ComplianceRunList describes a list of compliance runs.
-type ComplianceRunList struct {
+// ComplianceScanList describes a list of compliance scans.
+type ComplianceScanList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 
-	// Items contains the list of ComplianceRuns.
-	Items []ComplianceRun `json:"items"`
+	// Items contains the list of ComplianceScans.
+	Items []ComplianceScan `json:"items"`
 }
 
-// ComplianceRunSpec is the specification of a ComplianceRun.
-type ComplianceRunSpec struct {
-	// Rulesets describe the rulesets to be applied during the compliance run.
+// ComplianceScanSpec is the specification of a ComplianceScan.
+type ComplianceScanSpec struct {
+	// Rulesets describe the rulesets to be applied during the compliance scan.
 	Rulesets []RulesetConfig `json:"rulesets,omitempty"`
 }
 
@@ -83,30 +83,30 @@ type OptionsConfigMapRef struct {
 	Key *string `json:"key,omitempty"`
 }
 
-// ComplianceRunStatus contains the status of a ComplianceRun.
-type ComplianceRunStatus struct {
-	// Conditions contains the conditions of the ComplianceRun.
+// ComplianceScanStatus contains the status of a ComplianceScan.
+type ComplianceScanStatus struct {
+	// Conditions contains the conditions of the ComplianceScan.
 	// +optional
 	Conditions []Condition `json:"conditions,omitempty"`
-	// Phase represents the current phase of the ComplianceRun.
-	Phase ComplianceRunPhase `json:"phase"`
-	// Rulesets contains the ruleset summaries of the ComplianceRun.
+	// Phase represents the current phase of the ComplianceScan.
+	Phase ComplianceScanPhase `json:"phase"`
+	// Rulesets contains the ruleset summaries of the ComplianceScan.
 	// +optional
 	Rulesets []RulesetSummary `json:"rulesets,omitempty"`
 }
 
-// ComplianceRunPhase is an alias for string representing the phase of a ComplianceRun.
-type ComplianceRunPhase string
+// ComplianceScanPhase is an alias for string representing the phase of a ComplianceScan.
+type ComplianceScanPhase string
 
 const (
-	// ComplianceRunPending means that the ComplianceRun is pending execution.
-	ComplianceRunPending ComplianceRunPhase = "Pending"
-	// ComplianceRunRunning means that the ComplianceRun is running.
-	ComplianceRunRunning ComplianceRunPhase = "Running"
-	// ComplianceRunCompleted means that the ComplianceRun has completed successfully.
-	ComplianceRunCompleted ComplianceRunPhase = "Completed"
-	// ComplianceRunFailed means that the ComplianceRun has failed.
-	ComplianceRunFailed ComplianceRunPhase = "Failed"
+	// ComplianceScanPending means that the ComplianceScan is pending execution.
+	ComplianceScanPending ComplianceScanPhase = "Pending"
+	// ComplianceScanRunning means that the ComplianceScan is running.
+	ComplianceScanRunning ComplianceScanPhase = "Running"
+	// ComplianceScanCompleted means that the ComplianceScan has completed successfully.
+	ComplianceScanCompleted ComplianceScanPhase = "Completed"
+	// ComplianceScanFailed means that the ComplianceScan has failed.
+	ComplianceScanFailed ComplianceScanPhase = "Failed"
 )
 
 // RulesetSummary contains the identifiers and the summary for a specific ruleset.
@@ -165,7 +165,7 @@ type Rule struct {
 	Name string `json:"name"`
 }
 
-// Condition describes a condition of a ComplianceRun.
+// Condition describes a condition of a ComplianceScan.
 type Condition struct {
 	// Type is the type of the condition.
 	Type ConditionType `json:"type"`
@@ -195,8 +195,8 @@ const (
 	// ConditionUnknown means that it cannot be decided if a resource is in the condition or not.
 	ConditionUnknown ConditionStatus = "Unknown"
 
-	// ConditionTypeCompleted indicates whether the ComplianceRun has completed.
+	// ConditionTypeCompleted indicates whether the ComplianceScan has completed.
 	ConditionTypeCompleted ConditionType = "Completed"
-	// ConditionTypeFailed indicates whether the ComplianceRun has failed.
+	// ConditionTypeFailed indicates whether the ComplianceScan has failed.
 	ConditionTypeFailed ConditionType = "Failed"
 )

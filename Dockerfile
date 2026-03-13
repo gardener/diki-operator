@@ -6,7 +6,7 @@
 FROM golang:1.25.6 AS builder
 
 ARG TARGETARCH
-WORKDIR /go/src/github.tools.sap/I550469/managed-diki-poc
+WORKDIR /go/src/github.com/gardener/diki-operator
 
 # Copy go mod and sum files
 COPY go.mod go.sum ./

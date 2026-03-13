@@ -15,7 +15,7 @@ import (
 	. "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1/helper"
 )
 
-var _ = Describe("ComplianceRun Helpers", func() {
+var _ = Describe("ComplianceScan Helpers", func() {
 	const (
 		conditionType = v1alpha1.ConditionType("Test")
 		fooStatus     = v1alpha1.ConditionStatus("Foo")
@@ -31,7 +31,7 @@ var _ = Describe("ComplianceRun Helpers", func() {
 		defaultTime = metav1.NewTime(time.Unix(2, 2))
 	})
 
-	Describe("#UpdateComplianceRunConditions", func() {
+	Describe("#UpdateComplianceScanConditions", func() {
 		It("should add a new condition to an empty slice", func() {
 			conditions := []v1alpha1.Condition{}
 

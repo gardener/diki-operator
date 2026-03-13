@@ -34,8 +34,8 @@ func SetDefaults_Log(obj *Log) {
 	}
 }
 
-// SetDefaults_ComplianceRunConfig sets defaults for the ComplianceRunConfig object.
-func SetDefaults_ComplianceRunConfig(obj *ComplianceRunConfig) {
+// SetDefaults_ComplianceScanConfig sets defaults for the ComplianceScanConfig object.
+func SetDefaults_ComplianceScanConfig(obj *ComplianceScanConfig) {
 	if obj.SyncPeriod == nil {
 		obj.SyncPeriod = &metav1.Duration{Duration: time.Hour}
 	}

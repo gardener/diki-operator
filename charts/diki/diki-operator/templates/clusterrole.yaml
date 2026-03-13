@@ -14,8 +14,8 @@ rules:
 - apiGroups:
   - "diki.gardener.cloud"
   resources:
-  - complianceruns
-  - complianceruns/status
+  - compliancescans
+  - compliancescans/status
   verbs:
   - get
   - list

@@ -5,8 +5,8 @@
 package reconciler
 
 const (
-	// ComplianceRunLabel is the label used to identify resources connected to a ComplianceRun.
-	ComplianceRunLabel = "diki.gardener.cloud/compliancerun"
+	// ComplianceScanLabel is the label used to identify resources connected to a ComplianceScan.
+	ComplianceScanLabel = "diki.gardener.cloud/compliancescan"
 
 	// LabelAppName is the standard Kubernetes label key for application name.
 	LabelAppName = "app.kubernetes.io/name"
@@ -26,10 +26,10 @@ const (
 	// RuleOptionsSuffix is the suffix appended to ruleset IDs when looking up rule options in ConfigMaps.
 	RuleOptionsSuffix = "-rules"
 
-	// ConditionReasonRunning is the reason for ComplianceRun condition when it is running.
-	ConditionReasonRunning = "ComplianceRunRunning"
-	// ConditionReasonCompleted is the reason for ComplianceRun condition when it has completed successfully.
-	ConditionReasonCompleted = "ComplianceRunCompleted"
-	// ConditionReasonFailed is the reason for ComplianceRun condition when it has failed.
-	ConditionReasonFailed = "ComplianceRunFailed"
+	// ConditionReasonRunning is the reason for ComplianceScan condition when it is running.
+	ConditionReasonRunning = "ComplianceScanRunning"
+	// ConditionReasonCompleted is the reason for ComplianceScan condition when it has completed successfully.
+	ConditionReasonCompleted = "ComplianceScanCompleted"
+	// ConditionReasonFailed is the reason for ComplianceScan condition when it has failed.
+	ConditionReasonFailed = "ComplianceScanFailed"
 )

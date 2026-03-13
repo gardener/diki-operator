@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestComplianceRunController(t *testing.T) {
+func TestComplianceScanController(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "ComplianceRun Controller Test Suite")
+	RunSpecs(t, "ComplianceScan Controller Test Suite")
 }

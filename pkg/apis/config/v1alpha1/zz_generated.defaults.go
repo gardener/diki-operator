@@ -27,7 +27,7 @@ func SetObjectDefaults_DikiOperatorConfiguration(in *DikiOperatorConfiguration) 
 	if in.LeaderElection != nil {
 		SetDefaults_LeaderElectionConfiguration(in.LeaderElection)
 	}
-	SetDefaults_ComplianceRunConfig(&in.Controllers.ComplianceRun)
-	SetDefaults_DikiRunnerConfig(&in.Controllers.ComplianceRun.DikiRunner)
+	SetDefaults_ComplianceScanConfig(&in.Controllers.ComplianceScan)
+	SetDefaults_DikiRunnerConfig(&in.Controllers.ComplianceScan.DikiRunner)
 	SetDefaults_ServerConfiguration(&in.Server)
 }

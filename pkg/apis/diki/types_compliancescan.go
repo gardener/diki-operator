@@ -10,32 +10,32 @@ import (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ComplianceRun describes a compliance run.
-type ComplianceRun struct {
+// ComplianceScan describes a compliance scan.
+type ComplianceScan struct {
 	metav1.TypeMeta
 	// Standard object metadata.
 	metav1.ObjectMeta
 
-	// Spec contains the specification of this compliance run.
-	Spec ComplianceRunSpec
-	// Status contains the status of this compliance run.
-	Status ComplianceRunStatus
+	// Spec contains the specification of this compliance scan.
+	Spec ComplianceScanSpec
+	// Status contains the status of this compliance scan.
+	Status ComplianceScanStatus
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// ComplianceRunList describes a list of compliance runs.
-type ComplianceRunList struct {
+// ComplianceScanList describes a list of compliance scans.
+type ComplianceScanList struct {
 	metav1.TypeMeta
 	metav1.ListMeta
 
-	// Items contains the list of ComplianceRuns.
-	Items []ComplianceRun
+	// Items contains the list of ComplianceScans.
+	Items []ComplianceScan
 }
 
-// ComplianceRunSpec is the specification of a ComplianceRun.
-type ComplianceRunSpec struct {
-	// Rulesets describe the rulesets to be applied during the compliance run.
+// ComplianceScanSpec is the specification of a ComplianceScan.
+type ComplianceScanSpec struct {
+	// Rulesets describe the rulesets to be applied during the compliance scan.
 	Rulesets []RulesetConfig
 }
 
@@ -74,28 +74,28 @@ type OptionsConfigMapRef struct {
 	Key *string
 }
 
-// ComplianceRunStatus contains the status of a ComplianceRun.
-type ComplianceRunStatus struct {
-	// Conditions contains the conditions of the ComplianceRun.
+// ComplianceScanStatus contains the status of a ComplianceScan.
+type ComplianceScanStatus struct {
+	// Conditions contains the conditions of the ComplianceScan.
 	Conditions []Condition
-	// Phase represents the current phase of the ComplianceRun.
-	Phase ComplianceRunPhase
-	// Rulesets contains the ruleset summaries of the ComplianceRun.
+	// Phase represents the current phase of the ComplianceScan.
+	Phase ComplianceScanPhase
+	// Rulesets contains the ruleset summaries of the ComplianceScan.
 	Rulesets []RulesetSummary
 }
 
-// ComplianceRunPhase is an alias for string representing the phase of a ComplianceRun.
-type ComplianceRunPhase string
+// ComplianceScanPhase is an alias for string representing the phase of a ComplianceScan.
+type ComplianceScanPhase string
 
 const (
-	// ComplianceRunPending means that the ComplianceRun is pending execution.
-	ComplianceRunPending ComplianceRunPhase = "Pending"
-	// ComplianceRunRunning means that the ComplianceRun is running.
-	ComplianceRunRunning ComplianceRunPhase = "Running"
-	// ComplianceRunCompleted means that the ComplianceRun has completed successfully.
-	ComplianceRunCompleted ComplianceRunPhase = "Completed"
-	// ComplianceRunFailed means that the ComplianceRun has failed.
-	ComplianceRunFailed ComplianceRunPhase = "Failed"
+	// ComplianceScanPending means that the ComplianceScan is pending execution.
+	ComplianceScanPending ComplianceScanPhase = "Pending"
+	// ComplianceScanRunning means that the ComplianceScan is running.
+	ComplianceScanRunning ComplianceScanPhase = "Running"
+	// ComplianceScanCompleted means that the ComplianceScan has completed successfully.
+	ComplianceScanCompleted ComplianceScanPhase = "Completed"
+	// ComplianceScanFailed means that the ComplianceScan has failed.
+	ComplianceScanFailed ComplianceScanPhase = "Failed"
 )
 
 // RulesetSummary contains the identifiers and the summary for a specific ruleset.
@@ -150,7 +150,7 @@ type Rule struct {
 	Name string
 }
 
-// Condition describes a condition of a ComplianceRun.
+// Condition describes a condition of a ComplianceScan.
 type Condition struct {
 	// Type is the type of the condition.
 	Type ConditionType
@@ -180,8 +180,8 @@ const (
 	// ConditionUnknown means that it cannot be decided if a resource is in the condition or not.
 	ConditionUnknown ConditionStatus = "Unknown"
 
-	// ConditionTypeCompleted indicates whether the ComplianceRun has completed.
+	// ConditionTypeCompleted indicates whether the ComplianceScan has completed.
 	ConditionTypeCompleted ConditionType = "Completed"
-	// ConditionTypeFailed indicates whether the ComplianceRun has failed.
+	// ConditionTypeFailed indicates whether the ComplianceScan has failed.
 	ConditionTypeFailed ConditionType = "Failed"
 )

@@ -29,7 +29,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 				Format: "json",
 			},
 			Controllers: v1alpha1.ControllerConfiguration{
-				ComplianceRun: v1alpha1.ComplianceRunConfig{
+				ComplianceScan: v1alpha1.ComplianceScanConfig{
 					DikiRunner: v1alpha1.DikiRunnerConfig{
 						Namespace: "diki-runner",
 						Labels: map[string]string{
@@ -94,36 +94,36 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 	})
 
 	It("should fail validation when labels contain invalid characters", func() {
-		conf.Controllers.ComplianceRun.DikiRunner.Labels = map[string]string{
+		conf.Controllers.ComplianceScan.DikiRunner.Labels = map[string]string{
 			"!invalid": "value",
 		}
 
 		errorList := ValidateDikiOperatorConfiguration(conf)
 		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 			"Type":     Equal(field.ErrorTypeInvalid),
-			"Field":    Equal("controllers.complianceRun.dikiRunner.labels"),
+			"Field":    Equal("controllers.complianceScan.dikiRunner.labels"),
 			"BadValue": Equal("!invalid"),
 		}))))
 	})
 
 	It("should fail validation when PodCompletionTimeout is less than or equal to 0", func() {
-		conf.Controllers.ComplianceRun.DikiRunner.PodCompletionTimeout = &metav1.Duration{Duration: -5 * time.Minute}
+		conf.Controllers.ComplianceScan.DikiRunner.PodCompletionTimeout = &metav1.Duration{Duration: -5 * time.Minute}
 
 		errorList := ValidateDikiOperatorConfiguration(conf)
 		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 			"Type":     Equal(field.ErrorTypeInvalid),
-			"Field":    Equal("controllers.complianceRun.dikiRunner.podCompletionTimeout"),
+			"Field":    Equal("controllers.complianceScan.dikiRunner.podCompletionTimeout"),
 			"BadValue": Equal(&metav1.Duration{Duration: -5 * time.Minute}),
 		}))))
 	})
 
 	It("should fail validation when PodCompletionTimeout is greater than 1 hour", func() {
-		conf.Controllers.ComplianceRun.DikiRunner.PodCompletionTimeout = &metav1.Duration{Duration: 2 * time.Hour}
+		conf.Controllers.ComplianceScan.DikiRunner.PodCompletionTimeout = &metav1.Duration{Duration: 2 * time.Hour}
 
 		errorList := ValidateDikiOperatorConfiguration(conf)
 		Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 			"Type":     Equal(field.ErrorTypeInvalid),
-			"Field":    Equal("controllers.complianceRun.dikiRunner.podCompletionTimeout"),
+			"Field":    Equal("controllers.complianceScan.dikiRunner.podCompletionTimeout"),
 			"BadValue": Equal(&metav1.Duration{Duration: 2 * time.Hour}),
 		}))))
 	})

@@ -10,7 +10,7 @@ kind: DikiOperatorConfiguration
 #   format: json
 
 # controllers:
-#   complianceRun:
+#   complianceScan:
 #     syncPeriod: 1h
 #     dikiRunner:
 #       podCompletionTimeout: 10m
