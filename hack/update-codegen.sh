@@ -25,3 +25,7 @@ kube::codegen::gen_helpers \
 kube::codegen::gen_helpers \
   --boilerplate "${GARDENER_HACK_DIR}/LICENSE_BOILERPLATE.txt" \
   "${PROJECT_ROOT}/pkg/apis/diki"
+
+kube::codegen::gen_helpers \
+  --boilerplate "${GARDENER_HACK_DIR}/LICENSE_BOILERPLATE.txt" \
+  "${PROJECT_ROOT}/pkg/apis/dikiexporter"

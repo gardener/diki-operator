@@ -6,6 +6,7 @@ package diki
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -37,6 +38,14 @@ type ComplianceScanList struct {
 type ComplianceScanSpec struct {
 	// Rulesets describe the rulesets to be applied during the compliance scan.
 	Rulesets []RulesetConfig
+	// Outputs describe the outputs of the compliance scan.
+	Outputs []ReportOutputRef
+}
+
+// ReportOutputRef describes a reference to a report output.
+type ReportOutputRef struct {
+	// Name is the name of the report output.
+	Name string
 }
 
 // RulesetConfig describes the configuration of a ruleset.
@@ -82,7 +91,29 @@ type ComplianceScanStatus struct {
 	Phase ComplianceScanPhase
 	// Rulesets contains the ruleset summaries of the ComplianceScan.
 	Rulesets []RulesetSummary
+	// Outputs contain the output statuses of the ComplianceScan.
+	Outputs []OutputStatus
 }
+
+// OutputStatus contains the status of a specific output of a compliance scan.
+type OutputStatus struct {
+	ReportOutputRef
+
+	// Phase represents the final phase of the output after the exporter has processed it.
+	Phase OutputStatusPhase
+	// Details contains details about the output.
+	Details runtime.RawExtension
+}
+
+// OutputStatusPhase is an alias for string representing the phase of an output after processing by the exporter.
+type OutputStatusPhase string
+
+const (
+	// OutputStatusCompleted means that the output has been successfully processed by the exporter.
+	OutputStatusCompleted OutputStatusPhase = "Completed"
+	// OutputStatusFailed means that the output has failed processing by the exporter.
+	OutputStatusFailed OutputStatusPhase = "Failed"
+)
 
 // ComplianceScanPhase is an alias for string representing the phase of a ComplianceScan.
 type ComplianceScanPhase string

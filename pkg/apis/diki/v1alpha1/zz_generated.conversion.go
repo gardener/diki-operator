@@ -74,6 +74,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*ConfigMapOutput)(nil), (*diki.ConfigMapOutput)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ConfigMapOutput_To_diki_ConfigMapOutput(a.(*ConfigMapOutput), b.(*diki.ConfigMapOutput), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.ConfigMapOutput)(nil), (*ConfigMapOutput)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ConfigMapOutput_To_v1alpha1_ConfigMapOutput(a.(*diki.ConfigMapOutput), b.(*ConfigMapOutput), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*Options)(nil), (*diki.Options)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_Options_To_diki_Options(a.(*Options), b.(*diki.Options), scope)
 	}); err != nil {
@@ -91,6 +101,66 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*diki.OptionsConfigMapRef)(nil), (*OptionsConfigMapRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(a.(*diki.OptionsConfigMapRef), b.(*OptionsConfigMapRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*Output)(nil), (*diki.Output)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_Output_To_diki_Output(a.(*Output), b.(*diki.Output), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.Output)(nil), (*Output)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_Output_To_v1alpha1_Output(a.(*diki.Output), b.(*Output), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*OutputStatus)(nil), (*diki.OutputStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_OutputStatus_To_diki_OutputStatus(a.(*OutputStatus), b.(*diki.OutputStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.OutputStatus)(nil), (*OutputStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_OutputStatus_To_v1alpha1_OutputStatus(a.(*diki.OutputStatus), b.(*OutputStatus), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*ReportOutput)(nil), (*diki.ReportOutput)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ReportOutput_To_diki_ReportOutput(a.(*ReportOutput), b.(*diki.ReportOutput), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.ReportOutput)(nil), (*ReportOutput)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ReportOutput_To_v1alpha1_ReportOutput(a.(*diki.ReportOutput), b.(*ReportOutput), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*ReportOutputList)(nil), (*diki.ReportOutputList)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ReportOutputList_To_diki_ReportOutputList(a.(*ReportOutputList), b.(*diki.ReportOutputList), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.ReportOutputList)(nil), (*ReportOutputList)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ReportOutputList_To_v1alpha1_ReportOutputList(a.(*diki.ReportOutputList), b.(*ReportOutputList), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*ReportOutputRef)(nil), (*diki.ReportOutputRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ReportOutputRef_To_diki_ReportOutputRef(a.(*ReportOutputRef), b.(*diki.ReportOutputRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.ReportOutputRef)(nil), (*ReportOutputRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ReportOutputRef_To_v1alpha1_ReportOutputRef(a.(*diki.ReportOutputRef), b.(*ReportOutputRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*ReportOutputSpec)(nil), (*diki.ReportOutputSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ReportOutputSpec_To_diki_ReportOutputSpec(a.(*ReportOutputSpec), b.(*diki.ReportOutputSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.ReportOutputSpec)(nil), (*ReportOutputSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(a.(*diki.ReportOutputSpec), b.(*ReportOutputSpec), scope)
 	}); err != nil {
 		return err
 	}
@@ -223,6 +293,7 @@ func Convert_diki_ComplianceScanList_To_v1alpha1_ComplianceScanList(in *diki.Com
 
 func autoConvert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in *ComplianceScanSpec, out *diki.ComplianceScanSpec, s conversion.Scope) error {
 	out.Rulesets = *(*[]diki.RulesetConfig)(unsafe.Pointer(&in.Rulesets))
+	out.Outputs = *(*[]diki.ReportOutputRef)(unsafe.Pointer(&in.Outputs))
 	return nil
 }
 
@@ -233,6 +304,7 @@ func Convert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in *Complian
 
 func autoConvert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(in *diki.ComplianceScanSpec, out *ComplianceScanSpec, s conversion.Scope) error {
 	out.Rulesets = *(*[]RulesetConfig)(unsafe.Pointer(&in.Rulesets))
+	out.Outputs = *(*[]ReportOutputRef)(unsafe.Pointer(&in.Outputs))
 	return nil
 }
 
@@ -245,6 +317,7 @@ func autoConvert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus(in *
 	out.Conditions = *(*[]diki.Condition)(unsafe.Pointer(&in.Conditions))
 	out.Phase = diki.ComplianceScanPhase(in.Phase)
 	out.Rulesets = *(*[]diki.RulesetSummary)(unsafe.Pointer(&in.Rulesets))
+	out.Outputs = *(*[]diki.OutputStatus)(unsafe.Pointer(&in.Outputs))
 	return nil
 }
 
@@ -257,6 +330,7 @@ func autoConvert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus(in *
 	out.Conditions = *(*[]Condition)(unsafe.Pointer(&in.Conditions))
 	out.Phase = ComplianceScanPhase(in.Phase)
 	out.Rulesets = *(*[]RulesetSummary)(unsafe.Pointer(&in.Rulesets))
+	out.Outputs = *(*[]OutputStatus)(unsafe.Pointer(&in.Outputs))
 	return nil
 }
 
@@ -293,6 +367,30 @@ func autoConvert_diki_Condition_To_v1alpha1_Condition(in *diki.Condition, out *C
 // Convert_diki_Condition_To_v1alpha1_Condition is an autogenerated conversion function.
 func Convert_diki_Condition_To_v1alpha1_Condition(in *diki.Condition, out *Condition, s conversion.Scope) error {
 	return autoConvert_diki_Condition_To_v1alpha1_Condition(in, out, s)
+}
+
+func autoConvert_v1alpha1_ConfigMapOutput_To_diki_ConfigMapOutput(in *ConfigMapOutput, out *diki.ConfigMapOutput, s conversion.Scope) error {
+	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
+	out.NamePrefix = (*string)(unsafe.Pointer(in.NamePrefix))
+	out.Labels = *(*map[string]string)(unsafe.Pointer(&in.Labels))
+	return nil
+}
+
+// Convert_v1alpha1_ConfigMapOutput_To_diki_ConfigMapOutput is an autogenerated conversion function.
+func Convert_v1alpha1_ConfigMapOutput_To_diki_ConfigMapOutput(in *ConfigMapOutput, out *diki.ConfigMapOutput, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ConfigMapOutput_To_diki_ConfigMapOutput(in, out, s)
+}
+
+func autoConvert_diki_ConfigMapOutput_To_v1alpha1_ConfigMapOutput(in *diki.ConfigMapOutput, out *ConfigMapOutput, s conversion.Scope) error {
+	out.Namespace = (*string)(unsafe.Pointer(in.Namespace))
+	out.NamePrefix = (*string)(unsafe.Pointer(in.NamePrefix))
+	out.Labels = *(*map[string]string)(unsafe.Pointer(&in.Labels))
+	return nil
+}
+
+// Convert_diki_ConfigMapOutput_To_v1alpha1_ConfigMapOutput is an autogenerated conversion function.
+func Convert_diki_ConfigMapOutput_To_v1alpha1_ConfigMapOutput(in *diki.ConfigMapOutput, out *ConfigMapOutput, s conversion.Scope) error {
+	return autoConvert_diki_ConfigMapOutput_To_v1alpha1_ConfigMapOutput(in, out, s)
 }
 
 func autoConvert_v1alpha1_Options_To_diki_Options(in *Options, out *diki.Options, s conversion.Scope) error {
@@ -337,6 +435,146 @@ func autoConvert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in *di
 // Convert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef is an autogenerated conversion function.
 func Convert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in *diki.OptionsConfigMapRef, out *OptionsConfigMapRef, s conversion.Scope) error {
 	return autoConvert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in, out, s)
+}
+
+func autoConvert_v1alpha1_Output_To_diki_Output(in *Output, out *diki.Output, s conversion.Scope) error {
+	out.ConfigMap = (*diki.ConfigMapOutput)(unsafe.Pointer(in.ConfigMap))
+	return nil
+}
+
+// Convert_v1alpha1_Output_To_diki_Output is an autogenerated conversion function.
+func Convert_v1alpha1_Output_To_diki_Output(in *Output, out *diki.Output, s conversion.Scope) error {
+	return autoConvert_v1alpha1_Output_To_diki_Output(in, out, s)
+}
+
+func autoConvert_diki_Output_To_v1alpha1_Output(in *diki.Output, out *Output, s conversion.Scope) error {
+	out.ConfigMap = (*ConfigMapOutput)(unsafe.Pointer(in.ConfigMap))
+	return nil
+}
+
+// Convert_diki_Output_To_v1alpha1_Output is an autogenerated conversion function.
+func Convert_diki_Output_To_v1alpha1_Output(in *diki.Output, out *Output, s conversion.Scope) error {
+	return autoConvert_diki_Output_To_v1alpha1_Output(in, out, s)
+}
+
+func autoConvert_v1alpha1_OutputStatus_To_diki_OutputStatus(in *OutputStatus, out *diki.OutputStatus, s conversion.Scope) error {
+	if err := Convert_v1alpha1_ReportOutputRef_To_diki_ReportOutputRef(&in.ReportOutputRef, &out.ReportOutputRef, s); err != nil {
+		return err
+	}
+	out.Phase = diki.OutputStatusPhase(in.Phase)
+	out.Details = in.Details
+	return nil
+}
+
+// Convert_v1alpha1_OutputStatus_To_diki_OutputStatus is an autogenerated conversion function.
+func Convert_v1alpha1_OutputStatus_To_diki_OutputStatus(in *OutputStatus, out *diki.OutputStatus, s conversion.Scope) error {
+	return autoConvert_v1alpha1_OutputStatus_To_diki_OutputStatus(in, out, s)
+}
+
+func autoConvert_diki_OutputStatus_To_v1alpha1_OutputStatus(in *diki.OutputStatus, out *OutputStatus, s conversion.Scope) error {
+	if err := Convert_diki_ReportOutputRef_To_v1alpha1_ReportOutputRef(&in.ReportOutputRef, &out.ReportOutputRef, s); err != nil {
+		return err
+	}
+	out.Phase = OutputStatusPhase(in.Phase)
+	out.Details = in.Details
+	return nil
+}
+
+// Convert_diki_OutputStatus_To_v1alpha1_OutputStatus is an autogenerated conversion function.
+func Convert_diki_OutputStatus_To_v1alpha1_OutputStatus(in *diki.OutputStatus, out *OutputStatus, s conversion.Scope) error {
+	return autoConvert_diki_OutputStatus_To_v1alpha1_OutputStatus(in, out, s)
+}
+
+func autoConvert_v1alpha1_ReportOutput_To_diki_ReportOutput(in *ReportOutput, out *diki.ReportOutput, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_v1alpha1_ReportOutputSpec_To_diki_ReportOutputSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1alpha1_ReportOutput_To_diki_ReportOutput is an autogenerated conversion function.
+func Convert_v1alpha1_ReportOutput_To_diki_ReportOutput(in *ReportOutput, out *diki.ReportOutput, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ReportOutput_To_diki_ReportOutput(in, out, s)
+}
+
+func autoConvert_diki_ReportOutput_To_v1alpha1_ReportOutput(in *diki.ReportOutput, out *ReportOutput, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_diki_ReportOutput_To_v1alpha1_ReportOutput is an autogenerated conversion function.
+func Convert_diki_ReportOutput_To_v1alpha1_ReportOutput(in *diki.ReportOutput, out *ReportOutput, s conversion.Scope) error {
+	return autoConvert_diki_ReportOutput_To_v1alpha1_ReportOutput(in, out, s)
+}
+
+func autoConvert_v1alpha1_ReportOutputList_To_diki_ReportOutputList(in *ReportOutputList, out *diki.ReportOutputList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]diki.ReportOutput)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_v1alpha1_ReportOutputList_To_diki_ReportOutputList is an autogenerated conversion function.
+func Convert_v1alpha1_ReportOutputList_To_diki_ReportOutputList(in *ReportOutputList, out *diki.ReportOutputList, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ReportOutputList_To_diki_ReportOutputList(in, out, s)
+}
+
+func autoConvert_diki_ReportOutputList_To_v1alpha1_ReportOutputList(in *diki.ReportOutputList, out *ReportOutputList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]ReportOutput)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_diki_ReportOutputList_To_v1alpha1_ReportOutputList is an autogenerated conversion function.
+func Convert_diki_ReportOutputList_To_v1alpha1_ReportOutputList(in *diki.ReportOutputList, out *ReportOutputList, s conversion.Scope) error {
+	return autoConvert_diki_ReportOutputList_To_v1alpha1_ReportOutputList(in, out, s)
+}
+
+func autoConvert_v1alpha1_ReportOutputRef_To_diki_ReportOutputRef(in *ReportOutputRef, out *diki.ReportOutputRef, s conversion.Scope) error {
+	out.Name = in.Name
+	return nil
+}
+
+// Convert_v1alpha1_ReportOutputRef_To_diki_ReportOutputRef is an autogenerated conversion function.
+func Convert_v1alpha1_ReportOutputRef_To_diki_ReportOutputRef(in *ReportOutputRef, out *diki.ReportOutputRef, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ReportOutputRef_To_diki_ReportOutputRef(in, out, s)
+}
+
+func autoConvert_diki_ReportOutputRef_To_v1alpha1_ReportOutputRef(in *diki.ReportOutputRef, out *ReportOutputRef, s conversion.Scope) error {
+	out.Name = in.Name
+	return nil
+}
+
+// Convert_diki_ReportOutputRef_To_v1alpha1_ReportOutputRef is an autogenerated conversion function.
+func Convert_diki_ReportOutputRef_To_v1alpha1_ReportOutputRef(in *diki.ReportOutputRef, out *ReportOutputRef, s conversion.Scope) error {
+	return autoConvert_diki_ReportOutputRef_To_v1alpha1_ReportOutputRef(in, out, s)
+}
+
+func autoConvert_v1alpha1_ReportOutputSpec_To_diki_ReportOutputSpec(in *ReportOutputSpec, out *diki.ReportOutputSpec, s conversion.Scope) error {
+	if err := Convert_v1alpha1_Output_To_diki_Output(&in.Output, &out.Output, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1alpha1_ReportOutputSpec_To_diki_ReportOutputSpec is an autogenerated conversion function.
+func Convert_v1alpha1_ReportOutputSpec_To_diki_ReportOutputSpec(in *ReportOutputSpec, out *diki.ReportOutputSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ReportOutputSpec_To_diki_ReportOutputSpec(in, out, s)
+}
+
+func autoConvert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(in *diki.ReportOutputSpec, out *ReportOutputSpec, s conversion.Scope) error {
+	if err := Convert_diki_Output_To_v1alpha1_Output(&in.Output, &out.Output, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec is an autogenerated conversion function.
+func Convert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(in *diki.ReportOutputSpec, out *ReportOutputSpec, s conversion.Scope) error {
+	return autoConvert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(in, out, s)
 }
 
 func autoConvert_v1alpha1_Rule_To_diki_Rule(in *Rule, out *diki.Rule, s conversion.Scope) error {

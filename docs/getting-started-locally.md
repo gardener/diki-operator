@@ -25,6 +25,7 @@ Verify that `ComplianceScan` resources are successfully processed.
 
 ```bash
 k apply -f ./example/80-diki-options-configmap.yaml
+k apply -f ./example/80-reportoutput-configmap.yaml
 k apply -f ./example/90-compliancescan.yaml
 ```
 

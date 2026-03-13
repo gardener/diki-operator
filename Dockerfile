@@ -24,3 +24,10 @@ WORKDIR /
 
 COPY --from=builder /go/bin/diki-operator /diki-operator
 ENTRYPOINT ["/diki-operator"]
+
+############# diki-exporter
+FROM gcr.io/distroless/static-debian13:nonroot AS diki-exporter
+WORKDIR /
+
+COPY --from=builder /go/bin/diki-exporter /diki-exporter
+ENTRYPOINT ["/diki-exporter"]
