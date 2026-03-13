@@ -20,6 +20,8 @@ const (
 	DefaultDikiRunnerNamespace = "kube-system"
 	// DefaultPodCompletionTimeout is the default maximum duration to wait for pod completion.
 	DefaultPodCompletionTimeout = 10 * time.Minute
+	// DefaultVolumeMountPathCertificates is the default directory for the webhook server TLS certificate and key.
+	DefaultVolumeMountPathCertificates = "/etc/diki-operator/webhooks/tls"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -79,6 +81,8 @@ type DikiRunnerConfig struct {
 
 // ServerConfiguration contains details for the HTTP(S) servers.
 type ServerConfiguration struct {
+	// Webhooks is the configuration for the HTTPS webhook server.
+	Webhooks HTTPSServer `json:"webhooks"`
 	// HealthProbes is the configuration for serving the healthz and readyz endpoints.
 	// +optional
 	HealthProbes *Server `json:"healthProbes,omitempty"`
@@ -90,7 +94,23 @@ type ServerConfiguration struct {
 // Server contains information for HTTP(S) server configuration.
 type Server struct {
 	// Port is the port on which to serve requests.
-	Port int32 `json:"port"`
+	Port int `json:"port"`
 	// BindAddress is the IP address on which to listen for the specified port.
 	BindAddress string `json:"bindAddress"`
+}
+
+// HTTPSServer is the configuration for the HTTPSServer server.
+type HTTPSServer struct {
+	// Server is the configuration for the bind address and the port.
+	Server `json:",inline"`
+
+	// TLS contains information about the TLS configuration for a HTTPS server.
+	TLS TLS `json:"tls"`
+}
+
+// TLS contains information about the TLS configuration for a HTTPS server.
+type TLS struct {
+	// ServerCertDir is the path to a directory containing the server's TLS certificate and key (the files must be
+	// named tls.crt and tls.key respectively).
+	ServerCertDir string `json:"serverCertDir"`
 }

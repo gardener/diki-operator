@@ -30,8 +30,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	compliancescan "github.com/gardener/diki-operator/internal/reconciler/compliancescan"
+	compliancescanwebhook "github.com/gardener/diki-operator/internal/webhook/compliancescan"
 	configv1alpha1 "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 )
@@ -98,7 +100,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	mgr, err := ctrl.NewManager(conf, ctrl.Options{
 		Logger: log.WithName("manager"),
 		Metrics: metricsserver.Options{
-			BindAddress: net.JoinHostPort(cfg.Server.Metrics.BindAddress, strconv.Itoa(int(cfg.Server.Metrics.Port))),
+			BindAddress: net.JoinHostPort(cfg.Server.Metrics.BindAddress, strconv.Itoa(cfg.Server.Metrics.Port)),
 		},
 		GracefulShutdownTimeout: ptr.To(5 * time.Second),
 
@@ -114,7 +116,13 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		PprofBindAddress: "",
 		HealthProbeBindAddress: net.JoinHostPort(
 			cfg.Server.HealthProbes.BindAddress,
-			strconv.Itoa(int(cfg.Server.HealthProbes.Port))),
+			strconv.Itoa(cfg.Server.HealthProbes.Port)),
+
+		WebhookServer: webhook.NewServer(webhook.Options{
+			Host:    cfg.Server.Webhooks.BindAddress,
+			Port:    cfg.Server.Webhooks.Port,
+			CertDir: cfg.Server.Webhooks.TLS.ServerCertDir,
+		}),
 
 		Controller: controllerconfig.Controller{
 			RecoverPanic: ptr.To(true),
@@ -131,6 +139,11 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		return fmt.Errorf("could not update manager scheme: %w", err)
 	}
 
+	log.Info("Adding webhook handler to manager")
+	if err := compliancescanwebhook.AddToManager(mgr, log); err != nil {
+		return fmt.Errorf("failed adding webhook handler to manager: %w", err)
+	}
+
 	log.Info("Setting up health check endpoints")
 	if err := mgr.AddHealthzCheck("ping", healthz.Ping); err != nil {
 		return err
@@ -139,6 +152,9 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		return err
 	}
 	if err := mgr.AddReadyzCheck("informer-sync", gardenerhealthz.NewCacheSyncHealthz(mgr.GetCache())); err != nil {
+		return err
+	}
+	if err := mgr.AddReadyzCheck("webhook-server", mgr.GetWebhookServer().StartedChecker()); err != nil {
 		return err
 	}
 

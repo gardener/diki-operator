@@ -148,7 +148,7 @@ var _ = Describe("Defaults", func() {
 				SetDefaults_ServerConfiguration(obj)
 
 				Expect(obj.HealthProbes).NotTo(BeNil())
-				Expect(obj.HealthProbes.Port).To(Equal(int32(8081)))
+				Expect(obj.HealthProbes.Port).To(Equal(8081))
 			})
 		})
 
@@ -157,7 +157,7 @@ var _ = Describe("Defaults", func() {
 				SetDefaults_ServerConfiguration(obj)
 
 				Expect(obj.Metrics).NotTo(BeNil())
-				Expect(obj.Metrics.Port).To(Equal(int32(8080)))
+				Expect(obj.Metrics.Port).To(Equal(8080))
 			})
 		})
 
@@ -167,7 +167,7 @@ var _ = Describe("Defaults", func() {
 
 				SetDefaults_ServerConfiguration(obj)
 
-				Expect(obj.HealthProbes.Port).To(Equal(int32(9090)))
+				Expect(obj.HealthProbes.Port).To(Equal(9090))
 			})
 
 			It("should not overwrite already set Metrics", func() {
@@ -175,7 +175,79 @@ var _ = Describe("Defaults", func() {
 
 				SetDefaults_ServerConfiguration(obj)
 
-				Expect(obj.Metrics.Port).To(Equal(int32(9092)))
+				Expect(obj.Metrics.Port).To(Equal(9092))
+			})
+		})
+	})
+
+	Describe("#SetDefaults_Server", func() {
+		var obj *Server
+
+		BeforeEach(func() {
+			obj = &Server{}
+		})
+
+		Context("Port", func() {
+			It("should default port", func() {
+				SetDefaults_Server(obj)
+
+				Expect(obj.Port).To(Equal(8081))
+			})
+
+			It("should not overwrite already set value for port", func() {
+				obj.Port = 9090
+
+				SetDefaults_Server(obj)
+
+				Expect(obj.Port).To(Equal(9090))
+			})
+		})
+	})
+
+	Describe("#SetDefaults_HTTPSServer", func() {
+		var obj *HTTPSServer
+
+		BeforeEach(func() {
+			obj = &HTTPSServer{}
+		})
+
+		Context("Port", func() {
+			It("should default port", func() {
+				SetDefaults_HTTPSServer(obj)
+
+				Expect(obj.Port).To(Equal(10443))
+			})
+
+			It("should not overwrite already set value for port", func() {
+				obj.Port = 9090
+
+				SetDefaults_HTTPSServer(obj)
+
+				Expect(obj.Port).To(Equal(9090))
+			})
+		})
+	})
+
+	Describe("#SetDefaults_TLS", func() {
+		var obj *TLS
+
+		BeforeEach(func() {
+			obj = &TLS{}
+		})
+
+		Context("ServerCertDir", func() {
+			It("should default server cert dir", func() {
+				SetDefaults_TLS(obj)
+
+				Expect(obj.ServerCertDir).To(Equal(DefaultVolumeMountPathCertificates))
+			})
+
+			It("should not overwrite already set value for server cert dir", func() {
+				obj.ServerCertDir = "/custom/dir"
+
+				SetDefaults_TLS(obj)
+
+				Expect(obj.ServerCertDir).To(Equal("/custom/dir"))
 			})
 		})
 	})
