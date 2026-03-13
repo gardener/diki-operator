@@ -16,12 +16,7 @@ spec:
     singular: reportoutput
   scope: Cluster
   versions:
-  - additionalPrinterColumns:
-    - description: Output type
-      jsonPath: .spec.output
-      name: Type
-      type: string
-    name: v1alpha1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: ReportOutput describes a report output.
@@ -78,4 +73,3 @@ spec:
         type: object
     served: true
     storage: true
-    subresources: {}
