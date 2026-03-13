@@ -18,7 +18,7 @@ import (
 	v1alpha1helper "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1/helper"
 )
 
-func (r *Reconciler) handleFailedRun(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger, err error) error {
+func (r *Reconciler) handleFailedScan(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger, err error) error {
 	patch := client.MergeFrom(complianceScan.DeepCopy())
 	complianceScan.Status.Phase = v1alpha1.ComplianceScanFailed
 	complianceScan.Status.Conditions = v1alpha1helper.UpdateConditions(

@@ -59,7 +59,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	)
 	complianceScan.Status.Phase = v1alpha1.ComplianceScanRunning
 	if err := r.Client.Status().Patch(ctx, complianceScan, patch); err != nil {
-		return reconcile.Result{}, r.handleFailedRun(ctx, complianceScan, log, err)
+		return reconcile.Result{}, r.handleFailedScan(ctx, complianceScan, log, err)
 	}
 
 	log.Info("Updated ComplianceScan phase to Running")
@@ -68,7 +68,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 	configMap, err := r.deployDikiConfigMap(ctx, complianceScan)
 	if err != nil {
-		return reconcile.Result{}, r.handleFailedRun(ctx, complianceScan, log, err)
+		return reconcile.Result{}, r.handleFailedScan(ctx, complianceScan, log, err)
 	}
 
 	log.Info(fmt.Sprintf("Created ConfigMap %s", client.ObjectKeyFromObject(configMap)))
@@ -85,7 +85,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		time.Now(),
 	)
 	if err := r.Client.Status().Patch(ctx, complianceScan, patch); err != nil {
-		return reconcile.Result{}, r.handleFailedRun(ctx, complianceScan, log, err)
+		return reconcile.Result{}, r.handleFailedScan(ctx, complianceScan, log, err)
 	}
 
 	log.Info("Updated ComplianceScan phase to Completed")
