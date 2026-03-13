@@ -9,6 +9,7 @@ import (
 
 	"github.com/gardener/gardener/pkg/logger"
 	validationutils "github.com/gardener/gardener/pkg/utils/validation"
+	apivalidation "k8s.io/apimachinery/pkg/api/validation"
 	metav1validation "k8s.io/apimachinery/pkg/apis/meta/v1/validation"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -23,6 +24,7 @@ func ValidateDikiOperatorConfiguration(conf *v1alpha1.DikiOperatorConfiguration)
 	allErrs = append(allErrs, validateLog(&conf.Log, field.NewPath("log"))...)
 	allErrs = append(allErrs, validateControllers(&conf.Controllers, field.NewPath("controllers"))...)
 	allErrs = append(allErrs, validationutils.ValidateLeaderElectionConfiguration(conf.LeaderElection, field.NewPath("leaderElection"))...)
+	allErrs = append(allErrs, validateServerConfiguration(&conf.Server, field.NewPath("server"))...)
 
 	return allErrs
 }
@@ -63,6 +65,19 @@ func validateDikiRunner(dikiRunner v1alpha1.DikiRunnerConfig, fldPath *field.Pat
 
 	if dikiRunner.PodCompletionTimeout != nil && (dikiRunner.PodCompletionTimeout.Duration <= 0 || dikiRunner.PodCompletionTimeout.Duration > 1*time.Hour) {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("podCompletionTimeout"), dikiRunner.PodCompletionTimeout, "podCompletionTimeout must be greater than 0 and less than or equal to 1 hour"))
+	}
+
+	return allErrs
+}
+
+// validateServerConfiguration validates the server configuration.
+func validateServerConfiguration(config *v1alpha1.ServerConfiguration, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+	allErrs = append(allErrs, apivalidation.ValidateNonnegativeField(int64(config.HealthProbes.Port), fldPath.Child("healthProbes", "port"))...)
+	allErrs = append(allErrs, apivalidation.ValidateNonnegativeField(int64(config.Webhooks.Port), fldPath.Child("webhooks", "port"))...)
+
+	if config.Webhooks.TLS.ServerCertDir == "" {
+		allErrs = append(allErrs, field.Required(fldPath.Child("webhooks", "tls", "serverCertDir"), "server certificate directory is required"))
 	}
 
 	return allErrs

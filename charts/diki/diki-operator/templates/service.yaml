@@ -20,3 +20,7 @@ spec:
     port: 8080
     protocol: TCP
     targetPort: {{ required ".Values.config.server.metrics.port is required" .Values.config.server.metrics.port }}
+  - name: ps
+    port: 443
+    protocol: TCP
+    targetPort: {{ required ".Values.config.server.webhooks.port is required" .Values.config.server.webhooks.port }}

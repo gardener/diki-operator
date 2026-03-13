@@ -30,4 +30,13 @@ func SetObjectDefaults_DikiOperatorConfiguration(in *DikiOperatorConfiguration) 
 	SetDefaults_ComplianceScanConfig(&in.Controllers.ComplianceScan)
 	SetDefaults_DikiRunnerConfig(&in.Controllers.ComplianceScan.DikiRunner)
 	SetDefaults_ServerConfiguration(&in.Server)
+	SetDefaults_HTTPSServer(&in.Server.Webhooks)
+	SetDefaults_Server(&in.Server.Webhooks.Server)
+	SetDefaults_TLS(&in.Server.Webhooks.TLS)
+	if in.Server.HealthProbes != nil {
+		SetDefaults_Server(in.Server.HealthProbes)
+	}
+	if in.Server.Metrics != nil {
+		SetDefaults_Server(in.Server.Metrics)
+	}
 }

@@ -50,6 +50,10 @@ server:
     bindAddress: {{ .Values.config.server.metrics.bindAddress }}
     {{- end }}
     port: {{ .Values.config.server.metrics.port }}
+  webhooks:
+    port: {{ .Values.config.server.webhooks.port }}
+    tls:
+      serverCertDir: /etc/diki-operator/webhooks/tls
 leaderElection:
   resourceName: {{ include "leaderelectionid" . }}
   resourceNamespace: {{ .Release.Namespace }}
