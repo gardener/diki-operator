@@ -55,6 +55,9 @@ spec:
         - name: diki-operator-config
           mountPath: /etc/diki-operator/config
           readOnly: true
+        - name: diki-operator-tls
+          mountPath: /etc/diki-operator/webhooks/tls
+          readOnly: true
         livenessProbe:
           httpGet:
             path: /healthz
@@ -76,3 +79,6 @@ spec:
         configMap:
           defaultMode: 0440
           name: diki-operator
+      - name: diki-operator-tls
+        secret:
+          secretName: diki-operator-tls

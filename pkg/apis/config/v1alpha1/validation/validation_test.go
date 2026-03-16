@@ -46,6 +46,14 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 				Metrics: &v1alpha1.Server{
 					Port: 8080,
 				},
+				Webhooks: v1alpha1.HTTPSServer{
+					Server: v1alpha1.Server{
+						Port: 10443,
+					},
+					TLS: v1alpha1.TLS{
+						ServerCertDir: "/etc/diki-operator/webhooks/tls",
+					},
+				},
 			},
 			LeaderElection: &componentbaseconfigv1alpha1.LeaderElectionConfiguration{
 				LeaderElect:       ptr.To(true),
@@ -126,5 +134,43 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			"Field":    Equal("controllers.complianceScan.dikiRunner.podCompletionTimeout"),
 			"BadValue": Equal(&metav1.Duration{Duration: 2 * time.Hour}),
 		}))))
+	})
+
+	Describe("ServerConfiguration", func() {
+		It("should forbid negative HealthProbes port", func() {
+			conf.Server.HealthProbes.Port = -1
+
+			errs := ValidateDikiOperatorConfiguration(conf)
+			Expect(errs).To(ConsistOf(PointTo(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeInvalid),
+					"Field": Equal("server.healthProbes.port"),
+				}),
+			)))
+		})
+
+		It("should forbid negative Webhooks port", func() {
+			conf.Server.Webhooks.Port = -1
+
+			errs := ValidateDikiOperatorConfiguration(conf)
+			Expect(errs).To(ConsistOf(PointTo(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeInvalid),
+					"Field": Equal("server.webhooks.port"),
+				}),
+			)))
+		})
+
+		It("should forbid empty Webhooks TLS ServerCertDir", func() {
+			conf.Server.Webhooks.TLS.ServerCertDir = ""
+
+			errs := ValidateDikiOperatorConfiguration(conf)
+			Expect(errs).To(ConsistOf(PointTo(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeRequired),
+					"Field": Equal("server.webhooks.tls.serverCertDir"),
+				}),
+			)))
+		})
 	})
 })

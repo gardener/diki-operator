@@ -11,6 +11,7 @@ build:
             - cmd/diki-operator
             - cmd/diki-operator/app
             - internal/reconciler/compliancescan
+            - internal/webhook/compliancescan
             - pkg/apis/config/v1alpha1
             - pkg/apis/config/v1alpha1/validation
             - pkg/apis/diki
@@ -35,6 +36,7 @@ deploy:
         chartPath: charts/diki/diki-operator
         valuesFiles:
           - charts/diki/diki-operator/values.yaml
+          - dev/diki-operator/values.yaml
         namespace: kube-system
         setValueTemplates:
           image.repository: '{{.IMAGE_REPO_local_skaffold_diki_operator}}'

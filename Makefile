@@ -110,5 +110,4 @@ operator-up: export LD_FLAGS = $(bash $(GARDENER_HACK_DIR)/hack/get-build-ld-fla
 
 .PHONY: operator-up
 operator-up: $(SKAFFOLD) $(HELM) $(KUBECTL)
-	@$(KUBECTL) apply -f ./charts/diki/crds/
-	@$(SKAFFOLD) run
+	@bash $(HACK_DIR)/operator-up.sh

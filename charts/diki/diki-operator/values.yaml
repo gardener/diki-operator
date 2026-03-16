@@ -20,6 +20,17 @@ config:
       port: 8081
     metrics:
       port: 8080
+    webhooks:
+      port: 10443
+      tls:
+        crt: |
+          -----BEGIN CERTIFICATE-----
+          ...
+          -----END CERTIFICATE-----
+        key: |
+          -----BEGIN PRIVATE KEY-----
+          ...
+          -----END PRIVATE KEY-----
   leaderElection:
     leaderElect: true
     leaseDuration: 15s
@@ -33,3 +44,13 @@ config:
         waitInterval: 5s
         podCompletionTimeout: 10m
         execTimeout: 30s
+# TLS Configuration of the ValidatingWebhookConfiguration. The CA bundle is used to verify the webhook server certificate.
+# The CA bundle should be the CA that signed the webhook server certificate used in the runtime cluster
+# (see runtime.config.server.webhooks.tls.crt and runtime.config.server.webhooks.tls.key).
+webhookConfig:
+  urlHostname: ""
+  tls:
+    caBundle: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
