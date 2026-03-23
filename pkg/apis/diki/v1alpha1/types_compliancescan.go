@@ -194,7 +194,6 @@ const (
 	ConditionFalse ConditionStatus = "False"
 	// ConditionUnknown means that it cannot be decided if a resource is in the condition or not.
 	ConditionUnknown ConditionStatus = "Unknown"
-
 	// ConditionTypeCompleted indicates whether the ComplianceScan has completed.
 	ConditionTypeCompleted ConditionType = "Completed"
 	// ConditionTypeFailed indicates whether the ComplianceScan has failed.

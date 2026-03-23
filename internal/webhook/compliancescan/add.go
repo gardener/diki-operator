@@ -20,8 +20,6 @@ const (
 
 // AddToManager adds Handler to the given manager.
 func AddToManager(mgr manager.Manager, logger logr.Logger) error {
-	logger.Info("Adding ruleoptions ConfigMap webhook handler to manager")
-
 	webhook := &admission.Webhook{
 		Handler: &Handler{
 			Client:  mgr.GetClient(),

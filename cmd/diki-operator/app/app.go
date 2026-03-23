@@ -100,7 +100,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	mgr, err := ctrl.NewManager(conf, ctrl.Options{
 		Logger: log.WithName("manager"),
 		Metrics: metricsserver.Options{
-			BindAddress: net.JoinHostPort(cfg.Server.Metrics.BindAddress, strconv.Itoa(cfg.Server.Metrics.Port)),
+			BindAddress: net.JoinHostPort(cfg.Server.Metrics.BindAddress, strconv.Itoa(int(cfg.Server.Metrics.Port))),
 		},
 		GracefulShutdownTimeout: ptr.To(5 * time.Second),
 
@@ -116,11 +116,11 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		PprofBindAddress: "",
 		HealthProbeBindAddress: net.JoinHostPort(
 			cfg.Server.HealthProbes.BindAddress,
-			strconv.Itoa(cfg.Server.HealthProbes.Port)),
+			strconv.Itoa(int(cfg.Server.HealthProbes.Port))),
 
 		WebhookServer: webhook.NewServer(webhook.Options{
 			Host:    cfg.Server.Webhooks.BindAddress,
-			Port:    cfg.Server.Webhooks.Port,
+			Port:    int(cfg.Server.Webhooks.Port),
 			CertDir: cfg.Server.Webhooks.TLS.ServerCertDir,
 		}),
 
