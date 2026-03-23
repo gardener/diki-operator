@@ -19,6 +19,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	logzap "sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -32,14 +33,15 @@ var _ = Describe("handler", func() {
 	var (
 		ctx = context.TODO()
 
-		decoder        admission.Decoder
-		log            logr.Logger
-		handler        admission.Handler
-		request        admission.Request
-		encoder        runtime.Encoder
-		fakeClient     client.Client
-		ComplianceScan *v1alpha1.ComplianceScan
-		namespace      *v1.Namespace
+		decoder           admission.Decoder
+		log               logr.Logger
+		handler           admission.Handler
+		request           admission.Request
+		encoder           runtime.Encoder
+		fakeClient        client.Client
+		oldComplianceScan *v1alpha1.ComplianceScan
+		complianceScan    *v1alpha1.ComplianceScan
+		namespace         *v1.Namespace
 
 		responseAllowed = admission.Response{
 			AdmissionResponse: admissionv1.AdmissionResponse{
@@ -98,7 +100,7 @@ var _ = Describe("handler", func() {
 			},
 		}
 
-		ComplianceScan = &v1alpha1.ComplianceScan{
+		complianceScan = &v1alpha1.ComplianceScan{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "compliance-scan",
 				Namespace: "diki",
@@ -112,157 +114,366 @@ var _ = Describe("handler", func() {
 				},
 			},
 		}
+
+		oldComplianceScan = complianceScan.DeepCopy()
 	})
 
 	Describe("#Handle", func() {
-		It("should deny updating a ComplianceScan", func() {
-			ComplianceScanObj, err := runtime.Encode(encoder, ComplianceScan)
-			Expect(err).ToNot(HaveOccurred())
-			request.Object.Raw = ComplianceScanObj
-			request.Operation = admissionv1.Update
+		Context("test updating the ComplianceScan resource", func() {
 
-			responseForbidden.Result.Message = "updating ComplianceScan resources is not permitted"
+			It("should allow updating the ComplianceScan's metadata", func() {
+				oldComplianceScanObj, err := runtime.Encode(encoder, oldComplianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.OldObject.Raw = oldComplianceScanObj
 
-			Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+				complianceScan.Labels = map[string]string{
+					"foo": "bar",
+				}
+
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
+
+				request.Operation = admissionv1.Update
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
+
+			It("should allow updating the ComplianceScan's status field", func() {
+				oldComplianceScan.Status = v1alpha1.ComplianceScanStatus{
+					Phase: v1alpha1.ComplianceScanRunning,
+				}
+				oldComplianceScanObj, err := runtime.Encode(encoder, oldComplianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.OldObject.Raw = oldComplianceScanObj
+
+				complianceScan.Status = v1alpha1.ComplianceScanStatus{
+					Phase: v1alpha1.ComplianceScanCompleted,
+				}
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
+
+				request.Operation = admissionv1.Update
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
+
+			It("should deny updating the ComplianceScan's spec field", func() {
+				oldComplianceScan.Spec.Rulesets = append(oldComplianceScan.Spec.Rulesets, v1alpha1.RulesetConfig{
+					ID:      "ruleset-two",
+					Version: "v0.1.0",
+				})
+				oldComplianceScanObj, err := runtime.Encode(encoder, oldComplianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.OldObject.Raw = oldComplianceScanObj
+
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
+				request.Operation = admissionv1.Update
+
+				responseForbidden.Result.Message = "updating the ComplianceScan spec is not permitted"
+				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+			})
 		})
 
-		It("should allow creating a ComplianceScan that has no options configured", func() {
-			ComplianceScanObj, err := runtime.Encode(encoder, ComplianceScan)
-			Expect(err).ToNot(HaveOccurred())
-			request.Object.Raw = ComplianceScanObj
+		Context("test creating the ComplianceScan resource", func() {
+			It("should allow creating the ComplianceScan if it has no options configured", func() {
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
 
-			Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
-		})
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
 
-		It("should allow creating a ComplianceScan that has a ruleOption pointing to an existing configMap", func() {
-			ComplianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
-				Rules: &v1alpha1.Options{
-					ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+			It("should allow creating a ComplianceScan containing a rule option pointing to an existing configMap", func() {
+				complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+					Rules: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+					},
+				}
+
+				configMap := &v1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:      "configmap",
 						Namespace: "kube-system",
 					},
-				},
-			}
+					Data: map[string]string{},
+				}
+				Expect(fakeClient.Create(ctx, namespace)).To(Succeed())
+				Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
 
-			configMap := &v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "configmap",
-					Namespace: "kube-system",
-				},
-				Data: map[string]string{},
-			}
-			Expect(fakeClient.Create(ctx, namespace)).To(Succeed())
-			Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
 
-			ComplianceScanObj, err := runtime.Encode(encoder, ComplianceScan)
-			Expect(err).ToNot(HaveOccurred())
-			request.Object.Raw = ComplianceScanObj
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
 
-			Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
-		})
+			It("should allow creating a ComplianceScan containing a ruleset option pointing to an existing configMap", func() {
+				complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+					Ruleset: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+					},
+				}
 
-		It("should allow creating a ComplianceScan that has a rulesetOption pointing to an existing configMap", func() {
-			ComplianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
-				Ruleset: &v1alpha1.Options{
-					ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+				configMap := &v1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:      "configmap",
 						Namespace: "kube-system",
 					},
-				},
-			}
+				}
+				Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
 
-			configMap := &v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "configmap",
-					Namespace: "kube-system",
-				},
-			}
-			Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
 
-			ComplianceScanObj, err := runtime.Encode(encoder, ComplianceScan)
-			Expect(err).ToNot(HaveOccurred())
-			request.Object.Raw = ComplianceScanObj
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
 
-			Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
-		})
-
-		It("should allow creating a ComplianceScan that has both options pointing to existing configMaps", func() {
-			ComplianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
-				Ruleset: &v1alpha1.Options{
-					ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
-						Name:      "ruleset-options-configmap",
-						Namespace: "kube-system",
+			It("should allow creating a ComplianceScan containing both options that point to existing configMaps", func() {
+				complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+					Ruleset: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "ruleset-options-configmap",
+							Namespace: "kube-system",
+						},
 					},
-				},
-				Rules: &v1alpha1.Options{
-					ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+					Rules: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "rule-options-configmap",
+							Namespace: "kube-system",
+						},
+					},
+				}
+
+				ruleOptionsConfigMap := &v1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:      "rule-options-configmap",
 						Namespace: "kube-system",
 					},
-				},
-			}
+					Data: map[string]string{},
+				}
+				Expect(fakeClient.Create(ctx, ruleOptionsConfigMap)).To(Succeed())
 
-			ruleOptionsConfigMap := &v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "rule-options-configmap",
-					Namespace: "kube-system",
-				},
-				Data: map[string]string{},
-			}
-			Expect(fakeClient.Create(ctx, ruleOptionsConfigMap)).To(Succeed())
-
-			rulesetOptionsConfigMap := &v1.ConfigMap{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "ruleset-options-configmap",
-					Namespace: "kube-system",
-				},
-				Data: map[string]string{},
-			}
-			Expect(fakeClient.Create(ctx, rulesetOptionsConfigMap)).To(Succeed())
-
-			ComplianceScanObj, err := runtime.Encode(encoder, ComplianceScan)
-			Expect(err).ToNot(HaveOccurred())
-			request.Object.Raw = ComplianceScanObj
-
-			Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
-		})
-
-		It("should forbid creating a ComplianceScan that has a rule option pointing to a non-existent configMap", func() {
-			ComplianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
-				Rules: &v1alpha1.Options{
-					ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
-						Name:      "rule-options-configmap",
-						Namespace: "kube-system",
-					},
-				},
-			}
-
-			ComplianceScanObj, err := runtime.Encode(encoder, ComplianceScan)
-			Expect(err).ToNot(HaveOccurred())
-			request.Object.Raw = ComplianceScanObj
-
-			responseForbidden.Result.Message = "spec.rulesets[0].options.rules: the referenced configMap does not exist"
-
-			Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
-		})
-
-		It("should forbid creating a ComplianceScan that has a ruleset option pointing to a non-existent configMap", func() {
-			ComplianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
-				Ruleset: &v1alpha1.Options{
-					ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+				rulesetOptionsConfigMap := &v1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:      "ruleset-options-configmap",
 						Namespace: "kube-system",
 					},
-				},
-			}
+					Data: map[string]string{},
+				}
+				Expect(fakeClient.Create(ctx, rulesetOptionsConfigMap)).To(Succeed())
 
-			ComplianceScanObj, err := runtime.Encode(encoder, ComplianceScan)
-			Expect(err).ToNot(HaveOccurred())
-			request.Object.Raw = ComplianceScanObj
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
 
-			responseForbidden.Result.Message = "spec.rulesets[0].options.ruleset: the referenced configMap does not exist"
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
 
-			Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+			It("should forbid creating a ComplianceScan that has a rule option pointing to a non-existent configMap", func() {
+				complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+					Rules: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "rule-options-configmap",
+							Namespace: "kube-system",
+						},
+					},
+				}
+
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
+
+				responseForbidden.Result.Message = "spec.rulesets[0].options.rules: the referenced configMap does not exist"
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+			})
+
+			It("should forbid creating a ComplianceScan that has a ruleset option pointing to a non-existent configMap", func() {
+				complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+					Ruleset: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "ruleset-options-configmap",
+							Namespace: "kube-system",
+						},
+					},
+				}
+
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
+
+				responseForbidden.Result.Message = "spec.rulesets[0].options.ruleset: the referenced configMap does not exist"
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+			})
+
+			It("should forbid creating a ComplianceScan that contains at least one invalid reference", func() {
+				complianceScan.Spec.Rulesets = append(complianceScan.Spec.Rulesets, v1alpha1.RulesetConfig{
+					ID:      "ruleset-two",
+					Version: "v0.0.0",
+				})
+				complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+					Ruleset: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+					},
+				}
+				complianceScan.Spec.Rulesets[1].Options = &v1alpha1.RulesetOptions{
+					Rules: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "non-existent-configmap",
+							Namespace: "kube-system",
+						},
+					},
+				}
+
+				configMap := &v1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "configmap",
+						Namespace: "kube-system",
+					},
+					Data: map[string]string{},
+				}
+				Expect(fakeClient.Create(ctx, namespace)).To(Succeed())
+				Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
+
+				responseForbidden.Result.Message = "spec.rulesets[1].options.rules: the referenced configMap does not exist"
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+			})
+
+			Context("test configMap references with data keys", func() {
+				It("should allow creating a ComplianceScan containing a rule option with an existing configMap key", func() {
+					complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+						Rules: &v1alpha1.Options{
+							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+								Name:      "configmap",
+								Namespace: "kube-system",
+								Key:       ptr.To("key"),
+							},
+						},
+					}
+
+					configMap := &v1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+						Data: map[string]string{
+							"key": "some-value",
+						},
+					}
+
+					Expect(fakeClient.Create(ctx, namespace)).To(Succeed())
+					Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+				})
+
+				It("should allow creating a ComplianceScan containing a ruleset option with an existing configMap key", func() {
+					complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+						Ruleset: &v1alpha1.Options{
+							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+								Name:      "configmap",
+								Namespace: "kube-system",
+								Key:       ptr.To("key"),
+							},
+						},
+					}
+
+					configMap := &v1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+						Data: map[string]string{
+							"key": "some-value",
+						},
+					}
+					Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+				})
+
+				It("should forbid creating a ComplianceScan containing a rule option reference with an non-existent configMap key", func() {
+					complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+						Rules: &v1alpha1.Options{
+							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+								Name:      "configmap",
+								Namespace: "kube-system",
+								Key:       ptr.To("no-key"),
+							},
+						},
+					}
+
+					configMap := &v1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+						Data: map[string]string{},
+					}
+					Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					responseForbidden.Result.Message = "spec.rulesets[0].options.rules.key: the referenced key within the configMap does not exist"
+					Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+				})
+
+				It("should forbid creating a ComplianceScan containing a ruleset option reference with an non-existent configMap key", func() {
+					complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+						Ruleset: &v1alpha1.Options{
+							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+								Name:      "configmap",
+								Namespace: "kube-system",
+								Key:       ptr.To("no-key"),
+							},
+						},
+					}
+
+					configMap := &v1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+						Data: map[string]string{},
+					}
+					Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					responseForbidden.Result.Message = "spec.rulesets[0].options.ruleset.key: the referenced key within the configMap does not exist"
+					Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+				})
+			})
 		})
 	})
 })
