@@ -8,9 +8,7 @@ metadata:
   name: diki-operator
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: diki-operator
-    helm.sh/chart: diki-operator
-    app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "labels" . | indent 4 }}
 spec:
   revisionHistoryLimit: 2
   replicas: {{ .Values.replicaCount }}
@@ -81,4 +79,5 @@ spec:
           name: diki-operator
       - name: diki-operator-tls
         secret:
+          defaultMode: 0440
           secretName: diki-operator-tls

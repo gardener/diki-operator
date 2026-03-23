@@ -1,11 +1,14 @@
 # SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
 #
 # SPDX-License-Identifier: Apache-2.0
+
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ include "name" . }}
-  namespace: {{ (.Release.Namespace)  }}
+  name: {{ include "diki-operator.name" . }}
+  namespace: {{ .Release.Namespace  }}
+  labels:
+{{ include "labels" . | indent 4 }}
 webhooks:
 - name: compliancescan.validation.gardener.cloud
   admissionReviewVersions: ["v1", "v1beta1"]
@@ -27,7 +30,7 @@ webhooks:
     url: {{ printf "https://%s:443/webhooks/compliancescan" (.Values.webhookConfig.urlHostname) }}
   {{- else }}
     service:
-      name: {{ include "name" . }}
+      name: {{ include "diki-operator.name" . }}
       namespace: {{ .Release.Namespace }}
       path: /webhooks/compliancescan
       port: 443

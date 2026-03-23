@@ -8,9 +8,7 @@ metadata:
   name: diki-operator
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: diki-operator
-    helm.sh/chart: diki-operator
-    app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "labels" . | indent 4 }}
 rules:
 - apiGroups: 
   - ""

@@ -8,8 +8,7 @@ metadata:
   name: diki-operator
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: diki-operator
-    helm.sh/chart: diki-operator
+{{ include "labels" . | indent 4 }}
 spec:
   type: ClusterIP
   selector:
@@ -20,7 +19,7 @@ spec:
     port: 8080
     protocol: TCP
     targetPort: {{ required ".Values.config.server.metrics.port is required" .Values.config.server.metrics.port }}
-  - name: ps
+  - name: https
     port: 443
     protocol: TCP
     targetPort: {{ required ".Values.config.server.webhooks.port is required" .Values.config.server.webhooks.port }}

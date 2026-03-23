@@ -7,9 +7,7 @@ kind: ClusterRole
 metadata:
   name: diki-operator
   labels:
-    app.kubernetes.io/name: diki-operator
-    helm.sh/chart: diki-operator
-    app.kubernetes.io/instance: {{ .Release.Name }}
+{{ include "labels" . | indent 4 }}
 rules:
 - apiGroups:
   - "diki.gardener.cloud"

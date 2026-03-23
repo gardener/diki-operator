@@ -1,9 +1,22 @@
-{{- define "name" -}}
+{{- define "diki-operator.name" -}}
 diki-operator
 {{- end -}}
 
 {{- define "leaderelectionid" -}}
 diki-operator-leader-election
+{{- end -}}
+
+{{- define "labels.app.key" -}}
+app.kubernetes.io/name
+{{- end -}}
+{{- define "labels.app.value" -}}
+{{ include "diki-operator.name" . }}
+{{- end -}}
+
+{{- define "labels" -}}
+{{ include "labels.app.key" . }}: {{ include "labels.app.value" . }}
+helm.sh/chart: diki-operator
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{-  define "image" -}}
