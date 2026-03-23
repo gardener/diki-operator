@@ -32,7 +32,6 @@ func SetObjectDefaults_DikiOperatorConfiguration(in *DikiOperatorConfiguration) 
 	SetDefaults_ServerConfiguration(&in.Server)
 	SetDefaults_HTTPSServer(&in.Server.Webhooks)
 	SetDefaults_Server(&in.Server.Webhooks.Server)
-	SetDefaults_TLS(&in.Server.Webhooks.TLS)
 	if in.Server.HealthProbes != nil {
 		SetDefaults_Server(in.Server.HealthProbes)
 	}

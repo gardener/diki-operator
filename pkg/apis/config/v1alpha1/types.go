@@ -20,8 +20,6 @@ const (
 	DefaultDikiRunnerNamespace = "kube-system"
 	// DefaultPodCompletionTimeout is the default maximum duration to wait for pod completion.
 	DefaultPodCompletionTimeout = 10 * time.Minute
-	// DefaultVolumeMountPathCertificates is the default directory for the webhook server TLS certificate and key.
-	DefaultVolumeMountPathCertificates = "/etc/diki-operator/webhooks/tls"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

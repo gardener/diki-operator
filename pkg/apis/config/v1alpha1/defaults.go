@@ -81,13 +81,6 @@ func SetDefaults_HTTPSServer(obj *HTTPSServer) {
 	}
 }
 
-// SetDefaults_TLS sets defaults for the TLS object.
-func SetDefaults_TLS(obj *TLS) {
-	if obj.ServerCertDir == "" {
-		obj.ServerCertDir = DefaultVolumeMountPathCertificates
-	}
-}
-
 // SetDefaults_LeaderElectionConfiguration sets defaults for the LeaderElectionConfiguration object.
 func SetDefaults_LeaderElectionConfiguration(obj *componentbaseconfigv1alpha1.LeaderElectionConfiguration) {
 	if obj.ResourceLock == "" {
