@@ -10,11 +10,11 @@ diki-operator-leader-election
 app.kubernetes.io/name
 {{- end -}}
 {{- define "labels.app.value" -}}
-{{ include "diki-operator.name" . }}
+{{- include "diki-operator.name" . }}
 {{- end -}}
 
 {{- define "labels" -}}
-{{ include "labels.app.key" . }}: {{ include "labels.app.value" . }}
+{{- include "labels.app.key" . }}: {{ include "labels.app.value" . }}
 helm.sh/chart: {{ include "labels.app.value" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}

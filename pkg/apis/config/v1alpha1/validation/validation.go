@@ -73,9 +73,14 @@ func validateDikiRunner(dikiRunner v1alpha1.DikiRunnerConfig, fldPath *field.Pat
 // validateServerConfiguration validates the server configuration.
 func validateServerConfiguration(config *v1alpha1.ServerConfiguration, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
-	allErrs = append(allErrs, apivalidation.ValidateNonnegativeField(int64(config.HealthProbes.Port), fldPath.Child("healthProbes", "port"))...)
 	allErrs = append(allErrs, apivalidation.ValidateNonnegativeField(int64(config.Webhooks.Port), fldPath.Child("webhooks", "port"))...)
 
+	if config.HealthProbes != nil {
+		allErrs = append(allErrs, apivalidation.ValidateNonnegativeField(int64(config.HealthProbes.Port), fldPath.Child("healthProbes", "port"))...)
+	}
+	if config.Metrics != nil {
+		allErrs = append(allErrs, apivalidation.ValidateNonnegativeField(int64(config.Metrics.Port), fldPath.Child("metrics", "port"))...)
+	}
 	if config.Webhooks.TLS.ServerCertDir == "" {
 		allErrs = append(allErrs, field.Required(fldPath.Child("webhooks", "tls", "serverCertDir"), "server certificate directory is required"))
 	}

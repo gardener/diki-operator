@@ -30,7 +30,7 @@ type Handler struct {
 	Decoder admission.Decoder
 }
 
-// Handle handles an admission request for an ComplianceScan resource and restricts updates
+// Handle handles an admission request for a ComplianceScan resource and restricts updates
 // and creations if it contains references to invalid ConfigMaps.
 func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.Response {
 	complianceScan := &dikiv1alpha1.ComplianceScan{}
@@ -64,46 +64,14 @@ func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.R
 			}
 
 			if ruleset.Options.Ruleset != nil && ruleset.Options.Ruleset.ConfigMapRef != nil {
-				rulesetOptionsConfigMap := &v1.ConfigMap{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      ruleset.Options.Ruleset.ConfigMapRef.Name,
-						Namespace: ruleset.Options.Ruleset.ConfigMapRef.Namespace,
-					},
-				}
-
-				if err := h.Client.Get(ctx, client.ObjectKeyFromObject(rulesetOptionsConfigMap), rulesetOptionsConfigMap); err != nil {
-					if apierrors.IsNotFound(err) {
-						return admission.Denied(fmt.Sprintf("%s: the referenced configMap does not exist", rulesetOptionsPath.String()))
-					}
-					return admission.Denied(fmt.Sprintf("failed to retrieve the referenced configMap %s: %s", rulesetOptionsPath.String(), err.Error()))
-				}
-
-				if ruleset.Options.Ruleset.ConfigMapRef.Key != nil {
-					if _, ok := rulesetOptionsConfigMap.Data[*ruleset.Options.Ruleset.ConfigMapRef.Key]; !ok {
-						return admission.Denied(fmt.Sprintf("%s: the referenced key within the configMap does not exist", rulesetOptionsPath.Child("key").String()))
-					}
+				if err := validateConfigMapReference(ctx, h.Client, ruleset.Options.Ruleset.ConfigMapRef, rulesetOptionsPath); err != nil {
+					return admission.Denied(err.Error())
 				}
 			}
 
 			if ruleset.Options.Rules != nil && ruleset.Options.Rules.ConfigMapRef != nil {
-				ruleOptionsConfigMap := &v1.ConfigMap{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      ruleset.Options.Rules.ConfigMapRef.Name,
-						Namespace: ruleset.Options.Rules.ConfigMapRef.Namespace,
-					},
-				}
-
-				if err := h.Client.Get(ctx, client.ObjectKeyFromObject(ruleOptionsConfigMap), ruleOptionsConfigMap); err != nil {
-					if apierrors.IsNotFound(err) {
-						return admission.Denied(fmt.Sprintf("%s: the referenced configMap does not exist", ruleOptionsPath.String()))
-					}
-					return admission.Denied(fmt.Sprintf("failed to retrieve the referenced configMap %s: %s", ruleOptionsPath.String(), err.Error()))
-				}
-
-				if ruleset.Options.Rules.ConfigMapRef.Key != nil {
-					if _, ok := ruleOptionsConfigMap.Data[*ruleset.Options.Rules.ConfigMapRef.Key]; !ok {
-						return admission.Denied(fmt.Sprintf("%s: the referenced key within the configMap does not exist", ruleOptionsPath.Child("key").String()))
-					}
+				if err := validateConfigMapReference(ctx, h.Client, ruleset.Options.Rules.ConfigMapRef, ruleOptionsPath); err != nil {
+					return admission.Denied(err.Error())
 				}
 			}
 		}
@@ -111,4 +79,28 @@ func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.R
 	}
 
 	return admission.Allowed("")
+}
+
+func validateConfigMapReference(ctx context.Context, c client.Client, configMapRef *dikiv1alpha1.OptionsConfigMapRef, fldPath *field.Path) error {
+	optionsConfigMap := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      configMapRef.Name,
+			Namespace: configMapRef.Namespace,
+		},
+	}
+
+	if err := c.Get(ctx, client.ObjectKeyFromObject(optionsConfigMap), optionsConfigMap); err != nil {
+		if apierrors.IsNotFound(err) {
+			return fmt.Errorf("%s: the referenced configMap does not exist", fldPath.String())
+		}
+		return fmt.Errorf("failed to retrieve the referenced configMap %s: %s", fldPath.String(), err.Error())
+	}
+
+	if configMapRef.Key != nil {
+		if _, ok := optionsConfigMap.Data[*configMapRef.Key]; !ok {
+			return fmt.Errorf("%s: the referenced key within the configMap does not exist", fldPath.Child("key").String())
+		}
+	}
+
+	return nil
 }

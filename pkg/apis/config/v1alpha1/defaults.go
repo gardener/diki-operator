@@ -67,13 +67,6 @@ func SetDefaults_ServerConfiguration(obj *ServerConfiguration) {
 	}
 }
 
-// SetDefaults_Server sets defaults for the Server object.
-func SetDefaults_Server(obj *Server) {
-	if obj.Port == 0 {
-		obj.Port = 8081
-	}
-}
-
 // SetDefaults_HTTPSServer sets defaults for the HTTPSServer object.
 func SetDefaults_HTTPSServer(obj *HTTPSServer) {
 	if obj.Port == 0 {

@@ -6,7 +6,6 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   name: {{ include "diki-operator.name" . }}
-  namespace: {{ .Release.Namespace  }}
   labels:
 {{ include "labels" . | indent 4 }}
 webhooks:

@@ -31,11 +31,4 @@ func SetObjectDefaults_DikiOperatorConfiguration(in *DikiOperatorConfiguration) 
 	SetDefaults_DikiRunnerConfig(&in.Controllers.ComplianceScan.DikiRunner)
 	SetDefaults_ServerConfiguration(&in.Server)
 	SetDefaults_HTTPSServer(&in.Server.Webhooks)
-	SetDefaults_Server(&in.Server.Webhooks.Server)
-	if in.Server.HealthProbes != nil {
-		SetDefaults_Server(in.Server.HealthProbes)
-	}
-	if in.Server.Metrics != nil {
-		SetDefaults_Server(in.Server.Metrics)
-	}
 }

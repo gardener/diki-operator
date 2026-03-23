@@ -149,6 +149,18 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			)))
 		})
 
+		It("should forbid negative Metrics port", func() {
+			conf.Server.Metrics.Port = -1
+
+			errs := ValidateDikiOperatorConfiguration(conf)
+			Expect(errs).To(ConsistOf(PointTo(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":  Equal(field.ErrorTypeInvalid),
+					"Field": Equal("server.metrics.port"),
+				}),
+			)))
+		})
+
 		It("should forbid negative Webhooks port", func() {
 			conf.Server.Webhooks.Port = -1
 

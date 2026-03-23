@@ -128,20 +128,15 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 			RecoverPanic: ptr.To(true),
 		},
 	})
+
 	if err != nil {
 		return fmt.Errorf("unable to create manager: %w", err)
 	}
-
 	if err := dikiinstall.AddToScheme(mgr.GetScheme()); err != nil {
 		return fmt.Errorf("could not update manager scheme: %w", err)
 	}
 	if err := clientgoscheme.AddToScheme(mgr.GetScheme()); err != nil {
 		return fmt.Errorf("could not update manager scheme: %w", err)
-	}
-
-	log.Info("Adding webhook handler to manager")
-	if err := compliancescanwebhook.AddToManager(mgr, log); err != nil {
-		return fmt.Errorf("failed adding webhook handler to manager: %w", err)
 	}
 
 	log.Info("Setting up health check endpoints")
@@ -163,6 +158,11 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		Config: cfg.Controllers.ComplianceScan,
 	}).SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("unable to create complianceScan reconcile controller: %w", err)
+	}
+
+	log.Info("Adding webhook handler to manager")
+	if err := compliancescanwebhook.AddToManager(mgr, log); err != nil {
+		return fmt.Errorf("failed adding webhook handler to manager: %w", err)
 	}
 
 	log.Info("Starting manager")

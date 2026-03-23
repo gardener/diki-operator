@@ -180,30 +180,6 @@ var _ = Describe("Defaults", func() {
 		})
 	})
 
-	Describe("#SetDefaults_Server", func() {
-		var obj *Server
-
-		BeforeEach(func() {
-			obj = &Server{}
-		})
-
-		Context("Port", func() {
-			It("should default port", func() {
-				SetDefaults_Server(obj)
-
-				Expect(obj.Port).To(Equal(int32(8081)))
-			})
-
-			It("should not overwrite already set value for port", func() {
-				obj.Port = 9090
-
-				SetDefaults_Server(obj)
-
-				Expect(obj.Port).To(Equal(int32(9090)))
-			})
-		})
-	})
-
 	Describe("#SetDefaults_HTTPSServer", func() {
 		var obj *HTTPSServer
 
