@@ -24,6 +24,8 @@ type ConfigMapExporter struct {
 	Config dikiv1alpha1.ConfigMapOutput
 }
 
+var _ Output = &ConfigMapExporter{}
+
 // ConfigMapDetails contains the details of the created ConfigMap.
 type ConfigMapDetails struct {
 	Name      string `json:"name"`
