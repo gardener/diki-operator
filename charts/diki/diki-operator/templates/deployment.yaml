@@ -43,6 +43,9 @@ spec:
         - name: metrics
           containerPort: {{ .Values.config.server.metrics.port }}
           protocol: TCP
+        - name: https
+          containerPort: {{ .Values.config.server.webhooks.port }}
+          protocol: TCP
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

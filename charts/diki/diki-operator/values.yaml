@@ -22,7 +22,16 @@ config:
       port: 8080
     webhooks:
       port: 10443
+# TODO(georgibaltiev): refactor the tls values once the operator charts have been split.
+# TLS Configuration of the ValidatingWebhookConfiguration. The CA bundle is used to verify the webhook server certificate.
+# The CA bundle should be the CA that signed the webhook server certificate used in the runtime cluster
+# (see runtime.config.server.webhooks.tls.crt and runtime.config.server.webhooks.tls.key).
       tls:
+        hostname: ""
+        caBundle: |
+          -----BEGIN CERTIFICATE-----
+          ...
+          -----END CERTIFICATE-----
         crt: |
           -----BEGIN CERTIFICATE-----
           ...
@@ -44,13 +53,3 @@ config:
         waitInterval: 5s
         podCompletionTimeout: 10m
         execTimeout: 30s
-# TLS Configuration of the ValidatingWebhookConfiguration. The CA bundle is used to verify the webhook server certificate.
-# The CA bundle should be the CA that signed the webhook server certificate used in the runtime cluster
-# (see runtime.config.server.webhooks.tls.crt and runtime.config.server.webhooks.tls.key).
-webhookConfig:
-  urlHostname: ""
-  tls:
-    caBundle: |
-      -----BEGIN CERTIFICATE-----
-      ...
-      -----END CERTIFICATE-----

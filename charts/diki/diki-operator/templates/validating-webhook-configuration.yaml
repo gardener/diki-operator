@@ -25,8 +25,8 @@ webhooks:
   failurePolicy: Fail
   clientConfig:
   # TODO (georgibaltiev): revisit this configuration once the diki-operator starts being invoked out-of-cluster
-  {{- if .Values.webhookConfig.urlHostname }}
-    url: {{ printf "https://%s:443/webhooks/compliancescan" (.Values.webhookConfig.urlHostname) }}
+  {{- if .Values.config.server.webhooks.tls.hostname }}
+    url: {{ printf "https://%s:443/webhooks/compliancescan" (.Values.config.server.webhooks.tls.hostname) }}
   {{- else }}
     service:
       name: {{ include "diki-operator.name" . }}
@@ -34,5 +34,5 @@ webhooks:
       path: /webhooks/compliancescan
       port: 443
   {{- end }}
-    caBundle: {{ required ".Values.webhookConfig.tls.caBundle is required" (b64enc .Values.webhookConfig.tls.caBundle) }}
+    caBundle: {{ required ".Values.config.server.webhooks.tls.caBundle is required" (b64enc .Values.config.server.webhooks.tls.caBundle) }}
   sideEffects: None
