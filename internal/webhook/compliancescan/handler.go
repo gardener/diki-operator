@@ -6,10 +6,8 @@ package compliancescan
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/go-logr/logr"
 	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
@@ -26,7 +24,6 @@ import (
 // certain ComplianceScan resources.
 type Handler struct {
 	Client  client.Client
-	Logger  logr.Logger
 	Decoder admission.Decoder
 }
 
@@ -50,7 +47,10 @@ func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.R
 	}
 
 	if req.Operation == admissionv1.Create {
-		var specFieldPath = field.NewPath("spec", "rulesets")
+		var (
+			specFieldPath = field.NewPath("spec", "rulesets")
+			allErrs       field.ErrorList
+		)
 
 		for rIdx, ruleset := range complianceScan.Spec.Rulesets {
 			var (
@@ -64,16 +64,16 @@ func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.R
 			}
 
 			if ruleset.Options.Ruleset != nil && ruleset.Options.Ruleset.ConfigMapRef != nil {
-				if err := validateConfigMapReference(ctx, h.Client, ruleset.Options.Ruleset.ConfigMapRef, rulesetOptionsPath); err != nil {
-					return admission.Denied(err.Error())
-				}
+				allErrs = append(allErrs, validateConfigMapReference(ctx, h.Client, ruleset.Options.Ruleset.ConfigMapRef, rulesetOptionsPath)...)
 			}
 
 			if ruleset.Options.Rules != nil && ruleset.Options.Rules.ConfigMapRef != nil {
-				if err := validateConfigMapReference(ctx, h.Client, ruleset.Options.Rules.ConfigMapRef, ruleOptionsPath); err != nil {
-					return admission.Denied(err.Error())
-				}
+				allErrs = append(allErrs, validateConfigMapReference(ctx, h.Client, ruleset.Options.Rules.ConfigMapRef, ruleOptionsPath)...)
 			}
+		}
+
+		if len(allErrs) > 0 {
+			return admission.Denied(allErrs.ToAggregate().Error())
 		}
 		return admission.Allowed("")
 	}
@@ -81,7 +81,8 @@ func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.R
 	return admission.Allowed("")
 }
 
-func validateConfigMapReference(ctx context.Context, c client.Client, configMapRef *dikiv1alpha1.OptionsConfigMapRef, fldPath *field.Path) error {
+func validateConfigMapReference(ctx context.Context, c client.Client, configMapRef *dikiv1alpha1.OptionsConfigMapRef, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
 	optionsConfigMap := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapRef.Name,
@@ -91,16 +92,16 @@ func validateConfigMapReference(ctx context.Context, c client.Client, configMapR
 
 	if err := c.Get(ctx, client.ObjectKeyFromObject(optionsConfigMap), optionsConfigMap); err != nil {
 		if apierrors.IsNotFound(err) {
-			return fmt.Errorf("%s: the referenced configMap does not exist", fldPath.String())
+			return append(allErrs, field.NotFound(fldPath, "the referenced configMap does not exist"))
 		}
-		return fmt.Errorf("failed to retrieve the referenced configMap %s: %s", fldPath.String(), err.Error())
+		return append(allErrs, field.InternalError(fldPath, err))
 	}
 
 	if configMapRef.Key != nil {
 		if _, ok := optionsConfigMap.Data[*configMapRef.Key]; !ok {
-			return fmt.Errorf("%s: the referenced key within the configMap does not exist", fldPath.Child("key").String())
+			allErrs = append(allErrs, field.NotFound(fldPath.Child("key"), "the referenced key within the configMap does not exist"))
 		}
 	}
 
-	return nil
+	return allErrs
 }

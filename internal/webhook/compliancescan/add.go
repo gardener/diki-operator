@@ -5,7 +5,6 @@
 package compliancescan
 
 import (
-	"github.com/go-logr/logr"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -19,11 +18,10 @@ const (
 )
 
 // AddToManager adds Handler to the given manager.
-func AddToManager(mgr manager.Manager, logger logr.Logger) error {
+func AddToManager(mgr manager.Manager) error {
 	webhook := &admission.Webhook{
 		Handler: &Handler{
 			Client:  mgr.GetClient(),
-			Logger:  logger,
 			Decoder: admission.NewDecoder(mgr.GetScheme()),
 		},
 		RecoverPanic: ptr.To(true),

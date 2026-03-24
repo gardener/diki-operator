@@ -9,8 +9,6 @@ import (
 	"net/http"
 
 	"github.com/gardener/gardener/pkg/client/kubernetes"
-	"github.com/gardener/gardener/pkg/logger"
-	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -22,7 +20,6 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	logzap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/gardener/diki-operator/internal/webhook/compliancescan"
@@ -34,7 +31,6 @@ var _ = Describe("handler", func() {
 		ctx = context.TODO()
 
 		decoder           admission.Decoder
-		log               logr.Logger
 		handler           admission.Handler
 		request           admission.Request
 		encoder           runtime.Encoder
@@ -70,11 +66,8 @@ var _ = Describe("handler", func() {
 
 		fakeClient = fake.NewClientBuilder().WithScheme(scheme).Build()
 		ctx = context.TODO()
-		log = logger.MustNewZapLogger(logger.DebugLevel, logger.FormatJSON, logzap.WriteTo(GinkgoWriter))
-
 		decoder = admission.NewDecoder(scheme)
 		handler = &compliancescan.Handler{
-			Logger:  log,
 			Decoder: decoder,
 			Client:  fakeClient,
 		}
@@ -292,7 +285,7 @@ var _ = Describe("handler", func() {
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = complianceScanObj
 
-				responseForbidden.Result.Message = "spec.rulesets[0].options.rules: the referenced configMap does not exist"
+				responseForbidden.Result.Message = "spec.rulesets[0].options.rules: Not found: \"the referenced configMap does not exist\""
 
 				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
 			})
@@ -311,7 +304,7 @@ var _ = Describe("handler", func() {
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = complianceScanObj
 
-				responseForbidden.Result.Message = "spec.rulesets[0].options.ruleset: the referenced configMap does not exist"
+				responseForbidden.Result.Message = "spec.rulesets[0].options.ruleset: Not found: \"the referenced configMap does not exist\""
 
 				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
 			})
@@ -352,7 +345,7 @@ var _ = Describe("handler", func() {
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = complianceScanObj
 
-				responseForbidden.Result.Message = "spec.rulesets[1].options.rules: the referenced configMap does not exist"
+				responseForbidden.Result.Message = "spec.rulesets[1].options.rules: Not found: \"the referenced configMap does not exist\""
 
 				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
 			})
@@ -442,7 +435,7 @@ var _ = Describe("handler", func() {
 					Expect(err).ToNot(HaveOccurred())
 					request.Object.Raw = complianceScanObj
 
-					responseForbidden.Result.Message = "spec.rulesets[0].options.rules.key: the referenced key within the configMap does not exist"
+					responseForbidden.Result.Message = "spec.rulesets[0].options.rules.key: Not found: \"the referenced key within the configMap does not exist\""
 					Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
 				})
 
@@ -470,9 +463,49 @@ var _ = Describe("handler", func() {
 					Expect(err).ToNot(HaveOccurred())
 					request.Object.Raw = complianceScanObj
 
-					responseForbidden.Result.Message = "spec.rulesets[0].options.ruleset.key: the referenced key within the configMap does not exist"
+					responseForbidden.Result.Message = "spec.rulesets[0].options.ruleset.key: Not found: \"the referenced key within the configMap does not exist\""
 					Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
 				})
+			})
+
+			It("should concatenate multiple errors", func() {
+				complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+					Ruleset: &v1alpha1.Options{
+						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+							Name:      "configmap",
+							Namespace: "kube-system",
+							Key:       ptr.To("no-key"),
+						},
+					},
+				}
+				complianceScan.Spec.Rulesets = append(complianceScan.Spec.Rulesets, v1alpha1.RulesetConfig{
+					ID:      "ruleset-two",
+					Version: "v0.0.0",
+					Options: &v1alpha1.RulesetOptions{
+						Rules: &v1alpha1.Options{
+							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+								Name:      "non-existent-configmap",
+								Namespace: "kube-system",
+							},
+						},
+					},
+				})
+
+				configMap := &v1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "configmap",
+						Namespace: "kube-system",
+					},
+					Data: map[string]string{},
+				}
+				Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+
+				complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = complianceScanObj
+
+				responseForbidden.Result.Message = "[spec.rulesets[0].options.ruleset.key: Not found: \"the referenced key within the configMap does not exist\", spec.rulesets[1].options.rules: Not found: \"the referenced configMap does not exist\"]"
+				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
 			})
 		})
 	})

@@ -161,7 +161,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	}
 
 	log.Info("Adding webhook handler to manager")
-	if err := compliancescanwebhook.AddToManager(mgr, log); err != nil {
+	if err := compliancescanwebhook.AddToManager(mgr); err != nil {
 		return fmt.Errorf("failed adding webhook handler to manager: %w", err)
 	}
 
