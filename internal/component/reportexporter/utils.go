@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package dikiexporter
+package reportexporter
 
 import (
 	"slices"
@@ -14,7 +14,7 @@ import (
 )
 
 // createRulesetSummaries adds all rulesets of a report to the ComplianceScan's summary.
-func createRulesetSummaries(report dikireport.Report) []v1alpha1.RulesetSummary {
+func createRulesetSummaries(report *dikireport.Report) []v1alpha1.RulesetSummary {
 	var rulesetSummaries []v1alpha1.RulesetSummary
 
 	for _, provider := range report.Providers {

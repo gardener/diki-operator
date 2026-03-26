@@ -33,24 +33,22 @@ type ReportOutputList struct {
 
 // ReportOutputSpec is the specification of a ReportOutput.
 type ReportOutputSpec struct {
-	// Outputs describes a specific output of a compliance scan
+	// Output describes a specific output of a compliance scan.
 	Output Output
 }
 
-// Output describes a specific output of a compliance scan
+// Output describes a specific output of a compliance scan.
 type Output struct {
 	// ConfigMap contains the configuration for exporting the report to a ConfigMap.
-	ConfigMap *ConfigMapOutput
+	ConfigMap *OutputConfigMap
 }
 
-// ConfigMapOutput contains the configuration for exporting the report to a ConfigMap.
-type ConfigMapOutput struct {
+// OutputConfigMap contains the configuration for exporting the report to a ConfigMap.
+type OutputConfigMap struct {
 	// Namespace is the namespace where the ConfigMap will be created.
 	// Defaults to `kube-system`.
-	Namespace *string
+	Namespace string
 	// NamePrefix is the prefix for the generated ConfigMap name.
-	// Defaults to "diki-report-".
-	NamePrefix *string
-	// Labels are additional labels to add to the ConfigMap.
-	Labels map[string]string
+	// Defaults to "compliance-scan-report-".
+	NamePrefix string
 }

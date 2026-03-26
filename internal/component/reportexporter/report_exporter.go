@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package dikiexporter
+package reportexporter
 
 import (
 	"context"
@@ -16,30 +16,30 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	dikioutputs "github.com/gardener/diki-operator/internal/component/dikiexporter/outputs"
+	dikioutputs "github.com/gardener/diki-operator/internal/component/reportexporter/outputs"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
-	"github.com/gardener/diki-operator/pkg/apis/dikiexporter/v1alpha1"
+	"github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
-// DikiExporter is responsible for exporting compliance scan data.
-type DikiExporter struct {
+// ReportExporter is responsible for exporting compliance scan data.
+type ReportExporter struct {
 	Client client.Client
-	Config v1alpha1.DikiExporterConfiguration
+	Config v1alpha1.ReportExporterConfiguration
 }
 
-// NewDikiExporter creates a new instance of DikiExporter.
-func NewDikiExporter(
+// NewReportExporter creates a new instance of ReportExporter.
+func NewReportExporter(
 	client client.Client,
-	config v1alpha1.DikiExporterConfiguration,
-) *DikiExporter {
-	return &DikiExporter{
+	config v1alpha1.ReportExporterConfiguration,
+) *ReportExporter {
+	return &ReportExporter{
 		Client: client,
 		Config: config,
 	}
 }
 
 // Export exports the compliance scan data.
-func (d *DikiExporter) Export(ctx context.Context) error {
+func (d *ReportExporter) Export(ctx context.Context) error {
 	complianceScan := &dikiv1alpha1.ComplianceScan{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: d.Config.ComplianceScanName,
@@ -73,22 +73,23 @@ func (d *DikiExporter) Export(ctx context.Context) error {
 		wg.Add(1)
 		go func(exp dikioutputs.Output) {
 			defer wg.Done()
-			if details, err := exp.Export(ctx, *report); err != nil {
-				outputStatusChan <- dikiv1alpha1.OutputStatus{
-					ReportOutputRef: dikiv1alpha1.ReportOutputRef{
-						Name: name,
-					},
-					Phase:   dikiv1alpha1.OutputStatusFailed,
-					Details: toRawExtension(newErroredExport(err)),
-				}
+			var (
+				phase   dikiv1alpha1.OutputStatusPhase
+				details runtime.RawExtension
+			)
+
+			if d, err := exp.Export(ctx, *report); err != nil {
+				phase = dikiv1alpha1.OutputStatusFailed
+				details = toRawExtension(newExportError(err))
 			} else {
-				outputStatusChan <- dikiv1alpha1.OutputStatus{
-					ReportOutputRef: dikiv1alpha1.ReportOutputRef{
-						Name: name,
-					},
-					Phase:   dikiv1alpha1.OutputStatusCompleted,
-					Details: toRawExtension(details),
-				}
+				phase = dikiv1alpha1.OutputStatusCompleted
+				details = toRawExtension(d)
+			}
+
+			outputStatusChan <- dikiv1alpha1.OutputStatus{
+				OutputName: name,
+				Phase:      phase,
+				Details:    details,
 			}
 		}(output)
 	}
@@ -102,7 +103,7 @@ func (d *DikiExporter) Export(ctx context.Context) error {
 	}
 
 	patch := client.MergeFrom(complianceScan.DeepCopy())
-	complianceScan.Status.Rulesets = createRulesetSummaries(*report)
+	complianceScan.Status.Rulesets = createRulesetSummaries(report)
 	complianceScan.Status.Outputs = outputStatuses
 
 	if err := d.Client.Status().Patch(ctx, complianceScan, patch); err != nil {
@@ -112,27 +113,27 @@ func (d *DikiExporter) Export(ctx context.Context) error {
 	return nil
 }
 
-func (d *DikiExporter) createOutputs() (map[string]dikioutputs.Output, error) {
+func (d *ReportExporter) createOutputs() (map[string]dikioutputs.Output, error) {
 	outputs := make(map[string]dikioutputs.Output)
 
 	for _, output := range d.Config.Outputs {
 		switch output.Type {
 		case v1alpha1.ExporterTypeConfigMap:
-			var configMapOutput dikiv1alpha1.ConfigMapOutput
+			var configMapOutput dikiv1alpha1.OutputConfigMap
 			if err := json.Unmarshal(output.Config.Raw, &configMapOutput); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal ConfigMapOutput: %w", err)
 			}
 
 			outputs[output.Name] = dikioutputs.NewConfigMapExporter(d.Client, configMapOutput)
 		default:
-			fmt.Printf("Unsupported output type: %s\n", output.Type)
+			return nil, fmt.Errorf("unsupported output type: %s", output.Type)
 		}
 	}
 
 	return outputs, nil
 }
 
-func (d *DikiExporter) readDikiReport() (*dikireport.Report, error) {
+func (d *ReportExporter) readDikiReport() (*dikireport.Report, error) {
 	reportData, err := os.ReadFile(d.Config.ReportPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading report file: %w", err)

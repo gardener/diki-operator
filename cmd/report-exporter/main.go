@@ -11,7 +11,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/gardener/diki-operator/cmd/diki-exporter/app"
+	"github.com/gardener/diki-operator/cmd/report-exporter/app"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	cmd := app.NewCommand()
 
 	if err := cmd.ExecuteContext(ctrl.SetupSignalHandler()); err != nil {
-		logf.Log.Error(err, "Error executing diki-exporter")
+		logf.Log.Error(err, "Error executing report-exporter")
 		os.Exit(1)
 	}
 }

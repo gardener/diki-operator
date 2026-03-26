@@ -5,7 +5,7 @@
 ENSURE_GARDENER_MOD    := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
 GARDENER_HACK_DIR      := $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
 NAME                   := diki-operator
-EXPORTER_NAME		   := diki-exporter
+EXPORTER_NAME		   := report-exporter
 IMAGE                  := europe-docker.pkg.dev/gardener-project/public/gardener/$(NAME)
 EXPORTER_IMAGE		   := europe-docker.pkg.dev/gardener-project/public/gardener/$(EXPORTER_NAME)
 REPO_ROOT              := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -31,8 +31,8 @@ start:
 
 .PHONY: start-exporter
 start-exporter:
-	go run ./cmd/diki-exporter/main.go \
-	    --config=$(REPO_ROOT)/example/95-diki-exporter-config.yaml \
+	go run ./cmd/report-exporter/main.go \
+	    --config=$(REPO_ROOT)/example/95-report-exporter-config.yaml \
 		--kubeconfig $(KUBECONFIG)
 
 .PHONY: install

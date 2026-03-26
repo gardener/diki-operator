@@ -28,4 +28,4 @@ kube::codegen::gen_helpers \
 
 kube::codegen::gen_helpers \
   --boilerplate "${GARDENER_HACK_DIR}/LICENSE_BOILERPLATE.txt" \
-  "${PROJECT_ROOT}/pkg/apis/dikiexporter"
+  "${PROJECT_ROOT}/pkg/apis/reportexporter"

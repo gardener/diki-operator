@@ -7,5 +7,5 @@
 // +k8s:defaulter-gen=TypeMeta
 // +groupName=exporter.diki.gardener.cloud
 
-// Package v1alpha1 contains the diki exporter configuration.
+// Package v1alpha1 contains the report exporter configuration.
 package v1alpha1

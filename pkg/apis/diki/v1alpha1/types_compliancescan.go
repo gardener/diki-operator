@@ -110,8 +110,8 @@ type ComplianceScanStatus struct {
 
 // OutputStatus contains the status of a specific output of a compliance scan.
 type OutputStatus struct {
-	ReportOutputRef `json:",inline"`
-
+	// OutputName is the name of the report output.
+	OutputName string `json:"outputName"`
 	// Phase represents the final phase of the output after the exporter has processed it.
 	Phase OutputStatusPhase `json:"phase"`
 	// Details contains details about the output.

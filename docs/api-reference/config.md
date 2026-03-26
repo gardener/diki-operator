@@ -337,63 +337,6 @@ string
 <p>
 <p>ConditionType is an alias for string representing the type of a condition.</p>
 </p>
-<h3 id="diki.gardener.cloud/v1alpha1.ConfigMapOutput">ConfigMapOutput
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.Output">Output</a>)
-</p>
-<p>
-<p>ConfigMapOutput contains the configuration for exporting the report to a ConfigMap.</p>
-</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>namespace</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Namespace is the namespace where the ConfigMap will be created.
-Defaults to <code>kube-system</code>.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>namePrefix</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>NamePrefix is the prefix for the generated ConfigMap name.
-Defaults to &ldquo;diki-report-&rdquo;.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>labels</code></br>
-<em>
-map[string]string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Labels are additional labels to add to the ConfigMap.</p>
-</td>
-</tr>
-</tbody>
-</table>
 <h3 id="diki.gardener.cloud/v1alpha1.Options">Options
 </h3>
 <p>
@@ -487,7 +430,7 @@ string
 <a href="#diki.gardener.cloud/v1alpha1.ReportOutputSpec">ReportOutputSpec</a>)
 </p>
 <p>
-<p>Output describes a specific output of a compliance scan</p>
+<p>Output describes a specific output of a compliance scan.</p>
 </p>
 <table>
 <thead>
@@ -501,14 +444,57 @@ string
 <td>
 <code>configMap</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ConfigMapOutput">
-ConfigMapOutput
+<a href="#diki.gardener.cloud/v1alpha1.OutputConfigMap">
+OutputConfigMap
 </a>
 </em>
 </td>
 <td>
 <em>(Optional)</em>
 <p>ConfigMap contains the configuration for exporting the report to a ConfigMap.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.OutputConfigMap">OutputConfigMap
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.Output">Output</a>)
+</p>
+<p>
+<p>OutputConfigMap contains the configuration for exporting the report to a ConfigMap.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the namespace where the ConfigMap will be created.
+Defaults to <code>kube-system</code>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namePrefix</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>NamePrefix is the prefix for the generated ConfigMap name.
+Defaults to &ldquo;compliance-scan-report-&rdquo;.</p>
 </td>
 </tr>
 </tbody>
@@ -532,17 +518,13 @@ ConfigMapOutput
 <tbody>
 <tr>
 <td>
-<code>ReportOutputRef</code></br>
+<code>outputName</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ReportOutputRef">
-ReportOutputRef
-</a>
+string
 </em>
 </td>
 <td>
-<p>
-(Members of <code>ReportOutputRef</code> are embedded into this type.)
-</p>
+<p>OutputName is the name of the report output.</p>
 </td>
 </tr>
 <tr>
@@ -633,7 +615,7 @@ Output
 </em>
 </td>
 <td>
-<p>Outputs describes a specific output of a compliance scan</p>
+<p>Output describes a specific output of a compliance scan.</p>
 </td>
 </tr>
 </table>
@@ -645,8 +627,7 @@ Output
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">ComplianceScanSpec</a>, 
-<a href="#diki.gardener.cloud/v1alpha1.OutputStatus">OutputStatus</a>)
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">ComplianceScanSpec</a>)
 </p>
 <p>
 <p>ReportOutputRef describes a reference to a report output.</p>
@@ -699,7 +680,7 @@ Output
 </em>
 </td>
 <td>
-<p>Outputs describes a specific output of a compliance scan</p>
+<p>Output describes a specific output of a compliance scan.</p>
 </td>
 </tr>
 </tbody>

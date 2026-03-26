@@ -5,4 +5,4 @@ metadata:
 spec:
   output:
     configMap:
-      namePrefix: diki-report-
+      namePrefix: compliance-scan-report-

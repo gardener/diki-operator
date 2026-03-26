@@ -42,22 +42,17 @@ spec:
             description: Spec contains the specification of this report output.
             properties:
               output:
-                description: Outputs describes a specific output of a compliance scan
+                description: Output describes a specific output of a compliance scan.
                 properties:
                   configMap:
                     description: ConfigMap contains the configuration for exporting
                       the report to a ConfigMap.
                     properties:
-                      labels:
-                        additionalProperties:
-                          type: string
-                        description: Labels are additional labels to add to the ConfigMap.
-                        type: object
                       namePrefix:
-                        default: diki-report-
+                        default: compliance-scan-report-
                         description: |-
                           NamePrefix is the prefix for the generated ConfigMap name.
-                          Defaults to "diki-report-".
+                          Defaults to "compliance-scan-report-".
                         type: string
                       namespace:
                         default: kube-system

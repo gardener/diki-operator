@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package dikiexporter_test
+package reportexporter_test
 
 import (
 	"context"
@@ -24,18 +24,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
-	"github.com/gardener/diki-operator/internal/component/dikiexporter"
+	"github.com/gardener/diki-operator/internal/component/reportexporter"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
-	"github.com/gardener/diki-operator/pkg/apis/dikiexporter/v1alpha1"
+	"github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
-var _ = Describe("DikiExporter", func() {
+var _ = Describe("ReportExporter", func() {
 	var (
 		ctx = context.TODO()
 
 		fakeClient     client.Client
-		exporter       *dikiexporter.DikiExporter
+		exporter       *reportexporter.ReportExporter
 		complianceScan *dikiv1alpha1.ComplianceScan
 		tempDir        string
 		reportPath     string
@@ -44,7 +44,7 @@ var _ = Describe("DikiExporter", func() {
 
 	BeforeEach(func() {
 		var err error
-		tempDir, err = os.MkdirTemp("", "diki-exporter-test-")
+		tempDir, err = os.MkdirTemp("", "report-exporter-test-")
 		Expect(err).NotTo(HaveOccurred())
 
 		reportPath = filepath.Join(tempDir, "report.json")
@@ -205,9 +205,9 @@ var _ = Describe("DikiExporter", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(os.WriteFile(reportPath, reportData, 0600)).To(Succeed())
 
-		exporter = dikiexporter.NewDikiExporter(
+		exporter = reportexporter.NewReportExporter(
 			fakeClient,
-			v1alpha1.DikiExporterConfiguration{
+			v1alpha1.ReportExporterConfiguration{
 				ReportPath:         reportPath,
 				ComplianceScanName: complianceScan.Name,
 				Outputs: []v1alpha1.Output{
@@ -278,7 +278,7 @@ var _ = Describe("DikiExporter", func() {
 
 			// Verify output statuses
 			Expect(updatedScan.Status.Outputs).To(HaveLen(1))
-			Expect(updatedScan.Status.Outputs[0].Name).To(Equal("test-output"))
+			Expect(updatedScan.Status.Outputs[0].OutputName).To(Equal("test-output"))
 			Expect(updatedScan.Status.Outputs[0].Phase).To(Equal(dikiv1alpha1.OutputStatusCompleted))
 			Expect(updatedScan.Status.Outputs[0].Details.Raw).NotTo(BeEmpty())
 		})
@@ -300,7 +300,7 @@ var _ = Describe("DikiExporter", func() {
 
 			Expect(updatedScan.Status.Outputs).To(HaveLen(2))
 
-			outputNames := []string{updatedScan.Status.Outputs[0].Name, updatedScan.Status.Outputs[1].Name}
+			outputNames := []string{updatedScan.Status.Outputs[0].OutputName, updatedScan.Status.Outputs[1].OutputName}
 			Expect(outputNames).To(ConsistOf("test-output", "test-output-2"))
 
 			for _, output := range updatedScan.Status.Outputs {
@@ -446,7 +446,7 @@ var _ = Describe("DikiExporter", func() {
 			})))
 		})
 
-		It("should handle unsupported output types gracefully", func() {
+		It("should fail when unsupported output type is passed", func() {
 			exporter.Config.Outputs = []v1alpha1.Output{
 				{
 					Type: "UnsupportedType",
@@ -455,14 +455,8 @@ var _ = Describe("DikiExporter", func() {
 			}
 
 			err := exporter.Export(ctx)
-			Expect(err).NotTo(HaveOccurred())
-
-			updatedScan := &dikiv1alpha1.ComplianceScan{}
-			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, updatedScan)).To(Succeed())
-
-			// Should still update ruleset summaries even with no outputs
-			Expect(updatedScan.Status.Rulesets).To(HaveLen(1))
-			Expect(updatedScan.Status.Outputs).To(HaveLen(0))
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("unsupported output type"))
 		})
 
 		It("should handle output export failures and mark output as failed", func() {
@@ -498,26 +492,26 @@ var _ = Describe("DikiExporter", func() {
 
 			// Verify output status shows failure
 			Expect(updatedScan.Status.Outputs).To(HaveLen(1))
-			Expect(updatedScan.Status.Outputs[0].Name).To(Equal("test-output"))
+			Expect(updatedScan.Status.Outputs[0].OutputName).To(Equal("test-output"))
 			Expect(updatedScan.Status.Outputs[0].Phase).To(Equal(dikiv1alpha1.OutputStatusFailed))
 
 			// Verify error details are present
 			var errorDetails map[string]any
 			Expect(json.Unmarshal(updatedScan.Status.Outputs[0].Details.Raw, &errorDetails)).To(Succeed())
-			Expect(errorDetails).To(HaveKey("errorMessage"))
-			Expect(errorDetails["errorMessage"]).To(ContainSubstring("simulated ConfigMap creation failure"))
+			Expect(errorDetails).To(HaveKey("error"))
+			Expect(errorDetails["error"]).To(ContainSubstring("simulated ConfigMap creation failure"))
 		})
 	})
 
-	Describe("NewDikiExporter", func() {
-		It("should create a new DikiExporter instance", func() {
-			config := v1alpha1.DikiExporterConfiguration{
+	Describe("NewReportExporter", func() {
+		It("should create a new ReportExporter instance", func() {
+			config := v1alpha1.ReportExporterConfiguration{
 				ReportPath:         "/path/to/report.json",
 				ComplianceScanName: "test-scan",
 				Outputs:            []v1alpha1.Output{},
 			}
 
-			exporter := dikiexporter.NewDikiExporter(fakeClient, config)
+			exporter := reportexporter.NewReportExporter(fakeClient, config)
 
 			Expect(exporter).NotTo(BeNil())
 			Expect(exporter.Client).To(Equal(fakeClient))

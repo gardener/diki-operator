@@ -20,15 +20,15 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/gardener/diki-operator/internal/component/dikiexporter"
+	"github.com/gardener/diki-operator/internal/component/reportexporter"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
-	"github.com/gardener/diki-operator/pkg/apis/dikiexporter/v1alpha1"
+	"github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 // AppName is the name of the application.
-const AppName = "diki-exporter"
+const AppName = "report-exporter"
 
-// NewCommand is the root command for the Diki operator.
+// NewCommand is the root command for the Report exporter.
 func NewCommand() *cobra.Command {
 	opt := newOptions()
 
@@ -65,7 +65,7 @@ func NewCommand() *cobra.Command {
 	return cmd
 }
 
-func run(ctx context.Context, log logr.Logger, cfg *v1alpha1.DikiExporterConfiguration) error {
+func run(ctx context.Context, log logr.Logger, cfg *v1alpha1.ReportExporterConfiguration) error {
 	conf, err := ctrl.GetConfig()
 	if err != nil {
 		return err
@@ -86,9 +86,9 @@ func run(ctx context.Context, log logr.Logger, cfg *v1alpha1.DikiExporterConfigu
 		return err
 	}
 
-	log.Info("Setting up diki-exporter")
-	dikiExporter := dikiexporter.NewDikiExporter(c, *cfg)
+	log.Info("Setting up report-exporter")
+	reportExporter := reportexporter.NewReportExporter(c, *cfg)
 
-	log.Info("Starting diki-exporter")
-	return dikiExporter.Export(ctx)
+	log.Info("Starting report-exporter")
+	return reportExporter.Export(ctx)
 }

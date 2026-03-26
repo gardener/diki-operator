@@ -181,15 +181,15 @@ spec:
                       description: Details contains details about the output.
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
-                    name:
-                      description: Name is the name of the report output.
+                    outputName:
+                      description: OutputName is the name of the report output.
                       type: string
                     phase:
                       description: Phase represents the final phase of the output
                         after the exporter has processed it.
                       type: string
                   required:
-                  - name
+                  - outputName
                   - phase
                   type: object
                 type: array

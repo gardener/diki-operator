@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package dikiexporter_test
+package reportexporter_test
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDikiExporter(t *testing.T) {
+func TestReportExporter(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "DikiExporter Test Suite")
+	RunSpecs(t, "ReportExporter Test Suite")
 }

@@ -3,16 +3,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 apiVersion: exporter.diki.gardener.cloud/v1alpha1
-kind: DikiExporterConfiguration
+kind: ReportExporterConfiguration
 
 reportPath: ./example/report.json
 complianceScanName: example-compliancescan
 
 outputs:
 - type: ConfigMap
-  name: diki-report-
+  name: compliance-scan-report
   config:
     namespace: kube-system
-    namePrefix: diki-report-
-    labels:
-      app: diki-exporter
+    namePrefix: compliance-scan-report-

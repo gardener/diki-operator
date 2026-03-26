@@ -11,8 +11,8 @@ import (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// DikiExporterConfiguration defines the configuration for the diki-exporter.
-type DikiExporterConfiguration struct {
+// ReportExporterConfiguration defines the configuration for the report-exporter.
+type ReportExporterConfiguration struct {
 	metav1.TypeMeta `json:",inline"`
 
 	// ReportPath is the path to the Diki report file to be exported.

@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/gardener/diki-operator/pkg/apis/dikiexporter/v1alpha1"
+	"github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 var configDecoder runtime.Decoder
@@ -26,7 +26,7 @@ func init() {
 
 type options struct {
 	configFile string
-	config     *v1alpha1.DikiExporterConfiguration
+	config     *v1alpha1.ReportExporterConfiguration
 }
 
 // newOptions return options with default values.
@@ -50,7 +50,7 @@ func (o *options) Complete() error {
 		return fmt.Errorf("error reading config file: %w", err)
 	}
 
-	o.config = &v1alpha1.DikiExporterConfiguration{}
+	o.config = &v1alpha1.ReportExporterConfiguration{}
 	if err = runtime.DecodeInto(configDecoder, data, o.config); err != nil {
 		return fmt.Errorf("error decoding config: %w", err)
 	}

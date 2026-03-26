@@ -97,8 +97,8 @@ type ComplianceScanStatus struct {
 
 // OutputStatus contains the status of a specific output of a compliance scan.
 type OutputStatus struct {
-	ReportOutputRef
-
+	// OutputName is the name of the report output.
+	OutputName string
 	// Phase represents the final phase of the output after the exporter has processed it.
 	Phase OutputStatusPhase
 	// Details contains details about the output.

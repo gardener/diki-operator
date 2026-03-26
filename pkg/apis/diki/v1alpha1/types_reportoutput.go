@@ -34,30 +34,25 @@ type ReportOutputList struct {
 
 // ReportOutputSpec is the specification of a ReportOutput.
 type ReportOutputSpec struct {
-	// Outputs describes a specific output of a compliance scan
+	// Output describes a specific output of a compliance scan.
 	Output Output `json:"output"`
 }
 
-// Output describes a specific output of a compliance scan
+// Output describes a specific output of a compliance scan.
 type Output struct {
 	// ConfigMap contains the configuration for exporting the report to a ConfigMap.
 	// +optional
-	ConfigMap *ConfigMapOutput `json:"configMap,omitempty"`
+	ConfigMap *OutputConfigMap `json:"configMap,omitempty"`
 }
 
-// ConfigMapOutput contains the configuration for exporting the report to a ConfigMap.
-type ConfigMapOutput struct {
+// OutputConfigMap contains the configuration for exporting the report to a ConfigMap.
+type OutputConfigMap struct {
 	// Namespace is the namespace where the ConfigMap will be created.
 	// Defaults to `kube-system`.
 	// +kubebuilder:default="kube-system"
-	// +optional
-	Namespace *string `json:"namespace,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
 	// NamePrefix is the prefix for the generated ConfigMap name.
-	// Defaults to "diki-report-".
-	// +kubebuilder:default="diki-report-"
-	// +optional
-	NamePrefix *string `json:"namePrefix,omitempty"`
-	// Labels are additional labels to add to the ConfigMap.
-	// +optional
-	Labels map[string]string `json:"labels,omitempty"`
+	// Defaults to "compliance-scan-report-".
+	// +kubebuilder:default="compliance-scan-report-"
+	NamePrefix string `json:"namePrefix,omitempty"`
 }

@@ -14,13 +14,12 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	logzap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/gardener/diki-operator/internal/component/dikiexporter/outputs"
+	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
@@ -58,12 +57,9 @@ var _ = Describe("Controller", func() {
 
 		cmExporter = outputs.ConfigMapExporter{
 			Client: fakeClient,
-			Config: dikiv1alpha1.ConfigMapOutput{
-				Namespace:  ptr.To("default"),
-				NamePrefix: ptr.To("diki-report-"),
-				Labels: map[string]string{
-					"app": "diki-exporter",
-				},
+			Config: dikiv1alpha1.OutputConfigMap{
+				Namespace:  "default",
+				NamePrefix: "diki-report-",
 			},
 		}
 	})
@@ -75,17 +71,15 @@ var _ = Describe("Controller", func() {
 
 		cmDetails, ok := details.(*outputs.ConfigMapDetails)
 		Expect(ok).To(BeTrue(), "details should be of type *ConfigMapDetails")
-		Expect(cmDetails.Name).To(HavePrefix("diki-report-"))
-		Expect(cmDetails.Namespace).To(Equal("default"))
+		Expect(cmDetails.ConfigMapRef.Name).To(HavePrefix("diki-report-"))
+		Expect(cmDetails.ConfigMapRef.Namespace).To(Equal("default"))
 
 		configMap := &corev1.ConfigMap{}
 		err = fakeClient.Get(ctx, client.ObjectKey{
-			Name:      cmDetails.Name,
-			Namespace: cmDetails.Namespace,
+			Name:      cmDetails.ConfigMapRef.Name,
+			Namespace: cmDetails.ConfigMapRef.Namespace,
 		}, configMap)
 		Expect(err).ToNot(HaveOccurred())
-
-		Expect(configMap.Labels).To(HaveKeyWithValue("app", "diki-exporter"))
 
 		reportData := configMap.Data["report.json"]
 		Expect(reportData).ToNot(BeEmpty())
@@ -97,11 +91,8 @@ var _ = Describe("Controller", func() {
 	})
 
 	It("should create a configMap with correct configurations", func() {
-		cmExporter.Config.Namespace = ptr.To("custom-namespace")
-		cmExporter.Config.NamePrefix = ptr.To("custom-prefix-")
-		cmExporter.Config.Labels = map[string]string{
-			"custom": "label",
-		}
+		cmExporter.Config.Namespace = "custom-namespace"
+		cmExporter.Config.NamePrefix = "custom-prefix-"
 
 		details, err := cmExporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
@@ -109,16 +100,14 @@ var _ = Describe("Controller", func() {
 
 		cmDetails, ok := details.(*outputs.ConfigMapDetails)
 		Expect(ok).To(BeTrue(), "details should be of type *ConfigMapDetails")
-		Expect(cmDetails.Name).To(HavePrefix("custom-prefix-"))
-		Expect(cmDetails.Namespace).To(Equal("custom-namespace"))
+		Expect(cmDetails.ConfigMapRef.Name).To(HavePrefix("custom-prefix-"))
+		Expect(cmDetails.ConfigMapRef.Namespace).To(Equal("custom-namespace"))
 
 		configMap := &corev1.ConfigMap{}
 		err = fakeClient.Get(ctx, client.ObjectKey{
-			Name:      cmDetails.Name,
-			Namespace: cmDetails.Namespace,
+			Name:      cmDetails.ConfigMapRef.Name,
+			Namespace: cmDetails.ConfigMapRef.Namespace,
 		}, configMap)
 		Expect(err).ToNot(HaveOccurred())
-
-		Expect(configMap.Labels).To(HaveKeyWithValue("custom", "label"))
 	})
 })
