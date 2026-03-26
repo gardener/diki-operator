@@ -6,6 +6,7 @@ package compliancescan_test
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/gardener/gardener/pkg/client/kubernetes"
@@ -20,6 +21,7 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/gardener/diki-operator/internal/webhook/compliancescan"
@@ -30,6 +32,7 @@ var _ = Describe("handler", func() {
 	var (
 		ctx = context.TODO()
 
+		scheme            *runtime.Scheme
 		decoder           admission.Decoder
 		handler           admission.Handler
 		request           admission.Request
@@ -60,7 +63,7 @@ var _ = Describe("handler", func() {
 	)
 
 	BeforeEach(func() {
-		scheme := runtime.NewScheme()
+		scheme = runtime.NewScheme()
 		Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
 		Expect(authenticationv1.AddToScheme(scheme)).To(Succeed())
 
@@ -193,7 +196,9 @@ var _ = Describe("handler", func() {
 						Name:      "configmap",
 						Namespace: "kube-system",
 					},
-					Data: map[string]string{},
+					Data: map[string]string{
+						"ruleset-one-rules": "options",
+					},
 				}
 				Expect(fakeClient.Create(ctx, namespace)).To(Succeed())
 				Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
@@ -219,6 +224,9 @@ var _ = Describe("handler", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "configmap",
 						Namespace: "kube-system",
+					},
+					Data: map[string]string{
+						"ruleset-one": "options",
 					},
 				}
 				Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
@@ -251,7 +259,9 @@ var _ = Describe("handler", func() {
 						Name:      "rule-options-configmap",
 						Namespace: "kube-system",
 					},
-					Data: map[string]string{},
+					Data: map[string]string{
+						"ruleset-one-rules": "options",
+					},
 				}
 				Expect(fakeClient.Create(ctx, ruleOptionsConfigMap)).To(Succeed())
 
@@ -260,7 +270,9 @@ var _ = Describe("handler", func() {
 						Name:      "ruleset-options-configmap",
 						Namespace: "kube-system",
 					},
-					Data: map[string]string{},
+					Data: map[string]string{
+						"ruleset-one": "options",
+					},
 				}
 				Expect(fakeClient.Create(ctx, rulesetOptionsConfigMap)).To(Succeed())
 
@@ -336,7 +348,9 @@ var _ = Describe("handler", func() {
 						Name:      "configmap",
 						Namespace: "kube-system",
 					},
-					Data: map[string]string{},
+					Data: map[string]string{
+						"ruleset-one": "options",
+					},
 				}
 				Expect(fakeClient.Create(ctx, namespace)).To(Succeed())
 				Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
@@ -468,6 +482,67 @@ var _ = Describe("handler", func() {
 				})
 			})
 
+			// TODO (georgibaltiev): Remove these testcases once the mutating admission webhook has been added.
+			Context("test configMap references with default keys", func() {
+				It("should forbid creating a ComplianceScan when the configMap does not contain the default rule options key", func() {
+					complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+						Rules: &v1alpha1.Options{
+							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+								Name:      "configmap",
+								Namespace: "kube-system",
+							},
+						},
+					}
+
+					configMap := &v1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+						Data: map[string]string{
+							"some-other-key": "options",
+						},
+					}
+					Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					responseForbidden.Result.Message = "spec.rulesets[0].options.rules.key: Not found: \"the referenced key within the configMap does not exist\""
+					Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+				})
+
+				It("should forbid creating a ComplianceScan when the configMap does not contain the default ruleset options key", func() {
+					complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+						Ruleset: &v1alpha1.Options{
+							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+								Name:      "configmap",
+								Namespace: "kube-system",
+							},
+						},
+					}
+
+					configMap := &v1.ConfigMap{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "configmap",
+							Namespace: "kube-system",
+						},
+						Data: map[string]string{
+							"some-other-key": "options",
+						},
+					}
+					Expect(fakeClient.Create(ctx, configMap)).To(Succeed())
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					responseForbidden.Result.Message = "spec.rulesets[0].options.ruleset.key: Not found: \"the referenced key within the configMap does not exist\""
+					Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+				})
+			})
+
 			It("should concatenate multiple errors", func() {
 				complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
 					Ruleset: &v1alpha1.Options{
@@ -507,6 +582,48 @@ var _ = Describe("handler", func() {
 				responseForbidden.Result.Message = "[spec.rulesets[0].options.ruleset.key: Not found: \"the referenced key within the configMap does not exist\", spec.rulesets[1].options.rules: Not found: \"the referenced configMap does not exist\"]"
 				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
 			})
+		})
+
+		It("should return an internal error when the configMap get fails with a non-NotFound error", func() {
+			fakeErr := errors.New("internal server error")
+			interceptedClient := fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithInterceptorFuncs(interceptor.Funcs{
+					Get: func(_ context.Context, _ client.WithWatch, _ client.ObjectKey, _ client.Object, _ ...client.GetOption) error {
+						return fakeErr
+					},
+				}).Build()
+
+			handler = &compliancescan.Handler{
+				Decoder: decoder,
+				Client:  interceptedClient,
+			}
+
+			complianceScan.Spec.Rulesets[0].Options = &v1alpha1.RulesetOptions{
+				Rules: &v1alpha1.Options{
+					ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
+						Name:      "configmap",
+						Namespace: "kube-system",
+					},
+				},
+			}
+
+			complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+			Expect(err).ToNot(HaveOccurred())
+			request.Object.Raw = complianceScanObj
+
+			response := handler.Handle(ctx, request)
+			Expect(response.Allowed).To(BeFalse())
+			Expect(response.Result.Message).To(ContainSubstring("Internal error"))
+		})
+
+		It("should allow requests for operations other than Create and Update", func() {
+			complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+			Expect(err).ToNot(HaveOccurred())
+			request.Object.Raw = complianceScanObj
+
+			request.Operation = admissionv1.Delete
+			Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
 		})
 	})
 })

@@ -6,6 +6,7 @@ package compliancescan
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	admissionv1 "k8s.io/api/admission/v1"
@@ -17,6 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
+	compscanreconciler "github.com/gardener/diki-operator/internal/reconciler/compliancescan"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
@@ -57,6 +59,8 @@ func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.R
 				indexedRulesetConfigPath = specFieldPath.Index(rIdx).Child("options")
 				rulesetOptionsPath       = indexedRulesetConfigPath.Child("ruleset")
 				ruleOptionsPath          = indexedRulesetConfigPath.Child("rules")
+				defaultRulesetOptionsKey = ruleset.ID
+				defaultRuleOptionsKey    = fmt.Sprintf("%s%s", ruleset.ID, compscanreconciler.RuleOptionsSuffix)
 			)
 
 			if ruleset.Options == nil {
@@ -64,11 +68,11 @@ func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.R
 			}
 
 			if ruleset.Options.Ruleset != nil && ruleset.Options.Ruleset.ConfigMapRef != nil {
-				allErrs = append(allErrs, validateConfigMapReference(ctx, h.Client, ruleset.Options.Ruleset.ConfigMapRef, rulesetOptionsPath)...)
+				allErrs = append(allErrs, validateConfigMapReference(ctx, h.Client, ruleset.Options.Ruleset.ConfigMapRef, defaultRulesetOptionsKey, rulesetOptionsPath)...)
 			}
 
 			if ruleset.Options.Rules != nil && ruleset.Options.Rules.ConfigMapRef != nil {
-				allErrs = append(allErrs, validateConfigMapReference(ctx, h.Client, ruleset.Options.Rules.ConfigMapRef, ruleOptionsPath)...)
+				allErrs = append(allErrs, validateConfigMapReference(ctx, h.Client, ruleset.Options.Rules.ConfigMapRef, defaultRuleOptionsKey, ruleOptionsPath)...)
 			}
 		}
 
@@ -81,7 +85,8 @@ func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.R
 	return admission.Allowed("")
 }
 
-func validateConfigMapReference(ctx context.Context, c client.Client, configMapRef *dikiv1alpha1.OptionsConfigMapRef, fldPath *field.Path) field.ErrorList {
+// TODO(georgibaltiev): Remove the defaultConfigMapKey once a mutating webhook for the compliance scan resource has been introduced.
+func validateConfigMapReference(ctx context.Context, c client.Client, configMapRef *dikiv1alpha1.OptionsConfigMapRef, defaultConfigMapKey string, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 	optionsConfigMap := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -97,10 +102,13 @@ func validateConfigMapReference(ctx context.Context, c client.Client, configMapR
 		return append(allErrs, field.InternalError(fldPath, err))
 	}
 
+	configMapKey := defaultConfigMapKey
 	if configMapRef.Key != nil {
-		if _, ok := optionsConfigMap.Data[*configMapRef.Key]; !ok {
-			allErrs = append(allErrs, field.NotFound(fldPath.Child("key"), "the referenced key within the configMap does not exist"))
-		}
+		configMapKey = *configMapRef.Key
+	}
+
+	if _, ok := optionsConfigMap.Data[configMapKey]; !ok {
+		return append(allErrs, field.NotFound(fldPath.Child("key"), "the referenced key within the configMap does not exist"))
 	}
 
 	return allErrs
