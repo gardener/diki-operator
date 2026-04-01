@@ -74,6 +74,20 @@ spec:
                     description: Spec is the spec of the ComplianceScan that will
                       be created.
                     properties:
+                      outputs:
+                        description: Outputs describe the outputs of the compliance
+                          scan.
+                        items:
+                          description: ReportOutputRef describes a reference to a
+                            report output.
+                          properties:
+                            name:
+                              description: Name is the name of the report output.
+                              type: string
+                          required:
+                          - name
+                          type: object
+                        type: array
                       rulesets:
                         description: Rulesets describe the rulesets to be applied
                           during the compliance scan.

@@ -1358,6 +1358,20 @@ ComplianceScanSpec
 <p>Rulesets describe the rulesets to be applied during the compliance scan.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>outputs</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.ReportOutputRef">
+[]ReportOutputRef
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Outputs describe the outputs of the compliance scan.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
