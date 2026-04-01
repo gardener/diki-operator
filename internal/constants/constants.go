@@ -5,6 +5,9 @@
 package constants
 
 const (
+	// ComplianceScanLabel is the label used to identify resources connected to a ComplianceScan.
+	ComplianceScanLabel = "diki.gardener.cloud/compliancescan"
+
 	// LabelAppName is the standard Kubernetes label key for application name.
 	LabelAppName = "app.kubernetes.io/name"
 	// LabelAppManagedBy is the standard Kubernetes label key for the managing tool or operator.

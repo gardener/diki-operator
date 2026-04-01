@@ -16,14 +16,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/gardener/diki-operator/internal/constants"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 	"github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 // ConfigMapExporter is responsible for exporting the Diki report to a ConfigMap.
 type ConfigMapExporter struct {
-	Client client.Client
-	Config dikiv1alpha1.OutputConfigMap
+	Client         client.Client
+	Config         dikiv1alpha1.OutputConfigMap
+	ComplianceScan *dikiv1alpha1.ComplianceScan
 }
 
 var _ Output = &ConfigMapExporter{}
@@ -40,10 +42,11 @@ type ConfigMapRef struct {
 }
 
 // NewConfigMapExporter creates a new instance of ConfigMapExporter.
-func NewConfigMapExporter(client client.Client, config dikiv1alpha1.OutputConfigMap) *ConfigMapExporter {
+func NewConfigMapExporter(client client.Client, config dikiv1alpha1.OutputConfigMap, complianceScan *dikiv1alpha1.ComplianceScan) *ConfigMapExporter {
 	return &ConfigMapExporter{
-		Client: client,
-		Config: config,
+		Client:         client,
+		Config:         config,
+		ComplianceScan: complianceScan,
 	}
 }
 
@@ -77,6 +80,7 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: c.Config.NamePrefix,
 			Namespace:    c.Config.Namespace,
+			Labels:       c.getLabels(),
 		},
 		BinaryData: map[string][]byte{
 			reportKey: buf.Bytes(),
@@ -93,4 +97,12 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 			Namespace: configMap.Namespace,
 		},
 	}, nil
+}
+
+func (c *ConfigMapExporter) getLabels() map[string]string {
+	return map[string]string{
+		constants.LabelAppName:        constants.LabelValueDiki,
+		constants.LabelAppManagedBy:   constants.LabelValueDikiOperator,
+		constants.ComplianceScanLabel: string(c.ComplianceScan.UID),
+	}
 }

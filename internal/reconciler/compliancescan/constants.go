@@ -5,9 +5,6 @@
 package reconciler
 
 const (
-	// ComplianceScanLabel is the label used to identify resources connected to a ComplianceScan.
-	ComplianceScanLabel = "diki.gardener.cloud/compliancescan"
-
 	// ConfigMapGenerateNamePrefix is the prefix for diki config ConfigMap names.
 	ConfigMapGenerateNamePrefix = "diki-config-"
 	// DikiConfigKey is the key used to store the YAML configuration in the ConfigMap data.
