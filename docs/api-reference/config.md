@@ -1132,14 +1132,26 @@ string
 </tr>
 <tr>
 <td>
-<code>scansHistoryLimit</code></br>
+<code>successfulScansHistoryLimit</code></br>
 <em>
 int32
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>ScansHistoryLimit is the number of completed compliance scans to keep.</p>
+<p>SuccessfulScansHistoryLimit is the number of completed compliance scans to keep.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>failedScansHistoryLimit</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>FailedScansHistoryLimit is the number of failed compliance scans to keep.</p>
 </td>
 </tr>
 <tr>
@@ -1204,14 +1216,26 @@ string
 </tr>
 <tr>
 <td>
-<code>scansHistoryLimit</code></br>
+<code>successfulScansHistoryLimit</code></br>
 <em>
 int32
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>ScansHistoryLimit is the number of completed compliance scans to keep.</p>
+<p>SuccessfulScansHistoryLimit is the number of completed compliance scans to keep.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>failedScansHistoryLimit</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>FailedScansHistoryLimit is the number of failed compliance scans to keep.</p>
 </td>
 </tr>
 <tr>

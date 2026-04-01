@@ -855,7 +855,8 @@ func Convert_diki_ScheduledComplianceScanList_To_v1alpha1_ScheduledComplianceSca
 
 func autoConvert_v1alpha1_ScheduledComplianceScanSpec_To_diki_ScheduledComplianceScanSpec(in *ScheduledComplianceScanSpec, out *diki.ScheduledComplianceScanSpec, s conversion.Scope) error {
 	out.Schedule = in.Schedule
-	out.ScansHistoryLimit = (*int32)(unsafe.Pointer(in.ScansHistoryLimit))
+	out.SuccessfulScansHistoryLimit = (*int32)(unsafe.Pointer(in.SuccessfulScansHistoryLimit))
+	out.FailedScansHistoryLimit = (*int32)(unsafe.Pointer(in.FailedScansHistoryLimit))
 	if err := Convert_v1alpha1_ScheduledComplianceScanTemplate_To_diki_ScheduledComplianceScanTemplate(&in.ScanTemplate, &out.ScanTemplate, s); err != nil {
 		return err
 	}
@@ -869,7 +870,8 @@ func Convert_v1alpha1_ScheduledComplianceScanSpec_To_diki_ScheduledComplianceSca
 
 func autoConvert_diki_ScheduledComplianceScanSpec_To_v1alpha1_ScheduledComplianceScanSpec(in *diki.ScheduledComplianceScanSpec, out *ScheduledComplianceScanSpec, s conversion.Scope) error {
 	out.Schedule = in.Schedule
-	out.ScansHistoryLimit = (*int32)(unsafe.Pointer(in.ScansHistoryLimit))
+	out.SuccessfulScansHistoryLimit = (*int32)(unsafe.Pointer(in.SuccessfulScansHistoryLimit))
+	out.FailedScansHistoryLimit = (*int32)(unsafe.Pointer(in.FailedScansHistoryLimit))
 	if err := Convert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledComplianceScanTemplate(&in.ScanTemplate, &out.ScanTemplate, s); err != nil {
 		return err
 	}

@@ -38,8 +38,10 @@ type ScheduledComplianceScanList struct {
 type ScheduledComplianceScanSpec struct {
 	// Schedule is a cron expression defining when the compliance scan should run.
 	Schedule string
-	// ScansHistoryLimit is the number of completed compliance scans to keep.
-	ScansHistoryLimit *int32
+	// SuccessfulScansHistoryLimit is the number of completed compliance scans to keep.
+	SuccessfulScansHistoryLimit *int32
+	// FailedScansHistoryLimit is the number of failed compliance scans to keep.
+	FailedScansHistoryLimit *int32
 	// ScanTemplate is the template for the ComplianceScan that will be created on each scheduled scan.
 	ScanTemplate ScheduledComplianceScanTemplate
 }

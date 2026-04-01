@@ -4,7 +4,8 @@ metadata:
   name: example-scheduledcompliancescan
 spec:
   schedule: "0 0 * * 0" # defaults to "0 0 * * 0" (weekly on Sunday at midnight)
-  scansHistoryLimit: 4 # defaults to 4
+  successfulScansHistoryLimit: 3 # defaults to 3
+  failedScansHistoryLimit: 1 # defaults to 1
   scanTemplate:
     spec:
       rulesets:
