@@ -1,0 +1,8 @@
+apiVersion: diki.gardener.cloud/v1alpha1
+kind: ReportOutput
+metadata:
+  name: example-configmap-output
+spec:
+  output:
+    configMap:
+      namePrefix: compliance-scan-report-

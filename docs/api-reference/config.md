@@ -65,6 +65,20 @@ ComplianceScanSpec
 <p>Rulesets describe the rulesets to be applied during the compliance scan.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>outputs</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.ReportOutputRef">
+[]ReportOutputRef
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Outputs describe the outputs of the compliance scan.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -120,6 +134,20 @@ ComplianceScanStatus
 </td>
 <td>
 <p>Rulesets describe the rulesets to be applied during the compliance scan.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>outputs</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.ReportOutputRef">
+[]ReportOutputRef
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Outputs describe the outputs of the compliance scan.</p>
 </td>
 </tr>
 </tbody>
@@ -180,6 +208,20 @@ ComplianceScanPhase
 <td>
 <em>(Optional)</em>
 <p>Rulesets contains the ruleset summaries of the ComplianceScan.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>outputs</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.OutputStatus">
+[]OutputStatus
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Outputs contain the output statuses of the ComplianceScan.</p>
 </td>
 </tr>
 </tbody>
@@ -377,6 +419,268 @@ string
 <td>
 <em>(Optional)</em>
 <p>Key is the key within the ConfigMap, where the options are stored.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.Output">Output
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.ReportOutputSpec">ReportOutputSpec</a>)
+</p>
+<p>
+<p>Output describes a specific output of a compliance scan.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>configMap</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.OutputConfigMap">
+OutputConfigMap
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ConfigMap contains the configuration for exporting the report to a ConfigMap.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.OutputConfigMap">OutputConfigMap
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.Output">Output</a>)
+</p>
+<p>
+<p>OutputConfigMap contains the configuration for exporting the report to a ConfigMap.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the namespace where the ConfigMap will be created.
+Defaults to <code>kube-system</code>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namePrefix</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>NamePrefix is the prefix for the generated ConfigMap name.
+Defaults to &ldquo;compliance-scan-report-&rdquo;.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.OutputStatus">OutputStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus</a>)
+</p>
+<p>
+<p>OutputStatus contains the status of a specific output of a compliance scan.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>outputName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>OutputName is the name of the report output.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>phase</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.OutputStatusPhase">
+OutputStatusPhase
+</a>
+</em>
+</td>
+<td>
+<p>Phase represents the final phase of the output after the exporter has processed it.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>details</code></br>
+<em>
+k8s.io/apimachinery/pkg/runtime.RawExtension
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Details contains details about the output.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.OutputStatusPhase">OutputStatusPhase
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.OutputStatus">OutputStatus</a>)
+</p>
+<p>
+<p>OutputStatusPhase is an alias for string representing the phase of an output after processing by the exporter.</p>
+</p>
+<h3 id="diki.gardener.cloud/v1alpha1.ReportOutput">ReportOutput
+</h3>
+<p>
+<p>ReportOutput describes a report output.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>metadata</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+<p>Standard object metadata.</p>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.ReportOutputSpec">
+ReportOutputSpec
+</a>
+</em>
+</td>
+<td>
+<p>Spec contains the specification of this report output.</p>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>output</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.Output">
+Output
+</a>
+</em>
+</td>
+<td>
+<p>Output describes a specific output of a compliance scan.</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.ReportOutputRef">ReportOutputRef
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">ComplianceScanSpec</a>)
+</p>
+<p>
+<p>ReportOutputRef describes a reference to a report output.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the report output.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="diki.gardener.cloud/v1alpha1.ReportOutputSpec">ReportOutputSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#diki.gardener.cloud/v1alpha1.ReportOutput">ReportOutput</a>)
+</p>
+<p>
+<p>ReportOutputSpec is the specification of a ReportOutput.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>output</code></br>
+<em>
+<a href="#diki.gardener.cloud/v1alpha1.Output">
+Output
+</a>
+</em>
+</td>
+<td>
+<p>Output describes a specific output of a compliance scan.</p>
 </td>
 </tr>
 </tbody>

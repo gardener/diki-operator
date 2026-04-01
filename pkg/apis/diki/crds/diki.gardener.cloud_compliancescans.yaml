@@ -50,6 +50,18 @@ spec:
           spec:
             description: Spec contains the specification of this compliance scan.
             properties:
+              outputs:
+                description: Outputs describe the outputs of the compliance scan.
+                items:
+                  description: ReportOutputRef describes a reference to a report output.
+                  properties:
+                    name:
+                      description: Name is the name of the report output.
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               rulesets:
                 description: Rulesets describe the rulesets to be applied during the
                   compliance scan.
@@ -157,6 +169,28 @@ spec:
                   - reason
                   - status
                   - type
+                  type: object
+                type: array
+              outputs:
+                description: Outputs contain the output statuses of the ComplianceScan.
+                items:
+                  description: OutputStatus contains the status of a specific output
+                    of a compliance scan.
+                  properties:
+                    details:
+                      description: Details contains details about the output.
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    outputName:
+                      description: OutputName is the name of the report output.
+                      type: string
+                    phase:
+                      description: Phase represents the final phase of the output
+                        after the exporter has processed it.
+                      type: string
+                  required:
+                  - outputName
+                  - phase
                   type: object
                 type: array
               phase:

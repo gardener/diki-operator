@@ -1,0 +1,234 @@
+{
+    "minStatus": "Passed",
+    "dikiVersion": "v0.21.0",
+    "providers": [
+        {
+            "id": "managedk8s",
+            "name": "Managed Kubernetes",
+            "rulesets": [
+                {
+                    "id": "security-hardened-k8s",
+                    "name": "Security Hardened Kubernetes Cluster",
+                    "version": "v0.1.0",
+                    "rules": [
+                        {
+                            "id": "2005",
+                            "name": "Container images must come from trusted repositories.",
+                            "severity": "High",
+                            "checks": [
+                                {
+                                    "status": "Failed",
+                                    "message": "There are no allowed images in rule options."
+                                }
+                            ]
+                        },
+                        {
+                            "id": "2004",
+                            "name": "Limit the Services of type NodePort.",
+                            "severity": "Medium",
+                            "checks": [
+                                {
+                                    "status": "Passed",
+                                    "message": "Service is not of type NodePort.",
+                                    "targets": [
+                                        {
+                                            "kind": "Service",
+                                            "name": "kubernetes",
+                                            "namespace": "default"
+                                        },
+                                        {
+                                            "kind": "Service",
+                                            "name": "diki-operator",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "kind": "Service",
+                                            "name": "kube-dns",
+                                            "namespace": "kube-system"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": "2001",
+                            "name": "Containers must be forbidden to escalate privileges.",
+                            "severity": "High",
+                            "checks": [
+                                {
+                                    "status": "Passed",
+                                    "message": "Pod does not escalate privileges.",
+                                    "targets": [
+                                        {
+                                            "kind": "Deployment",
+                                            "name": "coredns",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "kind": "Deployment",
+                                            "name": "diki-operator",
+                                            "namespace": "kube-system"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "status": "Failed",
+                                    "message": "Pod must not escalate privileges.",
+                                    "targets": [
+                                        {
+                                            "container": "etcd",
+                                            "kind": "Node",
+                                            "name": "local-diki-operator-control-plane",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "container": "kindnet-cni",
+                                            "kind": "DaemonSet",
+                                            "name": "kindnet",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "container": "kube-proxy",
+                                            "kind": "DaemonSet",
+                                            "name": "kube-proxy",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "container": "local-path-provisioner",
+                                            "kind": "Deployment",
+                                            "name": "local-path-provisioner",
+                                            "namespace": "local-path-storage"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "disa-kubernetes-stig",
+                    "name": "DISA Kubernetes Security Technical Implementation Guide",
+                    "version": "v2r4",
+                    "rules": [
+                        {
+                            "id": "242382",
+                            "name": "The Kubernetes API Server must enable Node,RBAC as the authorization mode.",
+                            "severity": "Medium",
+                            "checks": [
+                                {
+                                    "status": "Skipped",
+                                    "message": "The Managed Kubernetes cluster does not have access to control plane components."
+                                }
+                            ]
+                        },
+                        {
+                            "id": "242437",
+                            "name": "Kubernetes must have a pod security policy set.",
+                            "severity": "High",
+                            "checks": [
+                                {
+                                    "status": "Skipped",
+                                    "message": "PSPs are removed in K8s version 1.25."
+                                }
+                            ]
+                        },
+                        {
+                            "id": "242415",
+                            "name": "Secrets in Kubernetes must not be stored as environment variables.",
+                            "severity": "High",
+                            "checks": [
+                                {
+                                    "status": "Passed",
+                                    "message": "Pod does not use environment to inject secret.",
+                                    "targets": [
+                                        {
+                                            "kind": "Deployment",
+                                            "name": "coredns",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "kind": "Deployment",
+                                            "name": "diki-operator",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "kind": "Node",
+                                            "name": "local-diki-operator-control-plane",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "kind": "DaemonSet",
+                                            "name": "kindnet",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "kind": "DaemonSet",
+                                            "name": "kube-proxy",
+                                            "namespace": "kube-system"
+                                        },
+                                        {
+                                            "kind": "Deployment",
+                                            "name": "local-path-provisioner",
+                                            "namespace": "local-path-storage"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": "242450",
+                            "name": "The Kubernetes Kubelet certificate authority must be owned by root.",
+                            "severity": "Medium",
+                            "checks": [
+                                {
+                                    "status": "Errored",
+                                    "message": "no allocatable nodes could be selected"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "245544",
+                            "name": "Kubernetes endpoints must use approved organizational certificate and key pair to protect information in transit.",
+                            "severity": "High",
+                            "checks": [
+                                {
+                                    "status": "Skipped",
+                                    "message": "The Managed Kubernetes cluster does not have access to control plane components."
+                                }
+                            ]
+                        },
+                        {
+                            "id": "242395",
+                            "name": "Kubernetes dashboard must not be enabled.",
+                            "severity": "Medium",
+                            "checks": [
+                                {
+                                    "status": "Passed",
+                                    "message": "Kubernetes dashboard not installed"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "242383",
+                            "name": "Kubernetes must separate user functionality.",
+                            "severity": "Medium",
+                            "checks": [
+                                {
+                                    "status": "Passed",
+                                    "message": "System resource in system namespaces.",
+                                    "targets": [
+                                        {
+                                            "kind": "Service",
+                                            "name": "kubernetes",
+                                            "namespace": "default"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

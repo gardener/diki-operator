@@ -24,3 +24,10 @@ WORKDIR /
 
 COPY --from=builder /go/bin/diki-operator /diki-operator
 ENTRYPOINT ["/diki-operator"]
+
+############# report-exporter
+FROM gcr.io/distroless/static-debian13:nonroot AS report-exporter
+WORKDIR /
+
+COPY --from=builder /go/bin/report-exporter /report-exporter
+ENTRYPOINT ["/report-exporter"]

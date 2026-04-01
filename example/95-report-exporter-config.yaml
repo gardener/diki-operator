@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: exporter.diki.gardener.cloud/v1alpha1
+kind: ReportExporterConfiguration
+
+reportPath: ./example/report.json
+complianceScanName: example-compliancescan
+
+outputs:
+- type: ConfigMap
+  name: compliance-scan-report
+  config:
+    namespace: kube-system
+    namePrefix: compliance-scan-report-
