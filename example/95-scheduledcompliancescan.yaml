@@ -1,0 +1,18 @@
+apiVersion: diki.gardener.cloud/v1alpha1
+kind: ScheduledComplianceScan
+metadata:
+  name: example-scheduledcompliancescan
+spec:
+  schedule: "0 0 * * 0" # defaults to "0 0 * * 0" (weekly on Sunday at midnight)
+  successfulScansHistoryLimit: 3 # defaults to 3
+  failedScansHistoryLimit: 1 # defaults to 1
+  scanTemplate:
+    spec:
+      rulesets:
+        - id: security-hardened-k8s
+          version: v0.1.0
+          options:
+            rules:
+              configMapRef:
+                name: diki-options
+                namespace: kube-system
