@@ -15,6 +15,7 @@ tool (
 go 1.25.5
 
 require (
+	github.com/andybalholm/brotli v1.2.1
 	github.com/gardener/diki v0.25.0
 	github.com/gardener/gardener v1.135.1
 	github.com/go-logr/logr v1.4.3
@@ -110,6 +111,7 @@ require (
 	github.com/ironcore-dev/vgopath v0.1.10 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.13-0.20220915233716-71ac16282d12 // indirect
+	github.com/klauspost/compress v1.18.5 // indirect
 	github.com/kubernetes-csi/external-snapshotter/client/v4 v4.2.0 // indirect
 	github.com/labstack/echo/v4 v4.13.4 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect

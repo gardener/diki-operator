@@ -5,9 +5,12 @@
 package outputs_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 
+	"github.com/andybalholm/brotli"
 	dikireport "github.com/gardener/diki/pkg/report"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
@@ -81,11 +84,15 @@ var _ = Describe("Controller", func() {
 		}, configMap)
 		Expect(err).ToNot(HaveOccurred())
 
-		reportData := configMap.Data["report.json"]
+		reportData := configMap.BinaryData["report.json.br"]
 		Expect(reportData).ToNot(BeEmpty())
 
+		brReader := brotli.NewReader(bytes.NewReader(reportData))
+		decompressed, err := io.ReadAll(brReader)
+		Expect(err).ToNot(HaveOccurred())
+
 		var unmarshaledReport dikireport.Report
-		err = json.Unmarshal([]byte(reportData), &unmarshaledReport)
+		err = json.Unmarshal(decompressed, &unmarshaledReport)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(unmarshaledReport).To(Equal(*dikiReport))
 	})

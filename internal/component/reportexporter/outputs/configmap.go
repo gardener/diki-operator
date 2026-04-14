@@ -5,10 +5,12 @@
 package outputs
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 
+	"github.com/andybalholm/brotli"
 	dikireport "github.com/gardener/diki/pkg/report"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,7 +47,7 @@ func NewConfigMapExporter(client client.Client, config dikiv1alpha1.OutputConfig
 	}
 }
 
-const reportKey = "report.json"
+const reportKey = "report.json.br"
 
 // Type returns the type of the exporter.
 func (c *ConfigMapExporter) Type() v1alpha1.OutputType {
@@ -59,13 +61,22 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 		return nil, fmt.Errorf("failed to marshal report to JSON: %w", err)
 	}
 
+	var buf bytes.Buffer
+	brWriter := brotli.NewWriter(&buf)
+	if _, err := brWriter.Write(reportJSON); err != nil {
+		return nil, fmt.Errorf("failed to compress report with brotli: %w", err)
+	}
+	if err := brWriter.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close brotli writer: %w", err)
+	}
+
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: c.Config.NamePrefix,
 			Namespace:    c.Config.Namespace,
 		},
-		Data: map[string]string{
-			reportKey: string(reportJSON),
+		BinaryData: map[string][]byte{
+			reportKey: buf.Bytes(),
 		},
 	}
 
