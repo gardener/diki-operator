@@ -362,8 +362,8 @@ var _ = Describe("Controller", func() {
 			Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())
 
 			for _, s := range []struct {
-				name  string
-				phase dikiv1alpha1.ComplianceScanPhase
+				name   string
+				phase  dikiv1alpha1.ComplianceScanPhase
 				offset time.Duration
 			}{
 				{"s-old", dikiv1alpha1.ComplianceScanCompleted, 0},
