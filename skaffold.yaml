@@ -10,7 +10,9 @@ build:
           paths:
             - cmd/diki-operator
             - cmd/diki-operator/app
+            - internal/constants
             - internal/reconciler/compliancescan
+            - internal/reconciler/scheduledcompliancescan
             - internal/webhook/compliancescan
             - pkg/apis/config/v1alpha1
             - pkg/apis/config/v1alpha1/validation

@@ -18,9 +18,21 @@ rules:
   - get
   - list
   - watch
+  - create
   - update
   - patch
   - delete
+- apiGroups:
+  - "diki.gardener.cloud"
+  resources:
+  - scheduledcompliancescans
+  - scheduledcompliancescans/status
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
 - apiGroups: 
   - ""
   resources:
