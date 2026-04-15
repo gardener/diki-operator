@@ -15,7 +15,6 @@ tool (
 go 1.25.5
 
 require (
-	github.com/andybalholm/brotli v1.2.1
 	github.com/gardener/diki v0.25.0
 	github.com/gardener/gardener v1.135.1
 	github.com/go-logr/logr v1.4.3
@@ -47,6 +46,7 @@ require (
 	github.com/PaesslerAG/gval v1.2.4 // indirect
 	github.com/PaesslerAG/jsonpath v0.1.2-0.20240726212847-3a740cf7976f // indirect
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0 // indirect
+	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect

@@ -6,11 +6,10 @@ package outputs
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
-
-	"github.com/andybalholm/brotli"
 	dikireport "github.com/gardener/diki/pkg/report"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,7 +46,7 @@ func NewConfigMapExporter(client client.Client, config dikiv1alpha1.OutputConfig
 	}
 }
 
-const reportKey = "report.json.br"
+const reportKey = "report.json.gz"
 
 // Type returns the type of the exporter.
 func (c *ConfigMapExporter) Type() v1alpha1.OutputType {
@@ -62,12 +61,12 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 	}
 
 	var buf bytes.Buffer
-	brWriter := brotli.NewWriter(&buf)
-	if _, err := brWriter.Write(reportJSON); err != nil {
-		return nil, fmt.Errorf("failed to compress report with brotli: %w", err)
+	gzWriter := gzip.NewWriter(&buf)
+	if _, err := gzWriter.Write(reportJSON); err != nil {
+		return nil, fmt.Errorf("failed to compress report with gzip: %w", err)
 	}
-	if err := brWriter.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close brotli writer: %w", err)
+	if err := gzWriter.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close gzip writer: %w", err)
 	}
 
 	configMap := &corev1.ConfigMap{
