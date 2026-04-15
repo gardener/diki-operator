@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+
 	dikireport "github.com/gardener/diki/pkg/report"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
