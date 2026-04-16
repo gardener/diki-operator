@@ -164,7 +164,6 @@ spec:
               schedule:
                 description: Schedule is a cron expression defining when the compliance
                   scan should run.
-                minLength: 9
                 type: string
               successfulScansHistoryLimit:
                 description: SuccessfulScansHistoryLimit is the number of completed
