@@ -35,6 +35,7 @@ import (
 	compliancescan "github.com/gardener/diki-operator/internal/reconciler/compliancescan"
 	scheduledcompliancescan "github.com/gardener/diki-operator/internal/reconciler/scheduledcompliancescan"
 	compliancescanwebhook "github.com/gardener/diki-operator/internal/webhook/compliancescan"
+	scheduledcompliancescanwebhook "github.com/gardener/diki-operator/internal/webhook/scheduledcompliancescan"
 	configv1alpha1 "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 )
@@ -168,6 +169,9 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	log.Info("Adding webhook handler to manager")
 	if err := compliancescanwebhook.AddToManager(mgr); err != nil {
 		return fmt.Errorf("failed adding webhook handler to manager: %w", err)
+	}
+	if err := scheduledcompliancescanwebhook.AddToManager(mgr); err != nil {
+		return fmt.Errorf("failed adding scheduledcompliancescan webhook handler to manager: %w", err)
 	}
 
 	log.Info("Starting manager")
