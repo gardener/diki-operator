@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "diki-operator.name" . }}
+  labels:
+{{ include "labels" . | indent 4 }}
+webhooks:
+- name: scheduledcompliancescan.mutation.gardener.cloud
+  admissionReviewVersions: ["v1", "v1beta1"]
+  timeoutSeconds: 10
+  rules:
+  - apiGroups:
+    - "diki.gardener.cloud"
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - scheduledcompliancescans
+  failurePolicy: Fail
+  clientConfig:
+  {{- if .Values.config.server.webhooks.tls.hostname }}
+    url: {{ printf "https://%s:443/webhooks/scheduledcompliancescan/mutate" (.Values.config.server.webhooks.tls.hostname) }}
+  {{- else }}
+    service:
+      name: {{ include "diki-operator.name" . }}
+      namespace: {{ .Release.Namespace }}
+      path: /webhooks/scheduledcompliancescan/mutate
+      port: 443
+  {{- end }}
+    caBundle: {{ required ".Values.config.server.webhooks.tls.caBundle is required" (b64enc .Values.config.server.webhooks.tls.caBundle) }}
+  sideEffects: None
