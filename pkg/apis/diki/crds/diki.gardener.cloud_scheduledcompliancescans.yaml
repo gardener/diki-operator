@@ -60,11 +60,9 @@ spec:
               scan.
             properties:
               failedScansHistoryLimit:
-                default: 1
                 description: FailedScansHistoryLimit is the number of failed compliance
                   scans to keep.
                 format: int32
-                minimum: 0
                 type: integer
               scanTemplate:
                 description: ScanTemplate is the template for the ComplianceScan that
@@ -164,17 +162,14 @@ spec:
                 - spec
                 type: object
               schedule:
-                default: 0 0 * * 0
                 description: Schedule is a cron expression defining when the compliance
                   scan should run.
                 minLength: 9
                 type: string
               successfulScansHistoryLimit:
-                default: 3
                 description: SuccessfulScansHistoryLimit is the number of completed
                   compliance scans to keep.
                 format: int32
-                minimum: 0
                 type: integer
             required:
             - scanTemplate

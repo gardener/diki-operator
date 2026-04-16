@@ -44,18 +44,12 @@ type ScheduledComplianceScanList struct {
 type ScheduledComplianceScanSpec struct {
 	// Schedule is a cron expression defining when the compliance scan should run.
 	// +optional
-	// +kubebuilder:default="0 0 * * 0"
-	// +kubebuilder:validation:MinLength=9
 	Schedule string `json:"schedule,omitempty"`
 	// SuccessfulScansHistoryLimit is the number of completed compliance scans to keep.
 	// +optional
-	// +kubebuilder:default=3
-	// +kubebuilder:validation:Minimum=0
 	SuccessfulScansHistoryLimit *int32 `json:"successfulScansHistoryLimit,omitempty"`
 	// FailedScansHistoryLimit is the number of failed compliance scans to keep.
 	// +optional
-	// +kubebuilder:default=1
-	// +kubebuilder:validation:Minimum=0
 	FailedScansHistoryLimit *int32 `json:"failedScansHistoryLimit,omitempty"`
 	// ScanTemplate is the template for the ComplianceScan that will be created on each scheduled scan.
 	ScanTemplate ScheduledComplianceScanTemplate `json:"scanTemplate"`
