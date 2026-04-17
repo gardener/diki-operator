@@ -12,6 +12,10 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	batchv1 "k8s.io/api/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/diki-operator/internal/constants"
@@ -55,15 +59,34 @@ func (r *Reconciler) getLabels(complianceScan *v1alpha1.ComplianceScan) map[stri
 	return labels
 }
 
-// func (r *Reconciler) getOwnerReference(job *batchv1.Job) []metav1.OwnerReference {
-// 	return []metav1.OwnerReference{
-// 		{
-// 			APIVersion:         batchv1.SchemeGroupVersion.String(),
-// 			Kind:               "Job",
-// 			Name:               job.Name,
-// 			UID:                job.UID,
-// 			Controller:         ptr.To(true),
-// 			BlockOwnerDeletion: ptr.To(true),
-// 		},
-// 	}
-// }
+func (r *Reconciler) findDikiRunJob(ctx context.Context, complianceScanUID types.UID) (*batchv1.Job, error) {
+	jobList := &batchv1.JobList{}
+	if err := r.Client.List(ctx, jobList, client.InNamespace(r.Config.DikiRunner.Namespace), client.MatchingLabels{
+		ComplianceScanLabel: string(complianceScanUID),
+	}); err != nil {
+		return nil, fmt.Errorf("failed to list diki runner jobs: %w", err)
+	}
+
+	if len(jobList.Items) == 0 {
+		return nil, nil
+	}
+
+	return &jobList.Items[0], nil
+}
+
+func (r *Reconciler) getOwnerReference(job *batchv1.Job) []metav1.OwnerReference {
+	return []metav1.OwnerReference{
+		{
+			APIVersion:         batchv1.SchemeGroupVersion.String(),
+			Kind:               "Job",
+			Name:               job.Name,
+			UID:                job.UID,
+			Controller:         ptr.To(true),
+			BlockOwnerDeletion: ptr.To(true),
+		},
+	}
+}
+
+func (r *Reconciler) upscaleDikiRunJob(job *batchv1.Job) {
+	job.Spec.Parallelism = ptr.To(int32(1))
+}
