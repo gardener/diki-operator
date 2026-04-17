@@ -14,6 +14,7 @@ import (
 	"github.com/gardener/diki/pkg/provider/managedk8s/ruleset/disak8sstig"
 	"github.com/gardener/diki/pkg/provider/managedk8s/ruleset/securityhardenedk8s"
 	"go.yaml.in/yaml/v4"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,7 +22,7 @@ import (
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-func (r *Reconciler) deployDikiConfigMap(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) (*corev1.ConfigMap, error) {
+func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job) (*corev1.ConfigMap, error) {
 	managedk8sProvider := dikiconfig.ProviderConfig{
 		ID:   managedk8s.ProviderID,
 		Name: managedk8s.ProviderName,
@@ -85,10 +86,10 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, complianceScan *v1
 
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: ConfigMapGenerateNamePrefix,
-			Namespace:    r.Config.DikiRunner.Namespace,
-			//OwnerReferences: r.getOwnerReference(job),
-			Labels: r.getLabels(complianceScan),
+			Name:            configMapName,
+			Namespace:       r.Config.DikiRunner.Namespace,
+			OwnerReferences: r.getOwnerReference(job),
+			Labels:          r.getLabels(complianceScan),
 		},
 		Data: map[string]string{
 			DikiConfigKey: string(dikiConfigYAML),

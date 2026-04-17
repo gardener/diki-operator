@@ -4,7 +4,12 @@
 
 package reconciler
 
+import "time"
+
 const (
+	// ReconciliationRequeueInterval is the time window between different reconciliations of a running ComplianceScan.
+	ReconciliationRequeueInterval = time.Second * 5
+
 	// ComplianceScanLabel is the label used to identify resources connected to a ComplianceScan.
 	ComplianceScanLabel = "diki.gardener.cloud/compliancescan"
 

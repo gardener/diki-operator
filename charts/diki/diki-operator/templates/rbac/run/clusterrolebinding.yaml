@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: diki-run
+  labels:
+{{ include "labels" . | indent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: diki-run
+subjects:
+- kind: ServiceAccount
+  name: diki-run
+  namespace: {{ .Release.Namespace }}
