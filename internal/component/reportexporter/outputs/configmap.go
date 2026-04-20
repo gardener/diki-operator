@@ -64,6 +64,9 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 	var buf bytes.Buffer
 	gzWriter := gzip.NewWriter(&buf)
 	if _, err := gzWriter.Write(reportJSON); err != nil {
+		// call gzWriter.Close for the sake of completeness
+		// ignore the error as this would probably be the same error as the error returned by gzWriter.Write
+		_ = gzWriter.Close()
 		return nil, fmt.Errorf("failed to compress report with gzip: %w", err)
 	}
 	if err := gzWriter.Close(); err != nil {
