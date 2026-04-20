@@ -5,6 +5,8 @@
 package outputs
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -45,7 +47,7 @@ func NewConfigMapExporter(client client.Client, config dikiv1alpha1.OutputConfig
 	}
 }
 
-const reportKey = "report.json"
+const reportKey = "report.json.gz"
 
 // Type returns the type of the exporter.
 func (c *ConfigMapExporter) Type() v1alpha1.OutputType {
@@ -59,13 +61,25 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 		return nil, fmt.Errorf("failed to marshal report to JSON: %w", err)
 	}
 
+	var buf bytes.Buffer
+	gzWriter := gzip.NewWriter(&buf)
+	if _, err := gzWriter.Write(reportJSON); err != nil {
+		// call gzWriter.Close for the sake of completeness
+		// ignore the error as this would probably be the same error as the error returned by gzWriter.Write
+		_ = gzWriter.Close()
+		return nil, fmt.Errorf("failed to compress report with gzip: %w", err)
+	}
+	if err := gzWriter.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close gzip writer: %w", err)
+	}
+
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: c.Config.NamePrefix,
 			Namespace:    c.Config.Namespace,
 		},
-		Data: map[string]string{
-			reportKey: string(reportJSON),
+		BinaryData: map[string][]byte{
+			reportKey: buf.Bytes(),
 		},
 	}
 

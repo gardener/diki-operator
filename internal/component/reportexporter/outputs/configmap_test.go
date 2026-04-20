@@ -5,8 +5,11 @@
 package outputs_test
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
+	"io"
 
 	dikireport "github.com/gardener/diki/pkg/report"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
@@ -81,11 +84,16 @@ var _ = Describe("Controller", func() {
 		}, configMap)
 		Expect(err).ToNot(HaveOccurred())
 
-		reportData := configMap.Data["report.json"]
+		reportData := configMap.BinaryData["report.json.gz"]
 		Expect(reportData).ToNot(BeEmpty())
 
+		gzReader, err := gzip.NewReader(bytes.NewReader(reportData))
+		Expect(err).ToNot(HaveOccurred())
+		decompressed, err := io.ReadAll(gzReader)
+		Expect(err).ToNot(HaveOccurred())
+
 		var unmarshaledReport dikireport.Report
-		err = json.Unmarshal([]byte(reportData), &unmarshaledReport)
+		err = json.Unmarshal(decompressed, &unmarshaledReport)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(unmarshaledReport).To(Equal(*dikiReport))
 	})
