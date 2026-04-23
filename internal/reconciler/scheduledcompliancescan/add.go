@@ -22,7 +22,7 @@ const (
 	// ControllerName is the name of the scheduledcompliancescan controller.
 	ControllerName = "scheduledcompliancescan"
 	// ReconciliationTimeout is the timeout passed to the context of the Reconcile call.
-	ReconciliationTimeout = 1 * time.Minute
+	ReconciliationTimeout = 5 * time.Minute
 	// MaxConcurrentReconciles is the maximum number of concurrent Reconcile calls.
 	MaxConcurrentReconciles = 1
 )

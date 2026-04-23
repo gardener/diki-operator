@@ -5,7 +5,10 @@
 package reconciler
 
 const (
-	// LabelScheduledComplianceScan is the label used to identify ComplianceScans
-	// created by a specific ScheduledComplianceScan.
-	LabelScheduledComplianceScan = "diki.gardener.cloud/scheduledcompliancescan"
+	// LabelScheduledComplianceScanName is the label used to identify ComplianceScans
+	// created by a specific ScheduledComplianceScan by name.
+	LabelScheduledComplianceScanName = "scheduledcompliancescan.diki.gardener.cloud/name"
+	// LabelScheduledComplianceScanUID is the label used to identify ComplianceScans
+	// created by a specific ScheduledComplianceScan by UID.
+	LabelScheduledComplianceScanUID = "scheduledcompliancescan.diki.gardener.cloud/uid"
 )

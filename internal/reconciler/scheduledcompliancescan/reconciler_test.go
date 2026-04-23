@@ -109,7 +109,7 @@ var _ = Describe("Controller", func() {
 
 		childScans := &dikiv1alpha1.ComplianceScanList{}
 		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-			"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 		})).To(Succeed())
 		Expect(childScans.Items).To(HaveLen(1))
 
@@ -147,7 +147,7 @@ var _ = Describe("Controller", func() {
 
 		childScans := &dikiv1alpha1.ComplianceScanList{}
 		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-			"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 		})).To(Succeed())
 		Expect(childScans.Items).To(HaveLen(1))
 		Expect(len(childScans.Items[0].Name)).To(BeNumerically("<=", 63))
@@ -160,8 +160,11 @@ var _ = Describe("Controller", func() {
 
 		Expect(fakeClient.Create(ctx, &dikiv1alpha1.ComplianceScan{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:   "test-scheduled-scan-active",
-				Labels: map[string]string{"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name},
+				Name: "test-scheduled-scan-active",
+				Labels: map[string]string{
+					"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+					"scheduledcompliancescan.diki.gardener.cloud/uid":  string(scheduledScan.UID),
+				},
 			},
 			Status: dikiv1alpha1.ComplianceScanStatus{Phase: dikiv1alpha1.ComplianceScanRunning},
 		})).To(Succeed())
@@ -172,7 +175,7 @@ var _ = Describe("Controller", func() {
 
 		childScans := &dikiv1alpha1.ComplianceScanList{}
 		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-			"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 		})).To(Succeed())
 		Expect(childScans.Items).To(HaveLen(1))
 	})
@@ -184,8 +187,11 @@ var _ = Describe("Controller", func() {
 
 		Expect(fakeClient.Create(ctx, &dikiv1alpha1.ComplianceScan{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:   "test-scheduled-scan-completed",
-				Labels: map[string]string{"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name},
+				Name: "test-scheduled-scan-completed",
+				Labels: map[string]string{
+					"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+					"scheduledcompliancescan.diki.gardener.cloud/uid":  string(scheduledScan.UID),
+				},
 			},
 			Status: dikiv1alpha1.ComplianceScanStatus{Phase: dikiv1alpha1.ComplianceScanCompleted},
 		})).To(Succeed())
@@ -206,8 +212,11 @@ var _ = Describe("Controller", func() {
 
 		Expect(fakeClient.Create(ctx, &dikiv1alpha1.ComplianceScan{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:   "test-scheduled-scan-failed",
-				Labels: map[string]string{"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name},
+				Name: "test-scheduled-scan-failed",
+				Labels: map[string]string{
+					"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+					"scheduledcompliancescan.diki.gardener.cloud/uid":  string(scheduledScan.UID),
+				},
 			},
 			Status: dikiv1alpha1.ComplianceScanStatus{Phase: dikiv1alpha1.ComplianceScanFailed},
 		})).To(Succeed())
@@ -227,7 +236,10 @@ var _ = Describe("Controller", func() {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:              "test-scheduled-scan-orphan",
 				CreationTimestamp: metav1.Time{Time: orphanCreationTime},
-				Labels:            map[string]string{"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name},
+				Labels: map[string]string{
+					"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+					"scheduledcompliancescan.diki.gardener.cloud/uid":  string(scheduledScan.UID),
+				},
 			},
 			Status: dikiv1alpha1.ComplianceScanStatus{Phase: dikiv1alpha1.ComplianceScanRunning},
 		})).To(Succeed())
@@ -243,7 +255,7 @@ var _ = Describe("Controller", func() {
 
 		childScans := &dikiv1alpha1.ComplianceScanList{}
 		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-			"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 		})).To(Succeed())
 		Expect(childScans.Items).To(HaveLen(1))
 	})
@@ -263,7 +275,7 @@ var _ = Describe("Controller", func() {
 
 		childScans := &dikiv1alpha1.ComplianceScanList{}
 		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-			"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 		})).To(Succeed())
 		Expect(childScans.Items).To(HaveLen(1))
 	})
@@ -282,7 +294,7 @@ var _ = Describe("Controller", func() {
 
 		childScans := &dikiv1alpha1.ComplianceScanList{}
 		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-			"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 		})).To(Succeed())
 		Expect(childScans.Items).To(BeEmpty())
 
@@ -303,7 +315,10 @@ var _ = Describe("Controller", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              scheduledScan.Name + "-s-" + string(rune('a'+i)),
 						CreationTimestamp: metav1.Time{Time: baseTime.Add(time.Duration(i) * time.Hour)},
-						Labels:            map[string]string{"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name},
+						Labels: map[string]string{
+							"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+							"scheduledcompliancescan.diki.gardener.cloud/uid":  string(scheduledScan.UID),
+						},
 					},
 					Status: dikiv1alpha1.ComplianceScanStatus{Phase: dikiv1alpha1.ComplianceScanCompleted},
 				})).To(Succeed())
@@ -314,7 +329,7 @@ var _ = Describe("Controller", func() {
 
 			childScans := &dikiv1alpha1.ComplianceScanList{}
 			Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-				"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 			})).To(Succeed())
 			Expect(childScans.Items).To(HaveLen(2))
 
@@ -337,7 +352,10 @@ var _ = Describe("Controller", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              scheduledScan.Name + "-f-" + string(rune('a'+i)),
 						CreationTimestamp: metav1.Time{Time: baseTime.Add(time.Duration(i) * time.Hour)},
-						Labels:            map[string]string{"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name},
+						Labels: map[string]string{
+							"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+							"scheduledcompliancescan.diki.gardener.cloud/uid":  string(scheduledScan.UID),
+						},
 					},
 					Status: dikiv1alpha1.ComplianceScanStatus{Phase: dikiv1alpha1.ComplianceScanFailed},
 				})).To(Succeed())
@@ -348,7 +366,7 @@ var _ = Describe("Controller", func() {
 
 			childScans := &dikiv1alpha1.ComplianceScanList{}
 			Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-				"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 			})).To(Succeed())
 			Expect(childScans.Items).To(HaveLen(1))
 			Expect(childScans.Items[0].Name).To(Equal(scheduledScan.Name + "-f-c"))
@@ -375,7 +393,10 @@ var _ = Describe("Controller", func() {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:              scheduledScan.Name + "-" + s.name,
 						CreationTimestamp: metav1.Time{Time: baseTime.Add(s.offset)},
-						Labels:            map[string]string{"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name},
+						Labels: map[string]string{
+							"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+							"scheduledcompliancescan.diki.gardener.cloud/uid":  string(scheduledScan.UID),
+						},
 					},
 					Status: dikiv1alpha1.ComplianceScanStatus{Phase: s.phase},
 				})).To(Succeed())
@@ -386,7 +407,7 @@ var _ = Describe("Controller", func() {
 
 			childScans := &dikiv1alpha1.ComplianceScanList{}
 			Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
-				"diki.gardener.cloud/scheduledcompliancescan": scheduledScan.Name,
+				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 			})).To(Succeed())
 			Expect(childScans.Items).To(HaveLen(2))
 

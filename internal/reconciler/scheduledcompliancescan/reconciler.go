@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/cronexpr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/clock"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -29,7 +29,7 @@ type Reconciler struct {
 
 // Reconcile handles reconciliation requests for ScheduledComplianceScan resources.
 func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logf.FromContext(ctx).WithValues("name", req.Name)
+	log := logf.FromContext(ctx)
 
 	scheduledScan := &v1alpha1.ScheduledComplianceScan{}
 	if err := r.Client.Get(ctx, client.ObjectKey{Name: req.Name}, scheduledScan); err != nil {
@@ -42,7 +42,8 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 	childScans := &v1alpha1.ComplianceScanList{}
 	if err := r.Client.List(ctx, childScans, client.MatchingLabels{
-		LabelScheduledComplianceScan: scheduledScan.Name,
+		LabelScheduledComplianceScanName: scheduledScan.Name,
+		LabelScheduledComplianceScanUID:  string(scheduledScan.UID),
 	}); err != nil {
 		return reconcile.Result{}, fmt.Errorf("error listing child ComplianceScans: %w", err)
 	}
@@ -89,7 +90,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return reconcile.Result{RequeueAfter: 1 * time.Minute}, nil
 	}
 
-	expr, err := cronexpr.Parse(scheduledScan.Spec.Schedule)
+	expr, err := parseCronScheduleWithPanicRecovery(scheduledScan.Spec.Schedule)
 	if err != nil {
 		log.Error(err, "Invalid cron expression", "schedule", scheduledScan.Spec.Schedule)
 		return reconcile.Result{}, nil
@@ -119,8 +120,8 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	}
 
 	// Clean up old scans per their respective history limits.
-	r.cleanupOldScans(ctx, log, successfulScans, int(derefInt32(scheduledScan.Spec.SuccessfulScansHistoryLimit)))
-	r.cleanupOldScans(ctx, log, failedScans, int(derefInt32(scheduledScan.Spec.FailedScansHistoryLimit)))
+	r.cleanupOldScans(ctx, log, successfulScans, int(ptr.Deref(scheduledScan.Spec.SuccessfulScansHistoryLimit, 0)))
+	r.cleanupOldScans(ctx, log, failedScans, int(ptr.Deref(scheduledScan.Spec.FailedScansHistoryLimit, 0)))
 
 	// Calculate requeue time for the next scheduled run.
 	var referenceTime time.Time

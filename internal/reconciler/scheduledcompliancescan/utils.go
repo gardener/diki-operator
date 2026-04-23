@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/robfig/cron/v3"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/utils/ptr"
@@ -43,9 +43,10 @@ func (r *Reconciler) deployComplianceScan(ctx context.Context, parent *v1alpha1.
 		ObjectMeta: metav1.ObjectMeta{
 			Name: childScanName(parent.Name, now),
 			Labels: map[string]string{
-				LabelScheduledComplianceScan: parent.Name,
-				constants.LabelAppName:       constants.LabelValueDiki,
-				constants.LabelAppManagedBy:  constants.LabelValueDikiOperator,
+				LabelScheduledComplianceScanName: parent.Name,
+				LabelScheduledComplianceScanUID:  string(parent.UID),
+				constants.LabelAppName:           constants.LabelValueDiki,
+				constants.LabelAppManagedBy:      constants.LabelValueDikiOperator,
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{
@@ -78,19 +79,12 @@ func (r *Reconciler) cleanupOldScans(ctx context.Context, log logr.Logger, scans
 	sortByCreationTimestamp(scans)
 	excess := len(scans) - limit
 	for i := 0; i < excess; i++ {
-		if err := r.Client.Delete(ctx, &scans[i]); err != nil && !apierrors.IsNotFound(err) {
+		if err := client.IgnoreNotFound(r.Client.Delete(ctx, &scans[i])); err != nil {
 			log.Error(err, "Failed to delete old ComplianceScan", "name", scans[i].Name)
 		} else {
 			log.Info("Deleted old ComplianceScan", "name", scans[i].Name)
 		}
 	}
-}
-
-func derefInt32(p *int32) int32 {
-	if p == nil {
-		return 0
-	}
-	return *p
 }
 
 // childScanName generates a name for a child ComplianceScan by combining
@@ -103,4 +97,18 @@ func childScanName(parentName string, t time.Time) string {
 		parentName = parentName[:maxParentLen]
 	}
 	return parentName + suffix
+}
+
+// parseCronScheduleWithPanicRecovery is a cron parser created by reusing code from the kubernetes/kubernetes project
+// https://github.com/kubernetes/kubernetes/blob/37cf8a475310177693daf49c80a48c314f61e409/pkg/util/parsers/parsers.go#L59
+func parseCronScheduleWithPanicRecovery(schedule string) (sched cron.Schedule, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			sched = nil
+			err = fmt.Errorf("invalid schedule format: %v", r)
+		}
+	}()
+
+	sched, err = cron.ParseStandard(schedule)
+	return
 }

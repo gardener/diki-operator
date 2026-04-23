@@ -30,7 +30,7 @@ type Reconciler struct {
 
 // Reconcile handles reconciliation requests for ComplianceScan resources.
 func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logf.FromContext(ctx).WithValues("name", req.Name)
+	log := logf.FromContext(ctx)
 
 	complianceScan := &v1alpha1.ComplianceScan{}
 
