@@ -101,8 +101,9 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 
 func (c *ConfigMapExporter) getLabels() map[string]string {
 	return map[string]string{
-		constants.LabelAppName:        constants.LabelValueDiki,
-		constants.LabelAppManagedBy:   constants.LabelValueDikiOperator,
-		constants.ComplianceScanLabel: string(c.ComplianceScan.UID),
+		constants.LabelAppName:            constants.LabelValueDiki,
+		constants.LabelAppManagedBy:       constants.LabelValueDikiOperator,
+		constants.LabelComplianceScanName: c.ComplianceScan.Name,
+		constants.LabelComplianceScanUID:  string(c.ComplianceScan.UID),
 	}
 }

@@ -68,7 +68,8 @@ var _ = Describe("Controller", func() {
 			},
 			ComplianceScan: &dikiv1alpha1.ComplianceScan{
 				ObjectMeta: metav1.ObjectMeta{
-					UID: types.UID("111"),
+					Name: "foo",
+					UID:  types.UID("111"),
 				},
 			},
 		}
@@ -92,9 +93,10 @@ var _ = Describe("Controller", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(configMap.Labels).To(Equal(map[string]string{
-			"app.kubernetes.io/name":             "diki",
-			"app.kubernetes.io/managed-by":       "diki-operator",
-			"diki.gardener.cloud/compliancescan": "111",
+			"app.kubernetes.io/name":                  "diki",
+			"app.kubernetes.io/managed-by":            "diki-operator",
+			"compliancescan.diki.gardener.cloud/name": "foo",
+			"compliancescan.diki.gardener.cloud/uid":  "111",
 		}))
 		reportData := configMap.BinaryData["report.json.gz"]
 		Expect(reportData).ToNot(BeEmpty())
