@@ -23,13 +23,20 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - configmaps
   - nodes
   - nodes/proxy
   - namespaces
   - replicationcontrollers
   - services
   verbs:
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
   - get
   - list
 - apiGroups:
@@ -88,9 +95,3 @@ rules:
   - get
   - list
   - watch
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - create
