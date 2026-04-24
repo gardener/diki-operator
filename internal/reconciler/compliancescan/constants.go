@@ -13,8 +13,20 @@ const (
 	// ComplianceScanLabel is the label used to identify resources connected to a ComplianceScan.
 	ComplianceScanLabel = "diki.gardener.cloud/compliancescan"
 
-	// ConfigMapGenerateNamePrefix is the prefix for diki config ConfigMap names.
-	ConfigMapGenerateNamePrefix = "diki-config-"
+	// LabelAppName is the standard Kubernetes label key for application name.
+	LabelAppName = "app.kubernetes.io/name"
+	// LabelAppManagedBy is the standard Kubernetes label key for the managing tool or operator.
+	LabelAppManagedBy = "app.kubernetes.io/managed-by"
+
+	// LabelValueDiki is the application name value used for diki-related resources.
+	LabelValueDiki = "diki"
+	// LabelValueDikiOperator is the managing operator value used for diki-operator managed resources.
+	LabelValueDikiOperator = "diki-operator"
+
+	// ConfigMapNamePrefix is the prefix for diki config ConfigMap names.
+	ConfigMapNamePrefix = "diki-config-"
+	// JobNamePrefix is the prefix for the diki run Job names.
+	JobNamePrefix = "diki-run-"
 	// DikiConfigKey is the key used to store the YAML configuration in the ConfigMap data.
 	DikiConfigKey = "config.yaml"
 

@@ -23,7 +23,35 @@ import (
 	v1alpha1helper "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1/helper"
 )
 
-func (r *Reconciler) handleFailedScan(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger, err error) error {
+func (r *Reconciler) patchRunning(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) error {
+	patch := client.MergeFrom(complianceScan.DeepCopy())
+	complianceScan.Status.Phase = v1alpha1.ComplianceScanRunning
+	complianceScan.Status.Conditions = v1alpha1helper.UpdateConditions(
+		complianceScan.Status.Conditions,
+		v1alpha1.ConditionTypeCompleted,
+		v1alpha1.ConditionFalse,
+		ConditionReasonRunning,
+		"ComplianceScan is running",
+		time.Now(),
+	)
+	return r.Client.Status().Patch(ctx, complianceScan, patch)
+}
+
+func (r *Reconciler) patchCompleted(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) error {
+	patch := client.MergeFrom(complianceScan.DeepCopy())
+	complianceScan.Status.Phase = v1alpha1.ComplianceScanCompleted
+	complianceScan.Status.Conditions = v1alpha1helper.UpdateConditions(
+		complianceScan.Status.Conditions,
+		v1alpha1.ConditionTypeCompleted,
+		v1alpha1.ConditionTrue,
+		ConditionReasonCompleted,
+		"ComplianceScan has completed successfully",
+		time.Now(),
+	)
+	return r.Client.Status().Patch(ctx, complianceScan, patch)
+}
+
+func (r *Reconciler) patchFailed(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger, err error) error {
 	patch := client.MergeFrom(complianceScan.DeepCopy())
 	complianceScan.Status.Phase = v1alpha1.ComplianceScanFailed
 	complianceScan.Status.Conditions = v1alpha1helper.UpdateConditions(
@@ -59,19 +87,19 @@ func (r *Reconciler) getLabels(complianceScan *v1alpha1.ComplianceScan) map[stri
 	return labels
 }
 
-func (r *Reconciler) findDikiRunJob(ctx context.Context, complianceScanUID types.UID) (*batchv1.Job, error) {
-	jobList := &batchv1.JobList{}
-	if err := r.Client.List(ctx, jobList, client.InNamespace(r.Config.DikiRunner.Namespace), client.MatchingLabels{
-		ComplianceScanLabel: string(complianceScanUID),
-	}); err != nil {
-		return nil, fmt.Errorf("failed to list diki runner jobs: %w", err)
+func (r *Reconciler) findDikiRunJob(ctx context.Context, complianceScanUID types.UID, namespace string) (*batchv1.Job, error) {
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      JobNamePrefix + string(complianceScanUID),
+			Namespace: namespace,
+		},
 	}
 
-	if len(jobList.Items) == 0 {
-		return nil, nil
+	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(job), job); err != nil {
+		return nil, fmt.Errorf("failed to get diki runner job: %w", err)
 	}
 
-	return &jobList.Items[0], nil
+	return job, nil
 }
 
 func (r *Reconciler) getOwnerReference(job *batchv1.Job) []metav1.OwnerReference {
@@ -87,6 +115,7 @@ func (r *Reconciler) getOwnerReference(job *batchv1.Job) []metav1.OwnerReference
 	}
 }
 
-func (r *Reconciler) upscaleDikiRunJob(job *batchv1.Job) {
+func (r *Reconciler) upscaleDikiRunJob(ctx context.Context, job *batchv1.Job, jobPatch client.Patch) error {
 	job.Spec.Parallelism = ptr.To(int32(1))
+	return r.Client.Patch(ctx, job, jobPatch)
 }
