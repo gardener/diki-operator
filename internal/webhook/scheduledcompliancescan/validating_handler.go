@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/cronexpr"
 	admissionv1 "k8s.io/api/admission/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
+	scheduledcompliancescan "github.com/gardener/diki-operator/internal/reconciler/scheduledcompliancescan"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
@@ -37,7 +37,7 @@ func (h *Handler) Handle(_ context.Context, req admission.Request) admission.Res
 	specPath := field.NewPath("spec")
 
 	if scheduledScan.Spec.Schedule != "" {
-		if _, err := cronexpr.Parse(scheduledScan.Spec.Schedule); err != nil {
+		if _, err := scheduledcompliancescan.ParseCronScheduleWithPanicRecovery(scheduledScan.Spec.Schedule); err != nil {
 			allErrs = append(allErrs, field.Invalid(specPath.Child("schedule"), scheduledScan.Spec.Schedule, fmt.Sprintf("invalid cron expression: %s", err.Error())))
 		}
 	}

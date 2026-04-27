@@ -19,8 +19,7 @@ require (
 	github.com/gardener/diki v0.25.0
 	github.com/gardener/gardener v1.135.1
 	github.com/go-logr/logr v1.4.3
-	github.com/hashicorp/cronexpr v1.1.3
-	github.com/onsi/ginkgo/v2 v2.28.1
+	github.com/onsi/ginkgo/v2 v2.28.2
 	github.com/onsi/gomega v1.39.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.10.2
