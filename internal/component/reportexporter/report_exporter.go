@@ -61,7 +61,7 @@ func (d *ReportExporter) Export(ctx context.Context) error {
 		return fmt.Errorf("error reading diki report: %w", err)
 	}
 
-	outputs, err := d.createOutputs()
+	outputs, err := d.createOutputs(complianceScan)
 	if err != nil {
 		return fmt.Errorf("error creating outputs: %w", err)
 	}
@@ -113,7 +113,7 @@ func (d *ReportExporter) Export(ctx context.Context) error {
 	return nil
 }
 
-func (d *ReportExporter) createOutputs() (map[string]dikioutputs.Output, error) {
+func (d *ReportExporter) createOutputs(complianceScan *dikiv1alpha1.ComplianceScan) (map[string]dikioutputs.Output, error) {
 	outputs := make(map[string]dikioutputs.Output)
 
 	for _, output := range d.Config.Outputs {
@@ -124,7 +124,7 @@ func (d *ReportExporter) createOutputs() (map[string]dikioutputs.Output, error) 
 				return nil, fmt.Errorf("failed to unmarshal ConfigMapOutput: %w", err)
 			}
 
-			outputs[output.Name] = dikioutputs.NewConfigMapExporter(d.Client, configMapOutput)
+			outputs[output.Name] = dikioutputs.NewConfigMapExporter(d.Client, configMapOutput, complianceScan)
 		default:
 			return nil, fmt.Errorf("unsupported output type: %s", output.Type)
 		}
