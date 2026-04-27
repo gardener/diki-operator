@@ -234,7 +234,10 @@ var _ = Describe("Controller", func() {
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
 
 			Expect(fakeClient.List(ctx, configMapList,
-				client.MatchingLabels{"diki.gardener.cloud/compliancescan": "1"},
+				client.MatchingLabels{
+					"compliancescan.diki.gardener.cloud/name": "compliancescan",
+					"compliancescan.diki.gardener.cloud/uid":  "1",
+				},
 			)).To(Succeed())
 			Expect(len(configMapList.Items)).To(Equal(1))
 
@@ -265,7 +268,10 @@ var _ = Describe("Controller", func() {
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
 
 			Expect(fakeClient.List(ctx, configMapList,
-				client.MatchingLabels{"diki.gardener.cloud/compliancescan": "1"},
+				client.MatchingLabels{
+					"compliancescan.diki.gardener.cloud/name": "compliancescan",
+					"compliancescan.diki.gardener.cloud/uid":  "1",
+				},
 			)).To(Succeed())
 			Expect(len(configMapList.Items)).To(Equal(1))
 
@@ -330,7 +336,10 @@ var _ = Describe("Controller", func() {
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
 
 			Expect(fakeClient.List(ctx, configMapList,
-				client.MatchingLabels{"diki.gardener.cloud/compliancescan": "1"},
+				client.MatchingLabels{
+					"compliancescan.diki.gardener.cloud/name": "compliancescan",
+					"compliancescan.diki.gardener.cloud/uid":  "1",
+				},
 			)).To(Succeed())
 			Expect(len(configMapList.Items)).To(Equal(1))
 
