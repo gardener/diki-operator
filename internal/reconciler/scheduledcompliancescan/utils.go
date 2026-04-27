@@ -99,9 +99,9 @@ func childScanName(parentName string, t time.Time) string {
 	return parentName + suffix
 }
 
-// parseCronScheduleWithPanicRecovery is a cron parser created by reusing code from the kubernetes/kubernetes project
+// ParseCronScheduleWithPanicRecovery is a cron parser created by reusing code from the kubernetes/kubernetes project
 // https://github.com/kubernetes/kubernetes/blob/37cf8a475310177693daf49c80a48c314f61e409/pkg/util/parsers/parsers.go#L59
-func parseCronScheduleWithPanicRecovery(schedule string) (sched cron.Schedule, err error) {
+func ParseCronScheduleWithPanicRecovery(schedule string) (sched cron.Schedule, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			sched = nil
