@@ -115,7 +115,8 @@ func (r *Reconciler) getOwnerReference(job *batchv1.Job) []metav1.OwnerReference
 	}
 }
 
-func (r *Reconciler) upscaleDikiRunJob(ctx context.Context, job *batchv1.Job, jobPatch client.Patch) error {
-	job.Spec.Parallelism = ptr.To(int32(1))
+func (r *Reconciler) startDikiRunJob(ctx context.Context, job *batchv1.Job) error {
+	jobPatch := client.MergeFrom(job.DeepCopy())
+	job.Spec.Suspend = ptr.To(false)
 	return r.Client.Patch(ctx, job, jobPatch)
 }
