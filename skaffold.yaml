@@ -10,9 +10,9 @@ build:
           paths:
             - cmd/diki-operator
             - cmd/diki-operator/app
-            - internal/constants
             - imagevector
             - imagevector/images.yaml
+            - internal/constants
             - internal/reconciler/compliancescan
             - internal/reconciler/scheduledcompliancescan
             - internal/webhook/compliancescan
