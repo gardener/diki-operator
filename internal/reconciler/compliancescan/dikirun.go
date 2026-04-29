@@ -69,7 +69,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 							},
 						},
 					},
-					ServiceAccountName: JobName,
+					ServiceAccountName: ServiceAccountName,
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Tolerations: []corev1.Toleration{
 						{

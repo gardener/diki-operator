@@ -54,6 +54,10 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, err)
 		}
 
+		if job.Spec.Suspend != nil && *job.Spec.Suspend {
+			return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, fmt.Errorf("job %s is still suspended", job.Name))
+		}
+
 		for _, condition := range job.Status.Conditions {
 			if condition.Type == batchv1.JobComplete && condition.Status == corev1.ConditionTrue {
 				log.Info("Job completed successfully")
@@ -92,20 +96,14 @@ func (r *Reconciler) deployResources(ctx context.Context, complianceScan *v1alph
 
 	configMap, err := r.deployDikiConfigMap(ctx, configMapName, complianceScan, job)
 	if err != nil {
-		if deleteErr := r.Client.Delete(ctx, job); deleteErr != nil {
-			log.Error(deleteErr, "Failed to delete orphaned Job during cleanup", "job", client.ObjectKeyFromObject(job))
-		}
 		return err
 	}
 	log.Info(fmt.Sprintf("Created ConfigMap %s", client.ObjectKeyFromObject(configMap)))
 
 	if err := r.startDikiRunJob(ctx, job); err != nil {
-		if deleteErr := r.Client.Delete(ctx, job); deleteErr != nil {
-			log.Error(deleteErr, "Failed to delete orphaned Job during cleanup", "job", client.ObjectKeyFromObject(job))
-		}
-		return fmt.Errorf("failed to upscale diki runner job: %w", err)
+		return fmt.Errorf("failed to start diki runner job: %w", err)
 	}
-	log.Info(fmt.Sprintf("Upscaled Job %s", client.ObjectKeyFromObject(job)))
+	log.Info(fmt.Sprintf("Started Job %s", client.ObjectKeyFromObject(job)))
 
 	return nil
 }
