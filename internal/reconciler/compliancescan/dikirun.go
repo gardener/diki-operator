@@ -50,7 +50,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      ConfigMapName,
+									Name:      DikiConfigVolumeName,
 									MountPath: DikiConfigMountPath,
 									ReadOnly:  true,
 								},
@@ -59,7 +59,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 					},
 					Volumes: []corev1.Volume{
 						{
-							Name: ConfigMapName,
+							Name: DikiConfigVolumeName,
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{

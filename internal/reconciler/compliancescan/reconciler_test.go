@@ -386,7 +386,7 @@ var _ = Describe("Controller", func() {
 				MatchFields(IgnoreExtras, Fields{
 					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
 					"Status":  Equal(dikiv1alpha1.ConditionTrue),
-					"Message": ContainSubstring("is still suspended"),
+					"Message": ContainSubstring("unhandled previous reconciliation failure"),
 				}),
 			),
 		)
