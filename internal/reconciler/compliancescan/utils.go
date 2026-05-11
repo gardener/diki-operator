@@ -50,7 +50,8 @@ func (r *Reconciler) getLabels(complianceScan *v1alpha1.ComplianceScan) map[stri
 	}
 
 	maps.Copy(labels, r.Config.DikiRunner.Labels)
-	labels[ComplianceScanLabel] = string(complianceScan.UID)
+	labels[LabelComplianceScanName] = complianceScan.Name
+	labels[LabelComplianceScanUID] = string(complianceScan.UID)
 
 	return labels
 }

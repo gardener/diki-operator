@@ -5,8 +5,12 @@
 package reconciler
 
 const (
-	// ComplianceScanLabel is the label used to identify resources connected to a ComplianceScan.
-	ComplianceScanLabel = "diki.gardener.cloud/compliancescan"
+	// LabelComplianceScanName is the label used to identify resources
+	// connected to a ComplianceScan by name.
+	LabelComplianceScanName = "compliancescan.diki.gardener.cloud/name"
+	// LabelComplianceScanUID is the label used to identify resources
+	// connected to a ComplianceScan by UID.
+	LabelComplianceScanUID = "compliancescan.diki.gardener.cloud/uid"
 
 	// ConfigMapGenerateNamePrefix is the prefix for diki config ConfigMap names.
 	ConfigMapGenerateNamePrefix = "diki-config-"
