@@ -12,11 +12,11 @@ A Kubernetes operator that orchestrates compliance scanning for Kubernetes clust
 
 ## Overview
 
-diki-operator automates the execution of compliance scans against Kubernetes clusters and manages the export of scan reports. It provides:
+diki-operator automates the execution of compliance scans against Kubernetes clusters and manages the export of scan reports. It provides the following CRDs:
 
-- **ComplianceScan CRD** -- define and trigger compliance scans
-- **ScheduledComplianceScan CRD** -- schedule recurring compliance scans
-- **Report export** -- configurable outputs for diki scan reports
+- **ComplianceScan** -- define and trigger compliance scans
+- **ScheduledComplianceScan** -- schedule recurring compliance scans
+- **ReportOutput** -- configurable outputs for diki scan reports
 
 ### Custom Resources
 
