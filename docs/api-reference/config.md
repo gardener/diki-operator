@@ -4,17 +4,32 @@
 <a href="#diki.gardener.cloud%2fv1alpha1">diki.gardener.cloud/v1alpha1</a>
 </li>
 </ul>
+
 <h2 id="diki.gardener.cloud/v1alpha1">diki.gardener.cloud/v1alpha1</h2>
 <p>
-<p>Package v1alpha1 is a version of the API.</p>
+
 </p>
 Resource Types:
-<ul></ul>
-<h3 id="diki.gardener.cloud/v1alpha1.ComplianceScan">ComplianceScan
+<ul>
+<li>
+<a href="#compliancescan">ComplianceScan</a>
+</li>
+<li>
+<a href="#reportoutput">ReportOutput</a>
+</li>
+<li>
+<a href="#scheduledcompliancescan">ScheduledComplianceScan</a>
+</li>
+</ul>
+
+<h3 id="compliancescan">ComplianceScan
 </h3>
+
+
 <p>
-<p>ComplianceScan describes a compliance scan.</p>
+ComplianceScan describes a compliance scan.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -23,99 +38,71 @@ Resource Types:
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>metadata</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#objectmeta-v1-meta">
-Kubernetes meta/v1.ObjectMeta
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta">ObjectMeta</a>
 </em>
 </td>
 <td>
-<p>Standard object metadata.</p>
-Refer to the Kubernetes API documentation for the fields of the
-<code>metadata</code> field.
+Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.
 </td>
 </tr>
 <tr>
 <td>
 <code>spec</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">
-ComplianceScanSpec
-</a>
+<a href="#compliancescanspec">ComplianceScanSpec</a>
 </em>
 </td>
 <td>
 <p>Spec contains the specification of this compliance scan.</p>
-<br/>
-<br/>
-<table>
-<tr>
-<td>
-<code>rulesets</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetConfig">
-[]RulesetConfig
-</a>
-</em>
-</td>
-<td>
-<p>Rulesets describe the rulesets to be applied during the compliance scan.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>outputs</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.ReportOutputRef">
-[]ReportOutputRef
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Outputs describe the outputs of the compliance scan.</p>
-</td>
-</tr>
-</table>
 </td>
 </tr>
 <tr>
 <td>
 <code>status</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">
-ComplianceScanStatus
-</a>
+<a href="#compliancescanstatus">ComplianceScanStatus</a>
 </em>
 </td>
 <td>
 <p>Status contains the status of this compliance scan.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ComplianceScanPhase">ComplianceScanPhase
-(<code>string</code> alias)</p></h3>
-<p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus</a>)
-</p>
-<p>
-<p>ComplianceScanPhase is an alias for string representing the phase of a ComplianceScan.</p>
-</p>
-<h3 id="diki.gardener.cloud/v1alpha1.ComplianceScanSpec">ComplianceScanSpec
+
+
+<h3 id="compliancescanphase">ComplianceScanPhase
 </h3>
+<p><em>Underlying type: string</em></p>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScan">ComplianceScan</a>, 
-<a href="#diki.gardener.cloud/v1alpha1.ScheduledComplianceScanTemplate">ScheduledComplianceScanTemplate</a>)
+(<em>Appears on:</em><a href="#compliancescanstatus">ComplianceScanStatus</a>)
 </p>
+
 <p>
-<p>ComplianceScanSpec is the specification of a ComplianceScan.</p>
+ComplianceScanPhase is an alias for string representing the phase of a ComplianceScan.
 </p>
+
+
+<h3 id="compliancescanspec">ComplianceScanSpec
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#compliancescan">ComplianceScan</a>, <a href="#scheduledcompliancescantemplate">ScheduledComplianceScanTemplate</a>)
+</p>
+
+<p>
+ComplianceScanSpec is the specification of a ComplianceScan.
+</p>
+
 <table>
 <thead>
 <tr>
@@ -124,13 +111,12 @@ ComplianceScanStatus
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>rulesets</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetConfig">
-[]RulesetConfig
-</a>
+<a href="#rulesetconfig">RulesetConfig</a> array
 </em>
 </td>
 <td>
@@ -141,9 +127,7 @@ ComplianceScanStatus
 <td>
 <code>outputs</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ReportOutputRef">
-[]ReportOutputRef
-</a>
+<a href="#reportoutputref">ReportOutputRef</a> array
 </em>
 </td>
 <td>
@@ -151,17 +135,23 @@ ComplianceScanStatus
 <p>Outputs describe the outputs of the compliance scan.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus
+
+
+<h3 id="compliancescanstatus">ComplianceScanStatus
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScan">ComplianceScan</a>)
+(<em>Appears on:</em><a href="#compliancescan">ComplianceScan</a>)
 </p>
+
 <p>
-<p>ComplianceScanStatus contains the status of a ComplianceScan.</p>
+ComplianceScanStatus contains the status of a ComplianceScan.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -170,13 +160,12 @@ ComplianceScanStatus
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>conditions</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.Condition">
-[]Condition
-</a>
+<a href="#condition">Condition</a> array
 </em>
 </td>
 <td>
@@ -188,9 +177,7 @@ ComplianceScanStatus
 <td>
 <code>phase</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanPhase">
-ComplianceScanPhase
-</a>
+<a href="#compliancescanphase">ComplianceScanPhase</a>
 </em>
 </td>
 <td>
@@ -201,9 +188,7 @@ ComplianceScanPhase
 <td>
 <code>rulesets</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetSummary">
-[]RulesetSummary
-</a>
+<a href="#rulesetsummary">RulesetSummary</a> array
 </em>
 </td>
 <td>
@@ -215,9 +200,7 @@ ComplianceScanPhase
 <td>
 <code>outputs</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.OutputStatus">
-[]OutputStatus
-</a>
+<a href="#outputstatus">OutputStatus</a> array
 </em>
 </td>
 <td>
@@ -225,17 +208,23 @@ ComplianceScanPhase
 <p>Outputs contain the output statuses of the ComplianceScan.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.Condition">Condition
+
+
+<h3 id="condition">Condition
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus</a>)
+(<em>Appears on:</em><a href="#compliancescanstatus">ComplianceScanStatus</a>)
 </p>
+
 <p>
-<p>Condition describes a condition of a ComplianceScan.</p>
+Condition describes a condition of a ComplianceScan.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -244,13 +233,12 @@ ComplianceScanPhase
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>type</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ConditionType">
-ConditionType
-</a>
+<a href="#conditiontype">ConditionType</a>
 </em>
 </td>
 <td>
@@ -261,9 +249,7 @@ ConditionType
 <td>
 <code>status</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ConditionStatus">
-ConditionStatus
-</a>
+<a href="#conditionstatus">ConditionStatus</a>
 </em>
 </td>
 <td>
@@ -274,9 +260,7 @@ ConditionStatus
 <td>
 <code>lastUpdateTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#time-v1-meta">
-Kubernetes meta/v1.Time
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta">Time</a>
 </em>
 </td>
 <td>
@@ -287,9 +271,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>lastTransitionTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#time-v1-meta">
-Kubernetes meta/v1.Time
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta">Time</a>
 </em>
 </td>
 <td>
@@ -304,7 +286,7 @@ string
 </em>
 </td>
 <td>
-<p>Reason is a brief reason for the condition&rsquo;s last transition.</p>
+<p>Reason is a brief reason for the condition's last transition.</p>
 </td>
 </tr>
 <tr>
@@ -318,35 +300,51 @@ string
 <p>Message is a human-readable message indicating details about the last transition.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ConditionStatus">ConditionStatus
-(<code>string</code> alias)</p></h3>
-<p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.Condition">Condition</a>)
-</p>
-<p>
-<p>ConditionStatus is an alias for string representing the status of a condition.</p>
-</p>
-<h3 id="diki.gardener.cloud/v1alpha1.ConditionType">ConditionType
-(<code>string</code> alias)</p></h3>
-<p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.Condition">Condition</a>)
-</p>
-<p>
-<p>ConditionType is an alias for string representing the type of a condition.</p>
-</p>
-<h3 id="diki.gardener.cloud/v1alpha1.Options">Options
+
+
+<h3 id="conditionstatus">ConditionStatus
 </h3>
+<p><em>Underlying type: string</em></p>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetOptions">RulesetOptions</a>)
+(<em>Appears on:</em><a href="#condition">Condition</a>)
 </p>
+
 <p>
-<p>Options contains references to options.</p>
+ConditionStatus is an alias for string representing the status of a condition.
 </p>
+
+
+<h3 id="conditiontype">ConditionType
+</h3>
+<p><em>Underlying type: string</em></p>
+
+
+<p>
+(<em>Appears on:</em><a href="#condition">Condition</a>)
+</p>
+
+<p>
+ConditionType is an alias for string representing the type of a condition.
+</p>
+
+
+<h3 id="options">Options
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#rulesetoptions">RulesetOptions</a>)
+</p>
+
+<p>
+Options contains references to options.
+</p>
+
 <table>
 <thead>
 <tr>
@@ -355,13 +353,12 @@ string
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>configMapRef</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.OptionsConfigMapRef">
-OptionsConfigMapRef
-</a>
+<a href="#optionsconfigmapref">OptionsConfigMapRef</a>
 </em>
 </td>
 <td>
@@ -369,17 +366,23 @@ OptionsConfigMapRef
 <p>ConfigMapRef is a reference to a ConfigMap containing options.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.OptionsConfigMapRef">OptionsConfigMapRef
+
+
+<h3 id="optionsconfigmapref">OptionsConfigMapRef
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.Options">Options</a>)
+(<em>Appears on:</em><a href="#options">Options</a>)
 </p>
+
 <p>
-<p>OptionsConfigMapRef references a ConfigMap containing rule options for the ruleset.</p>
+OptionsConfigMapRef references a ConfigMap containing rule options for the ruleset.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -388,6 +391,7 @@ OptionsConfigMapRef
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>name</code></br>
@@ -422,17 +426,23 @@ string
 <p>Key is the key within the ConfigMap, where the options are stored.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.Output">Output
+
+
+<h3 id="output">Output
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ReportOutputSpec">ReportOutputSpec</a>)
+(<em>Appears on:</em><a href="#reportoutputspec">ReportOutputSpec</a>)
 </p>
+
 <p>
-<p>Output describes a specific output of a compliance scan.</p>
+Output describes a specific output of a compliance scan.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -441,13 +451,12 @@ string
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>configMap</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.OutputConfigMap">
-OutputConfigMap
-</a>
+<a href="#outputconfigmap">OutputConfigMap</a>
 </em>
 </td>
 <td>
@@ -455,17 +464,23 @@ OutputConfigMap
 <p>ConfigMap contains the configuration for exporting the report to a ConfigMap.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.OutputConfigMap">OutputConfigMap
+
+
+<h3 id="outputconfigmap">OutputConfigMap
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.Output">Output</a>)
+(<em>Appears on:</em><a href="#output">Output</a>)
 </p>
+
 <p>
-<p>OutputConfigMap contains the configuration for exporting the report to a ConfigMap.</p>
+OutputConfigMap contains the configuration for exporting the report to a ConfigMap.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -474,6 +489,7 @@ OutputConfigMap
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>namespace</code></br>
@@ -482,8 +498,7 @@ string
 </em>
 </td>
 <td>
-<p>Namespace is the namespace where the ConfigMap will be created.
-Defaults to <code>kube-system</code>.</p>
+<p>Namespace is the namespace where the ConfigMap will be created.<br />Defaults to `kube-system`.</p>
 </td>
 </tr>
 <tr>
@@ -494,21 +509,26 @@ string
 </em>
 </td>
 <td>
-<p>NamePrefix is the prefix for the generated ConfigMap name.
-Defaults to &ldquo;compliance-scan-report-&rdquo;.</p>
+<p>NamePrefix is the prefix for the generated ConfigMap name.<br />Defaults to "compliance-scan-report-".</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.OutputStatus">OutputStatus
+
+
+<h3 id="outputstatus">OutputStatus
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus</a>)
+(<em>Appears on:</em><a href="#compliancescanstatus">ComplianceScanStatus</a>)
 </p>
+
 <p>
-<p>OutputStatus contains the status of a specific output of a compliance scan.</p>
+OutputStatus contains the status of a specific output of a compliance scan.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -517,6 +537,7 @@ Defaults to &ldquo;compliance-scan-report-&rdquo;.</p>
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>outputName</code></br>
@@ -532,9 +553,7 @@ string
 <td>
 <code>phase</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.OutputStatusPhase">
-OutputStatusPhase
-</a>
+<a href="#outputstatusphase">OutputStatusPhase</a>
 </em>
 </td>
 <td>
@@ -545,7 +564,7 @@ OutputStatusPhase
 <td>
 <code>details</code></br>
 <em>
-k8s.io/apimachinery/pkg/runtime.RawExtension
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#rawextension-runtime-pkg">RawExtension</a>
 </em>
 </td>
 <td>
@@ -553,22 +572,33 @@ k8s.io/apimachinery/pkg/runtime.RawExtension
 <p>Details contains details about the output.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.OutputStatusPhase">OutputStatusPhase
-(<code>string</code> alias)</p></h3>
-<p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.OutputStatus">OutputStatus</a>)
-</p>
-<p>
-<p>OutputStatusPhase is an alias for string representing the phase of an output after processing by the exporter.</p>
-</p>
-<h3 id="diki.gardener.cloud/v1alpha1.ReportOutput">ReportOutput
+
+
+<h3 id="outputstatusphase">OutputStatusPhase
 </h3>
+<p><em>Underlying type: string</em></p>
+
+
 <p>
-<p>ReportOutput describes a report output.</p>
+(<em>Appears on:</em><a href="#outputstatus">OutputStatus</a>)
 </p>
+
+<p>
+OutputStatusPhase is an alias for string representing the phase of an output after processing by the exporter.
+</p>
+
+
+<h3 id="reportoutput">ReportOutput
+</h3>
+
+
+<p>
+ReportOutput describes a report output.
+</p>
+
 <table>
 <thead>
 <tr>
@@ -577,62 +607,46 @@ k8s.io/apimachinery/pkg/runtime.RawExtension
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>metadata</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#objectmeta-v1-meta">
-Kubernetes meta/v1.ObjectMeta
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta">ObjectMeta</a>
 </em>
 </td>
 <td>
-<p>Standard object metadata.</p>
-Refer to the Kubernetes API documentation for the fields of the
-<code>metadata</code> field.
+Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.
 </td>
 </tr>
 <tr>
 <td>
 <code>spec</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ReportOutputSpec">
-ReportOutputSpec
-</a>
+<a href="#reportoutputspec">ReportOutputSpec</a>
 </em>
 </td>
 <td>
 <p>Spec contains the specification of this report output.</p>
-<br/>
-<br/>
-<table>
-<tr>
-<td>
-<code>output</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.Output">
-Output
-</a>
-</em>
-</td>
-<td>
-<p>Output describes a specific output of a compliance scan.</p>
 </td>
 </tr>
-</table>
-</td>
-</tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ReportOutputRef">ReportOutputRef
+
+
+<h3 id="reportoutputref">ReportOutputRef
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">ComplianceScanSpec</a>)
+(<em>Appears on:</em><a href="#compliancescanspec">ComplianceScanSpec</a>)
 </p>
+
 <p>
-<p>ReportOutputRef describes a reference to a report output.</p>
+ReportOutputRef describes a reference to a report output.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -641,6 +655,7 @@ Output
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>name</code></br>
@@ -652,17 +667,23 @@ string
 <p>Name is the name of the report output.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ReportOutputSpec">ReportOutputSpec
+
+
+<h3 id="reportoutputspec">ReportOutputSpec
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ReportOutput">ReportOutput</a>)
+(<em>Appears on:</em><a href="#reportoutput">ReportOutput</a>)
 </p>
+
 <p>
-<p>ReportOutputSpec is the specification of a ReportOutput.</p>
+ReportOutputSpec is the specification of a ReportOutput.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -671,30 +692,35 @@ string
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>output</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.Output">
-Output
-</a>
+<a href="#output">Output</a>
 </em>
 </td>
 <td>
 <p>Output describes a specific output of a compliance scan.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.Rule">Rule
+
+
+<h3 id="rule">Rule
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesFindings">RulesFindings</a>)
+(<em>Appears on:</em><a href="#rulesfindings">RulesFindings</a>)
 </p>
+
 <p>
-<p>Rule contains information about the ID and the name of the rule that contains the findings.</p>
+Rule contains information about the ID and the name of the rule that contains the findings.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -703,6 +729,7 @@ Output
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>id</code></br>
@@ -725,17 +752,23 @@ string
 <p>Name is the name of the rule which contains the finding.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.RulesFindings">RulesFindings
+
+
+<h3 id="rulesfindings">RulesFindings
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesResults">RulesResults</a>)
+(<em>Appears on:</em><a href="#rulesresults">RulesResults</a>)
 </p>
+
 <p>
-<p>RulesFindings contains information about the specific rules that have errored/warned/failed.</p>
+RulesFindings contains information about the specific rules that have errored/warned/failed.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -744,13 +777,12 @@ string
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>failed</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.Rule">
-[]Rule
-</a>
+<a href="#rule">Rule</a> array
 </em>
 </td>
 <td>
@@ -762,9 +794,7 @@ string
 <td>
 <code>errored</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.Rule">
-[]Rule
-</a>
+<a href="#rule">Rule</a> array
 </em>
 </td>
 <td>
@@ -776,9 +806,7 @@ string
 <td>
 <code>warning</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.Rule">
-[]Rule
-</a>
+<a href="#rule">Rule</a> array
 </em>
 </td>
 <td>
@@ -786,17 +814,23 @@ string
 <p>Warning contains information about the rules that have a Warning status.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.RulesResults">RulesResults
+
+
+<h3 id="rulesresults">RulesResults
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetSummary">RulesetSummary</a>)
+(<em>Appears on:</em><a href="#rulesetsummary">RulesetSummary</a>)
 </p>
+
 <p>
-<p>RulesResults contains the results of the rules in a ruleset.</p>
+RulesResults contains the results of the rules in a ruleset.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -805,13 +839,12 @@ string
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>summary</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesSummary">
-RulesSummary
-</a>
+<a href="#rulessummary">RulesSummary</a>
 </em>
 </td>
 <td>
@@ -822,9 +855,7 @@ RulesSummary
 <td>
 <code>rules</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesFindings">
-RulesFindings
-</a>
+<a href="#rulesfindings">RulesFindings</a>
 </em>
 </td>
 <td>
@@ -832,17 +863,23 @@ RulesFindings
 <p>Rules contains information about the specific rules that have errored/warned/failed.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.RulesSummary">RulesSummary
+
+
+<h3 id="rulessummary">RulesSummary
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesResults">RulesResults</a>)
+(<em>Appears on:</em><a href="#rulesresults">RulesResults</a>)
 </p>
+
 <p>
-<p>RulesSummary contains information about the amount of rules per each status.</p>
+RulesSummary contains information about the amount of rules per each status.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -851,11 +888,12 @@ RulesFindings
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>passed</code></br>
 <em>
-int32
+integer
 </em>
 </td>
 <td>
@@ -866,7 +904,7 @@ int32
 <td>
 <code>skipped</code></br>
 <em>
-int32
+integer
 </em>
 </td>
 <td>
@@ -877,7 +915,7 @@ int32
 <td>
 <code>accepted</code></br>
 <em>
-int32
+integer
 </em>
 </td>
 <td>
@@ -888,7 +926,7 @@ int32
 <td>
 <code>warning</code></br>
 <em>
-int32
+integer
 </em>
 </td>
 <td>
@@ -899,7 +937,7 @@ int32
 <td>
 <code>failed</code></br>
 <em>
-int32
+integer
 </em>
 </td>
 <td>
@@ -910,24 +948,30 @@ int32
 <td>
 <code>errored</code></br>
 <em>
-int32
+integer
 </em>
 </td>
 <td>
 <p>Errored counts the amount of rules in a specific ruleset that have errored.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.RulesetConfig">RulesetConfig
+
+
+<h3 id="rulesetconfig">RulesetConfig
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">ComplianceScanSpec</a>)
+(<em>Appears on:</em><a href="#compliancescanspec">ComplianceScanSpec</a>)
 </p>
+
 <p>
-<p>RulesetConfig describes the configuration of a ruleset.</p>
+RulesetConfig describes the configuration of a ruleset.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -936,6 +980,7 @@ int32
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>id</code></br>
@@ -962,9 +1007,7 @@ string
 <td>
 <code>options</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetOptions">
-RulesetOptions
-</a>
+<a href="#rulesetoptions">RulesetOptions</a>
 </em>
 </td>
 <td>
@@ -972,17 +1015,23 @@ RulesetOptions
 <p>Options are options for a ruleset.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.RulesetOptions">RulesetOptions
+
+
+<h3 id="rulesetoptions">RulesetOptions
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetConfig">RulesetConfig</a>)
+(<em>Appears on:</em><a href="#rulesetconfig">RulesetConfig</a>)
 </p>
+
 <p>
-<p>RulesetOptions are options for a ruleset.</p>
+RulesetOptions are options for a ruleset.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -991,13 +1040,12 @@ RulesetOptions
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>ruleset</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.Options">
-Options
-</a>
+<a href="#options">Options</a>
 </em>
 </td>
 <td>
@@ -1009,28 +1057,31 @@ Options
 <td>
 <code>rules</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.Options">
-Options
-</a>
+<a href="#options">Options</a>
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>Rules contains references to rule options.
-Users can use these to configure the behaviour of specific rules.</p>
+<p>Rules contains references to rule options.<br />Users can use these to configure the behaviour of specific rules.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.RulesetSummary">RulesetSummary
+
+
+<h3 id="rulesetsummary">RulesetSummary
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanStatus">ComplianceScanStatus</a>)
+(<em>Appears on:</em><a href="#compliancescanstatus">ComplianceScanStatus</a>)
 </p>
+
 <p>
-<p>RulesetSummary contains the identifiers and the summary for a specific ruleset.</p>
+RulesetSummary contains the identifiers and the summary for a specific ruleset.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -1039,6 +1090,7 @@ Users can use these to configure the behaviour of specific rules.</p>
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>id</code></br>
@@ -1065,22 +1117,26 @@ string
 <td>
 <code>results</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesResults">
-RulesResults
-</a>
+<a href="#rulesresults">RulesResults</a>
 </em>
 </td>
 <td>
 <p>Results contains the results of the ruleset.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ScheduledComplianceScan">ScheduledComplianceScan
+
+
+<h3 id="scheduledcompliancescan">ScheduledComplianceScan
 </h3>
+
+
 <p>
-<p>ScheduledComplianceScan describes a scheduled compliance scan.</p>
+ScheduledComplianceScan describes a scheduled compliance scan.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -1089,111 +1145,57 @@ RulesResults
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>metadata</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#objectmeta-v1-meta">
-Kubernetes meta/v1.ObjectMeta
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectmeta-v1-meta">ObjectMeta</a>
 </em>
 </td>
 <td>
-<p>Standard object metadata.</p>
-Refer to the Kubernetes API documentation for the fields of the
-<code>metadata</code> field.
+Refer to the Kubernetes API documentation for the fields of the <code>metadata</code> field.
 </td>
 </tr>
 <tr>
 <td>
 <code>spec</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ScheduledComplianceScanSpec">
-ScheduledComplianceScanSpec
-</a>
+<a href="#scheduledcompliancescanspec">ScheduledComplianceScanSpec</a>
 </em>
 </td>
 <td>
 <p>Spec contains the specification of this scheduled compliance scan.</p>
-<br/>
-<br/>
-<table>
-<tr>
-<td>
-<code>schedule</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Schedule is a cron expression defining when the compliance scan should run.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>successfulScansHistoryLimit</code></br>
-<em>
-int32
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>SuccessfulScansHistoryLimit is the number of completed compliance scans to keep.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>failedScansHistoryLimit</code></br>
-<em>
-int32
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>FailedScansHistoryLimit is the number of failed compliance scans to keep.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>scanTemplate</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.ScheduledComplianceScanTemplate">
-ScheduledComplianceScanTemplate
-</a>
-</em>
-</td>
-<td>
-<p>ScanTemplate is the template for the ComplianceScan that will be created on each scheduled scan.</p>
-</td>
-</tr>
-</table>
 </td>
 </tr>
 <tr>
 <td>
 <code>status</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ScheduledComplianceScanStatus">
-ScheduledComplianceScanStatus
-</a>
+<a href="#scheduledcompliancescanstatus">ScheduledComplianceScanStatus</a>
 </em>
 </td>
 <td>
 <p>Status contains the status of this scheduled compliance scan.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ScheduledComplianceScanSpec">ScheduledComplianceScanSpec
+
+
+<h3 id="scheduledcompliancescanspec">ScheduledComplianceScanSpec
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ScheduledComplianceScan">ScheduledComplianceScan</a>)
+(<em>Appears on:</em><a href="#scheduledcompliancescan">ScheduledComplianceScan</a>)
 </p>
+
 <p>
-<p>ScheduledComplianceScanSpec is the specification of a ScheduledComplianceScan.</p>
+ScheduledComplianceScanSpec is the specification of a ScheduledComplianceScan.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -1202,6 +1204,7 @@ ScheduledComplianceScanStatus
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>schedule</code></br>
@@ -1218,7 +1221,7 @@ string
 <td>
 <code>successfulScansHistoryLimit</code></br>
 <em>
-int32
+integer
 </em>
 </td>
 <td>
@@ -1230,7 +1233,7 @@ int32
 <td>
 <code>failedScansHistoryLimit</code></br>
 <em>
-int32
+integer
 </em>
 </td>
 <td>
@@ -1242,26 +1245,30 @@ int32
 <td>
 <code>scanTemplate</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ScheduledComplianceScanTemplate">
-ScheduledComplianceScanTemplate
-</a>
+<a href="#scheduledcompliancescantemplate">ScheduledComplianceScanTemplate</a>
 </em>
 </td>
 <td>
 <p>ScanTemplate is the template for the ComplianceScan that will be created on each scheduled scan.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ScheduledComplianceScanStatus">ScheduledComplianceScanStatus
+
+
+<h3 id="scheduledcompliancescanstatus">ScheduledComplianceScanStatus
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ScheduledComplianceScan">ScheduledComplianceScan</a>)
+(<em>Appears on:</em><a href="#scheduledcompliancescan">ScheduledComplianceScan</a>)
 </p>
+
 <p>
-<p>ScheduledComplianceScanStatus contains the status of a ScheduledComplianceScan.</p>
+ScheduledComplianceScanStatus contains the status of a ScheduledComplianceScan.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -1270,13 +1277,12 @@ ScheduledComplianceScanTemplate
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>active</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#objectreference-v1-core">
-Kubernetes core/v1.ObjectReference
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#objectreference-v1-core">ObjectReference</a>
 </em>
 </td>
 <td>
@@ -1288,9 +1294,7 @@ Kubernetes core/v1.ObjectReference
 <td>
 <code>lastScheduleTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#time-v1-meta">
-Kubernetes meta/v1.Time
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta">Time</a>
 </em>
 </td>
 <td>
@@ -1302,9 +1306,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>lastCompletionTime</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#time-v1-meta">
-Kubernetes meta/v1.Time
-</a>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.33/#time-v1-meta">Time</a>
 </em>
 </td>
 <td>
@@ -1312,17 +1314,23 @@ Kubernetes meta/v1.Time
 <p>LastCompletionTime is the last time a scheduled ComplianceScan completed.</p>
 </td>
 </tr>
+
 </tbody>
 </table>
-<h3 id="diki.gardener.cloud/v1alpha1.ScheduledComplianceScanTemplate">ScheduledComplianceScanTemplate
+
+
+<h3 id="scheduledcompliancescantemplate">ScheduledComplianceScanTemplate
 </h3>
+
+
 <p>
-(<em>Appears on:</em>
-<a href="#diki.gardener.cloud/v1alpha1.ScheduledComplianceScanSpec">ScheduledComplianceScanSpec</a>)
+(<em>Appears on:</em><a href="#scheduledcompliancescanspec">ScheduledComplianceScanSpec</a>)
 </p>
+
 <p>
-<p>ScheduledComplianceScanTemplate is the template for the ComplianceScan that will be created.</p>
+ScheduledComplianceScanTemplate is the template for the ComplianceScan that will be created.
 </p>
+
 <table>
 <thead>
 <tr>
@@ -1331,53 +1339,20 @@ Kubernetes meta/v1.Time
 </tr>
 </thead>
 <tbody>
+
 <tr>
 <td>
 <code>spec</code></br>
 <em>
-<a href="#diki.gardener.cloud/v1alpha1.ComplianceScanSpec">
-ComplianceScanSpec
-</a>
+<a href="#compliancescanspec">ComplianceScanSpec</a>
 </em>
 </td>
 <td>
 <p>Spec is the spec of the ComplianceScan that will be created.</p>
-<br/>
-<br/>
-<table>
-<tr>
-<td>
-<code>rulesets</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.RulesetConfig">
-[]RulesetConfig
-</a>
-</em>
-</td>
-<td>
-<p>Rulesets describe the rulesets to be applied during the compliance scan.</p>
 </td>
 </tr>
-<tr>
-<td>
-<code>outputs</code></br>
-<em>
-<a href="#diki.gardener.cloud/v1alpha1.ReportOutputRef">
-[]ReportOutputRef
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Outputs describe the outputs of the compliance scan.</p>
-</td>
-</tr>
-</table>
-</td>
-</tr>
+
 </tbody>
 </table>
-<hr/>
-<p><em>
-Generated with <a href="https://github.com/ahmetb/gen-crd-api-reference-docs">gen-crd-api-reference-docs</a>
-</em></p>
+
+
