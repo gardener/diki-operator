@@ -16,7 +16,7 @@ go 1.25.7
 
 require (
 	github.com/gardener/diki v0.26.0
-	github.com/gardener/gardener v1.142.0
+	github.com/gardener/gardener v1.142.1
 	github.com/go-logr/logr v1.4.3
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
