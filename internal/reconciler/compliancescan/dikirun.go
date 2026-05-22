@@ -26,13 +26,13 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s%s", JobNamePrefix, complianceScan.UID),
+			Name:      JobNamePrefix + string(complianceScan.UID),
 			Namespace: r.Config.DikiRunner.Namespace,
 			Labels:    r.getLabels(complianceScan),
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit: ptr.To(int32(0)),
-			Parallelism:  ptr.To(int32(0)),
+			Suspend:      ptr.To(true),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: r.getLabels(complianceScan),
@@ -41,17 +41,17 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 					ActiveDeadlineSeconds: ptr.To(int64(r.Config.DikiRunner.PodCompletionTimeout.Seconds())),
 					Containers: []corev1.Container{
 						{
-							Name:  "diki-scan",
+							Name:  DikiScanContainerName,
 							Image: dikiImage.String(),
 							Args: []string{
 								"run",
-								"--config=/config/config.yaml",
+								fmt.Sprintf("--config=%s/config.yaml", DikiConfigMountPath),
 								"--all",
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
-									Name:      "diki-config",
-									MountPath: "/config",
+									Name:      ConfigMapName,
+									MountPath: DikiConfigMountPath,
 									ReadOnly:  true,
 								},
 							},
@@ -59,7 +59,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 					},
 					Volumes: []corev1.Volume{
 						{
-							Name: "diki-config",
+							Name: ConfigMapName,
 							VolumeSource: corev1.VolumeSource{
 								ConfigMap: &corev1.ConfigMapVolumeSource{
 									LocalObjectReference: corev1.LocalObjectReference{
@@ -69,7 +69,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 							},
 						},
 					},
-					ServiceAccountName: "diki-run",
+					ServiceAccountName: JobName,
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Tolerations: []corev1.Toleration{
 						{

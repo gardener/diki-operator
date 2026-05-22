@@ -82,7 +82,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 }
 
 func (r *Reconciler) deployResources(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger) error {
-	configMapName := fmt.Sprintf("%s%s", ConfigMapNamePrefix, complianceScan.UID)
+	configMapName := ConfigMapNamePrefix + string(complianceScan.UID)
 
 	job, err := r.deployDikiRunJob(ctx, complianceScan, configMapName)
 	if err != nil {
@@ -99,8 +99,7 @@ func (r *Reconciler) deployResources(ctx context.Context, complianceScan *v1alph
 	}
 	log.Info(fmt.Sprintf("Created ConfigMap %s", client.ObjectKeyFromObject(configMap)))
 
-	jobPatch := client.MergeFrom(job.DeepCopy())
-	if err := r.upscaleDikiRunJob(ctx, job, jobPatch); err != nil {
+	if err := r.startDikiRunJob(ctx, job); err != nil {
 		if deleteErr := r.Client.Delete(ctx, job); deleteErr != nil {
 			log.Error(deleteErr, "Failed to delete orphaned Job during cleanup", "job", client.ObjectKeyFromObject(job))
 		}
