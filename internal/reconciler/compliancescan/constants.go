@@ -27,14 +27,14 @@ const (
 	// LabelValueDikiOperator is the managing operator value used for diki-operator managed resources.
 	LabelValueDikiOperator = "diki-operator"
 
-	// ConfigMapName is the name of the volume mounted in the diki-run Job pods.
-	ConfigMapName = "diki-config"
 	// ConfigMapNamePrefix is the prefix for diki config ConfigMap names.
 	ConfigMapNamePrefix = "diki-config-"
-	// ServiceAccountName is the name for the diki-run-* Job related ServiceAccount.
+	// ServiceAccountName is the name for the diki-run Job related ServiceAccount.
 	ServiceAccountName = "diki-run"
 	// JobNamePrefix is the prefix for the diki-run Job names.
 	JobNamePrefix = "diki-run-"
+	// DikiConfigVolumeName is the name of the volume mounted in the diki-run Job pods.
+	DikiConfigVolumeName = "diki-config"
 	// DikiConfigKey is the key used to store the YAML configuration in the ConfigMap data.
 	DikiConfigKey = "config.yaml"
 	// DikiConfigMountPath is the mount path for the configurations needed by the diki-run Job pod.

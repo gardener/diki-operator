@@ -49,13 +49,13 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	}
 
 	if complianceScan.Status.Phase == v1alpha1.ComplianceScanRunning {
-		job, err := r.findDikiRunJob(ctx, complianceScan.UID, r.Config.DikiRunner.Namespace)
+		job, err := r.findDikiRunJob(ctx, complianceScan.UID)
 		if err != nil {
 			return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, err)
 		}
 
 		if job.Spec.Suspend != nil && *job.Spec.Suspend {
-			return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, fmt.Errorf("job %s is still suspended", job.Name))
+			return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, fmt.Errorf("unhandled previous reconciliation failure"))
 		}
 
 		for _, condition := range job.Status.Conditions {

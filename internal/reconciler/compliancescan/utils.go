@@ -88,11 +88,11 @@ func (r *Reconciler) getLabels(complianceScan *v1alpha1.ComplianceScan) map[stri
 	return labels
 }
 
-func (r *Reconciler) findDikiRunJob(ctx context.Context, complianceScanUID types.UID, namespace string) (*batchv1.Job, error) {
+func (r *Reconciler) findDikiRunJob(ctx context.Context, complianceScanUID types.UID) (*batchv1.Job, error) {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      JobNamePrefix + string(complianceScanUID),
-			Namespace: namespace,
+			Namespace: r.Config.DikiRunner.Namespace,
 		},
 	}
 
