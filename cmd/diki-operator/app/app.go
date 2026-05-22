@@ -117,7 +117,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 
 		Cache: cache.Options{
 			DefaultNamespaces: map[string]cache.Config{
-				configv1alpha1.DefaultDikiRunnerNamespace: {},
+				cfg.LeaderElection.ResourceNamespace: {},
 			},
 		},
 

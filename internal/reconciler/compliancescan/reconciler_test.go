@@ -213,9 +213,10 @@ var _ = Describe("Controller", func() {
 
 				job := jobList.Items[0]
 				expectedLabels := map[string]string{
-					"app.kubernetes.io/name":              "diki",
-					"app.kubernetes.io/managed-by":        "diki-operator",
-					compliancescan.LabelComplianceScanUID: string(complianceScan.UID),
+					"app.kubernetes.io/name":               "diki",
+					"app.kubernetes.io/managed-by":         "diki-operator",
+					compliancescan.LabelComplianceScanUID:  string(complianceScan.UID),
+					compliancescan.LabelComplianceScanName: complianceScan.Name,
 				}
 
 				Expect(job.Labels).To(Equal(expectedLabels))
@@ -229,7 +230,7 @@ var _ = Describe("Controller", func() {
 						}),
 						"Spec": MatchFields(IgnoreExtras, Fields{
 							"ActiveDeadlineSeconds": PointTo(Equal(int64(5))),
-							"ServiceAccountName":    Equal("diki-run"),
+							"ServiceAccountName":    Equal("diki-runner"),
 							"RestartPolicy":         Equal(corev1.RestartPolicyNever),
 							"Containers": ConsistOf(MatchFields(IgnoreExtras, Fields{
 								"Name": Equal("diki-scan"),
@@ -243,6 +244,14 @@ var _ = Describe("Controller", func() {
 									"MountPath": Equal("/config"),
 									"ReadOnly":  BeTrue(),
 								})),
+								"SecurityContext": PointTo(MatchFields(IgnoreExtras, Fields{
+									"AllowPrivilegeEscalation": PointTo(BeFalse()),
+									"ReadOnlyRootFilesystem":   PointTo(BeTrue()),
+									"Privileged":               PointTo(BeFalse()),
+									"Capabilities": PointTo(MatchFields(IgnoreExtras, Fields{
+										"Drop": ConsistOf(corev1.Capability("ALL")),
+									})),
+								})),
 							})),
 							"Volumes": ConsistOf(MatchFields(IgnoreExtras, Fields{
 								"Name": Equal("diki-config"),
@@ -251,6 +260,7 @@ var _ = Describe("Controller", func() {
 										"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
 											"Name": Equal(compliancescan.ConfigMapNamePrefix + string(complianceScan.UID)),
 										}),
+										"DefaultMode": PointTo(Equal(int32(0440))),
 									})),
 								}),
 							})),
@@ -264,6 +274,15 @@ var _ = Describe("Controller", func() {
 									"Operator": Equal(corev1.TolerationOpExists),
 								}),
 							),
+							"SecurityContext": PointTo(MatchFields(IgnoreExtras, Fields{
+								"RunAsNonRoot": PointTo(BeTrue()),
+								"FSGroup":      PointTo(Equal(int64(65532))),
+								"RunAsUser":    PointTo(Equal(int64(65532))),
+								"RunAsGroup":   PointTo(Equal(int64(65532))),
+								"SeccompProfile": PointTo(MatchFields(IgnoreExtras, Fields{
+									"Type": Equal(corev1.SeccompProfileTypeRuntimeDefault),
+								})),
+							})),
 						}),
 					}),
 				}))
@@ -386,7 +405,7 @@ var _ = Describe("Controller", func() {
 				MatchFields(IgnoreExtras, Fields{
 					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
 					"Status":  Equal(dikiv1alpha1.ConditionTrue),
-					"Message": ContainSubstring("unhandled previous reconciliation failure"),
+					"Message": ContainSubstring("job is unexpectedly suspended"),
 				}),
 			),
 		)

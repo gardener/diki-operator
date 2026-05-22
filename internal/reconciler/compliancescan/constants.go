@@ -29,8 +29,8 @@ const (
 
 	// ConfigMapNamePrefix is the prefix for diki config ConfigMap names.
 	ConfigMapNamePrefix = "diki-config-"
-	// ServiceAccountName is the name for the diki-run Job related ServiceAccount.
-	ServiceAccountName = "diki-run"
+	// ServiceAccountNameDikiRunner is the name for the diki-run Job related ServiceAccount.
+	ServiceAccountNameDikiRunner = "diki-runner"
 	// JobNamePrefix is the prefix for the diki-run Job names.
 	JobNamePrefix = "diki-run-"
 	// DikiConfigVolumeName is the name of the volume mounted in the diki-run Job pods.
@@ -39,7 +39,7 @@ const (
 	DikiConfigKey = "config.yaml"
 	// DikiConfigMountPath is the mount path for the configurations needed by the diki-run Job pod.
 	DikiConfigMountPath = "/config"
-	// DikiScanContainerName is the name of the container that is used for executing the scan withn the diki-run Job pod.
+	// DikiScanContainerName is the name of the container that is used for executing the scan within the diki-run Job pod.
 	DikiScanContainerName = "diki-scan"
 
 	// RuleOptionsSuffix is the suffix appended to ruleset IDs when looking up rule options in ConfigMaps.

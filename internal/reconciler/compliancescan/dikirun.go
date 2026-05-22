@@ -55,6 +55,14 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 									ReadOnly:  true,
 								},
 							},
+							SecurityContext: &corev1.SecurityContext{
+								AllowPrivilegeEscalation: ptr.To(false),
+								ReadOnlyRootFilesystem:   ptr.To(true),
+								Privileged:               ptr.To(false),
+								Capabilities: &corev1.Capabilities{
+									Drop: []corev1.Capability{"ALL"},
+								},
+							},
 						},
 					},
 					Volumes: []corev1.Volume{
@@ -65,11 +73,12 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 									LocalObjectReference: corev1.LocalObjectReference{
 										Name: dikiConfigMapName,
 									},
+									DefaultMode: ptr.To(int32(0440)),
 								},
 							},
 						},
 					},
-					ServiceAccountName: ServiceAccountName,
+					ServiceAccountName: ServiceAccountNameDikiRunner,
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Tolerations: []corev1.Toleration{
 						{
@@ -79,6 +88,15 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 						{
 							Effect:   corev1.TaintEffectNoExecute,
 							Operator: corev1.TolerationOpExists,
+						},
+					},
+					SecurityContext: &corev1.PodSecurityContext{
+						RunAsNonRoot: ptr.To(true),
+						FSGroup:      ptr.To(int64(65532)),
+						RunAsUser:    ptr.To(int64(65532)),
+						RunAsGroup:   ptr.To(int64(65532)),
+						SeccompProfile: &corev1.SeccompProfile{
+							Type: corev1.SeccompProfileTypeRuntimeDefault,
 						},
 					},
 				},

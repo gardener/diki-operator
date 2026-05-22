@@ -6,6 +6,7 @@ package reconciler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -55,12 +56,12 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		}
 
 		if job.Spec.Suspend != nil && *job.Spec.Suspend {
-			return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, fmt.Errorf("unhandled previous reconciliation failure"))
+			return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, errors.New("job is unexpectedly suspended"))
 		}
 
 		for _, condition := range job.Status.Conditions {
 			if condition.Type == batchv1.JobComplete && condition.Status == corev1.ConditionTrue {
-				log.Info("Job completed successfully")
+				log.Info("Job completed successfully", "job", job.Name, "namespace", job.Namespace)
 				return reconcile.Result{}, r.patchCompleted(ctx, complianceScan)
 			}
 
@@ -76,7 +77,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, err)
 	}
 
-	log.Info("Updated ComplianceScan phase to Running")
+	log.Info("Updated ComplianceScan phase to Running", "complianceScan", complianceScan.Name)
 
 	if err := r.deployResources(ctx, complianceScan, log); err != nil {
 		return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, err)
@@ -92,18 +93,18 @@ func (r *Reconciler) deployResources(ctx context.Context, complianceScan *v1alph
 	if err != nil {
 		return err
 	}
-	log.Info(fmt.Sprintf("Created Job %s", client.ObjectKeyFromObject(job)))
+	log.Info("Created Job successfully", "job", job.Name, "namespace", job.Namespace)
 
 	configMap, err := r.deployDikiConfigMap(ctx, configMapName, complianceScan, job)
 	if err != nil {
 		return err
 	}
-	log.Info(fmt.Sprintf("Created ConfigMap %s", client.ObjectKeyFromObject(configMap)))
+	log.Info("Created ConfigMap successfully", "configMap", configMap.Name, "namespace", configMap.Namespace)
 
 	if err := r.startDikiRunJob(ctx, job); err != nil {
 		return fmt.Errorf("failed to start diki runner job: %w", err)
 	}
-	log.Info(fmt.Sprintf("Started Job %s", client.ObjectKeyFromObject(job)))
+	log.Info("Started Job successfully", "job", job.Name, "namespace", job.Namespace)
 
 	return nil
 }
