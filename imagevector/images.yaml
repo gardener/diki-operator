@@ -7,4 +7,4 @@ images:
 - name: diki
   sourceRepository: github.com/gardener/diki
   repository: europe-docker.pkg.dev/gardener-project/releases/gardener/diki
-  tag: "v0.24.0"
+  tag: "v0.25.0"
