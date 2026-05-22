@@ -5,38 +5,21 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: diki-run
+  name: runner.diki.gardener.cloud
   labels:
 {{ include "labels" . | indent 4 }}
 rules:
 - apiGroups:
   - ""
   resources:
-  - pods
-  - pods/exec
-  verbs:
-  - create
-  - get
-  - delete
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
+  - configmaps
   - nodes
   - nodes/proxy
   - namespaces
+  - pods
   - replicationcontrollers
   - services
   verbs:
-  - get
-  - list
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - create
   - get
   - list
 - apiGroups:

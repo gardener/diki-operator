@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
   name: diki-runner
+  namespace: kube-system
   labels:
 {{ include "labels" . | indent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: Role
   name: runner.diki.gardener.cloud
 subjects:
 - kind: ServiceAccount

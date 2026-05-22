@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: runner.diki.gardener.cloud
+  namespace: kube-system
+  labels:
+{{ include "labels" . | indent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - pods
+  - pods/exec
+  verbs:
+  - create
+  - delete
