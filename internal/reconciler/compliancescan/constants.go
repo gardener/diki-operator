@@ -31,8 +31,8 @@ const (
 	ConfigMapName = "diki-config"
 	// ConfigMapNamePrefix is the prefix for diki config ConfigMap names.
 	ConfigMapNamePrefix = "diki-config-"
-	// JobName is the name for the diki-run Job-related resources (ServiceAccounts, ClusterRoles, etc.)
-	JobName = "diki-run"
+	// ServiceAccountName is the name for the diki-run-* Job related ServiceAccount.
+	ServiceAccountName = "diki-run"
 	// JobNamePrefix is the prefix for the diki-run Job names.
 	JobNamePrefix = "diki-run-"
 	// DikiConfigKey is the key used to store the YAML configuration in the ConfigMap data.
