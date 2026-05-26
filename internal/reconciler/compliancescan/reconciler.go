@@ -62,7 +62,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		for _, condition := range job.Status.Conditions {
 			if condition.Type == batchv1.JobComplete && condition.Status == corev1.ConditionTrue {
 				log.Info("Job completed successfully", "job", job.Name, "namespace", job.Namespace)
-				return reconcile.Result{}, r.patchCompleted(ctx, complianceScan)
+				return reconcile.Result{}, r.patchCompleted(ctx, complianceScan, log)
 			}
 
 			if condition.Type == batchv1.JobFailed && condition.Status == corev1.ConditionTrue {
@@ -73,7 +73,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return reconcile.Result{RequeueAfter: ReconciliationRequeueInterval}, nil
 	}
 
-	if err := r.patchRunning(ctx, complianceScan); err != nil {
+	if err := r.patchRunning(ctx, complianceScan, log); err != nil {
 		return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, err)
 	}
 

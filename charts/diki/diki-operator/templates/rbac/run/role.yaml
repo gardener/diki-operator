@@ -6,7 +6,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: runner.diki.gardener.cloud
-  namespace: kube-system
+  namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace }}
   labels:
 {{ include "labels" . | indent 4 }}
 rules:
@@ -15,7 +15,6 @@ rules:
   resources:
   - configmaps
   - pods
-  - pods/exec
   verbs:
   - create
   - delete

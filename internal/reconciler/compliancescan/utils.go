@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/labstack/gommon/log"
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,7 +23,7 @@ import (
 	v1alpha1helper "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1/helper"
 )
 
-func (r *Reconciler) patchRunning(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) error {
+func (r *Reconciler) patchRunning(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger) error {
 	patch := client.MergeFrom(complianceScan.DeepCopy())
 	complianceScan.Status.Phase = v1alpha1.ComplianceScanRunning
 	complianceScan.Status.Conditions = v1alpha1helper.UpdateConditions(
@@ -45,7 +44,7 @@ func (r *Reconciler) patchRunning(ctx context.Context, complianceScan *v1alpha1.
 	return nil
 }
 
-func (r *Reconciler) patchCompleted(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) error {
+func (r *Reconciler) patchCompleted(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger) error {
 	patch := client.MergeFrom(complianceScan.DeepCopy())
 	complianceScan.Status.Phase = v1alpha1.ComplianceScanCompleted
 	complianceScan.Status.Conditions = v1alpha1helper.UpdateConditions(

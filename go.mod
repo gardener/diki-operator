@@ -18,7 +18,6 @@ require (
 	github.com/gardener/diki v0.26.0
 	github.com/gardener/gardener v1.142.0
 	github.com/go-logr/logr v1.4.3
-	github.com/labstack/gommon v0.4.2
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
 	github.com/robfig/cron/v3 v3.0.1
@@ -134,6 +133,7 @@ require (
 	github.com/klauspost/compress v1.18.5 // indirect
 	github.com/kubernetes-csi/external-snapshotter/client/v4 v4.2.0 // indirect
 	github.com/labstack/echo/v4 v4.15.1 // indirect
+	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

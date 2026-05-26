@@ -69,12 +69,3 @@ rules:
   verbs:
   - get
   - list
-- apiGroups:
-  - "diki.gardener.cloud"
-  resources:
-  - compliancescans
-  - compliancescans/status
-  verbs:
-  - get
-  - list
-  - watch

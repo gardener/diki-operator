@@ -15,4 +15,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: diki-runner
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace }}

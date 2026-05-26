@@ -13,7 +13,6 @@ rules:
   - diki.gardener.cloud
   resources:
   - compliancescans
-  - compliancescans/status
   verbs:
   - create
   - delete
@@ -30,11 +29,9 @@ rules:
   - watch
   - update
   - patch
-- apiGroups: 
+- apiGroups:
   - ""
   resources:
   - configmaps
   verbs:
   - get
-  - list
-  - watch
