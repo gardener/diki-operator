@@ -14,16 +14,22 @@ rules:
   resources:
   - compliancescans
   - compliancescans/status
+  verbs:
+  - create
+  - delete
+- apiGroups:
+  - diki.gardener.cloud
+  resources:
+  - compliancescans
+  - compliancescans/status
   - scheduledcompliancescans
   - scheduledcompliancescans/status
   verbs:
   - get
   - list
   - watch
-  - create
   - update
   - patch
-  - delete
 - apiGroups: 
   - ""
   resources:

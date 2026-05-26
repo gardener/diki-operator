@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/labstack/gommon/log"
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -34,7 +35,14 @@ func (r *Reconciler) patchRunning(ctx context.Context, complianceScan *v1alpha1.
 		"ComplianceScan is running",
 		time.Now(),
 	)
-	return r.Client.Status().Patch(ctx, complianceScan, patch)
+
+	if err := r.Client.Status().Patch(ctx, complianceScan, patch); err != nil {
+		return fmt.Errorf("failed to update ComplianceScan status to Running: %w", err)
+	}
+
+	log.Info("Updated ComplianceScan phase to Running")
+
+	return nil
 }
 
 func (r *Reconciler) patchCompleted(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) error {
@@ -48,7 +56,14 @@ func (r *Reconciler) patchCompleted(ctx context.Context, complianceScan *v1alpha
 		"ComplianceScan has completed successfully",
 		time.Now(),
 	)
-	return r.Client.Status().Patch(ctx, complianceScan, patch)
+
+	if err := r.Client.Status().Patch(ctx, complianceScan, patch); err != nil {
+		return fmt.Errorf("failed to update ComplianceScan status to Completed: %w", err)
+	}
+
+	log.Info("Updated ComplianceScan phase to Completed")
+
+	return nil
 }
 
 func (r *Reconciler) patchFailed(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger, err error) error {

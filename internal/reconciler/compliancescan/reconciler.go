@@ -77,8 +77,6 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, err)
 	}
 
-	log.Info("Updated ComplianceScan phase to Running", "complianceScan", complianceScan.Name)
-
 	if err := r.deployResources(ctx, complianceScan, log); err != nil {
 		return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, err)
 	}

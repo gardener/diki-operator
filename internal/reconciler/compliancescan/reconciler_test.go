@@ -190,7 +190,7 @@ var _ = Describe("Controller", func() {
 					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
 					"Status":  Equal(dikiv1alpha1.ConditionTrue),
 					"Reason":  Equal(compliancescan.ConditionReasonFailed),
-					"Message": Equal("ComplianceScan failed with error: err-foo"),
+					"Message": Equal("ComplianceScan failed with error: failed to update ComplianceScan status to Running: err-foo"),
 				}),
 			))
 		})
