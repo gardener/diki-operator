@@ -6,7 +6,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: diki-operator
-  # TODO (georgibaltiev): create a follow-up PR in order to use the diki-runner's configured namespace when specifying the Jobs' and ConfigMaps' permissions
   namespace: {{ .Release.Namespace }}
   labels:
 {{ include "labels" . | indent 4 }}

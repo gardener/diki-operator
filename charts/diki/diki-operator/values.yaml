@@ -50,7 +50,6 @@ config:
     complianceScan:
       syncPeriod: 1h
       dikiRunner:
-        namespace: kube-system
         waitInterval: 5s
         podCompletionTimeout: 10m
         execTimeout: 30s
