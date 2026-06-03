@@ -22,10 +22,29 @@ build:
             - pkg/apis/diki/install
             - pkg/apis/diki/v1alpha1
             - pkg/apis/diki/v1alpha1/helper
+            - pkg/apis/reportexporter/v1alpha1
             - VERSION
         ldflags:
           - '{{.LD_FLAGS}}'
         main: ./cmd/diki-operator
+    - image: local-skaffold/report-exporter
+      ko:
+        dependencies:
+          paths:
+            - cmd/report-exporter
+            - cmd/report-exporter/app
+            - internal/component/reportexporter
+            - internal/constants
+            - pkg/apis/diki
+            - pkg/apis/diki/install
+            - pkg/apis/diki/v1alpha1
+            - pkg/apis/diki/v1alpha1/helper
+            - pkg/apis/reportexporter
+            - pkg/apis/reportexporter/v1alpha1
+            - VERSION
+        ldflags:
+          - '{{.LD_FLAGS}}'
+        main: ./cmd/report-exporter
   tagPolicy:
     customTemplate:
       template: '{{.version}}-{{.sha}}'
@@ -45,5 +64,7 @@ deploy:
         setValueTemplates:
           image.repository: '{{.IMAGE_REPO_local_skaffold_diki_operator}}'
           image.tag: '{{.IMAGE_TAG_local_skaffold_diki_operator}}@{{.IMAGE_DIGEST_local_skaffold_diki_operator}}'
+          imageVectorOverwrite.reportExporter.repository: '{{.IMAGE_REPO_local_skaffold_report_exporter}}'
+          imageVectorOverwrite.reportExporter.tag: '{{.IMAGE_TAG_local_skaffold_report_exporter}}@{{.IMAGE_DIGEST_local_skaffold_report_exporter}}'
         createNamespace: false
         wait: true
