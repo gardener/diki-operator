@@ -7,6 +7,7 @@ package reconciler
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 
 	dikiconfig "github.com/gardener/diki/pkg/config"
@@ -20,9 +21,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
+	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
-func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job) (*corev1.ConfigMap, error) {
+func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (*corev1.ConfigMap, error) {
 	managedk8sProvider := dikiconfig.ProviderConfig{
 		ID:   managedk8s.ProviderID,
 		Name: managedk8s.ProviderName,
@@ -95,6 +97,24 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 			DikiConfigKey: string(dikiConfigYAML),
 		},
 	}
+
+	exporterConfigJSON, err := json.Marshal(exporterConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal exporter config: %w", err)
+	}
+
+	var exporterConfigMap any
+	if err := json.Unmarshal(exporterConfigJSON, &exporterConfigMap); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal exporter config: %w", err)
+	}
+
+	var exporterBuf bytes.Buffer
+	exporterEncoder := yaml.NewEncoder(&exporterBuf)
+	exporterEncoder.SetIndent(2)
+	if err := exporterEncoder.Encode(exporterConfigMap); err != nil {
+		return nil, fmt.Errorf("failed to encode exporter config to yaml: %w", err)
+	}
+	configMap.Data[ExporterConfigKey] = exporterBuf.String()
 
 	if err := r.Client.Create(ctx, configMap); err != nil {
 		return nil, fmt.Errorf("failed to create diki config configMap: %w", err)
