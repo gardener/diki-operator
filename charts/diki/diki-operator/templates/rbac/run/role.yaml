@@ -5,7 +5,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: runner.diki.gardener.cloud
+  name: scanner.diki.gardener.cloud
   namespace: {{ .Release.Namespace }}
   labels:
 {{ include "labels" . | indent 4 }}
@@ -13,7 +13,6 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - configmaps
   - pods
   verbs:
   - create
