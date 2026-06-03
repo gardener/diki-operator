@@ -9,14 +9,16 @@ import (
 	"errors"
 	"time"
 
+	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
+	gomegatypes "github.com/onsi/gomega/types"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -42,12 +44,13 @@ var _ = Describe("Controller", func() {
 
 		request reconcile.Request
 
+		scheme         *runtime.Scheme
 		complianceScan *dikiv1alpha1.ComplianceScan
 	)
 
 	BeforeEach(func() {
-		scheme := runtime.NewScheme()
-		Expect(clientgoscheme.AddToScheme(scheme)).To(Succeed())
+		scheme = runtime.NewScheme()
+		Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
 		Expect(dikiinstall.AddToScheme(scheme)).To(Succeed())
 
 		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).Build()
@@ -80,69 +83,405 @@ var _ = Describe("Controller", func() {
 			},
 		}
 
-		request = reconcile.Request{NamespacedName: types.NamespacedName{
-			Name: complianceScan.Name,
-		}}
+		request = reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name: complianceScan.Name,
+			},
+		}
 	})
 
-	It("should successfully complete a compliance scan", func() {
-		Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+	Describe("early exit paths", func() {
+		It("should stop reconciling when ComplianceScan is not found", func() {
+			res, err := cr.Reconcile(ctx, reconcile.Request{
+				NamespacedName: types.NamespacedName{Name: "nonexistent"},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+		})
 
-		res, err := cr.Reconcile(ctx, request)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(res).To(Equal(reconcile.Result{}))
+		It("should stop reconciling when the ComplianceScan is already failed", func() {
+			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanFailed
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+			Expect(fakeClient.Status().Update(ctx, complianceScan)).To(Succeed())
 
-		Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
-		Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
-		Expect(complianceScan.Status.Conditions).To(ConsistOf(
-			MatchFields(IgnoreExtras, Fields{
-				"Type":    Equal(dikiv1alpha1.ConditionTypeCompleted),
-				"Status":  Equal(dikiv1alpha1.ConditionTrue),
-				"Reason":  Equal(compliancescan.ConditionReasonCompleted),
-				"Message": Equal("ComplianceScan has completed successfully"),
-			}),
-		))
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+		})
+
+		It("should stop reconciling when the ComplianceScan is already completed", func() {
+			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+			Expect(fakeClient.Status().Update(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+		})
+
+		It("should return error when ComplianceScan Get fails with non-NotFound error", func() {
+			cr.Client = fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithInterceptorFuncs(interceptor.Funcs{
+					Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+						if _, ok := obj.(*dikiv1alpha1.ComplianceScan); ok {
+							return errors.New("api-server-error")
+						}
+						return c.Get(ctx, key, obj, opts...)
+					},
+				}).Build()
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).To(MatchError(ContainSubstring("api-server-error")))
+			Expect(res).To(Equal(reconcile.Result{}))
+		})
 	})
 
-	It("should handle failed compliance scan reconcile", func() {
-		Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+	Describe("deploy resources", func() {
+		It("should create and set the ComplianceScan's phase to Running on its first reconcile", func() {
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
-		cr.Client = fake.NewClientBuilder().
-			WithScheme(fakeClient.Scheme()).
-			WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).
-			WithObjects(complianceScan).
-			WithInterceptorFuncs(interceptor.Funcs{
-				SubResourcePatch: func(ctx context.Context, client client.Client, subResourceName string, obj client.Object, patch client.Patch, opts ...client.SubResourcePatchOption) error {
-					var (
-						cr        = obj.(*dikiv1alpha1.ComplianceScan)
-						fakeError = errors.New("err-foo")
-					)
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-					if cr.Status.Phase == dikiv1alpha1.ComplianceScanRunning {
-						return fakeError
-					}
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
+			Expect(complianceScan.Status.Conditions).To(ConsistOf(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeCompleted),
+					"Status":  Equal(dikiv1alpha1.ConditionFalse),
+					"Reason":  Equal(compliancescan.ConditionReasonRunning),
+					"Message": Equal("ComplianceScan is running"),
+				}),
+			))
+		})
 
-					return client.SubResource(subResourceName).Patch(ctx, obj, patch, opts...)
+		It("should set the ComplianceScan's phase to Failed when patchRunning fails", func() {
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			cr.Client = fake.NewClientBuilder().
+				WithScheme(fakeClient.Scheme()).
+				WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).
+				WithObjects(complianceScan).
+				WithInterceptorFuncs(interceptor.Funcs{
+					SubResourcePatch: func(ctx context.Context, client client.Client, subResourceName string, obj client.Object, patch client.Patch, opts ...client.SubResourcePatchOption) error {
+						var (
+							cr        = obj.(*dikiv1alpha1.ComplianceScan)
+							fakeError = errors.New("err-foo")
+						)
+
+						if cr.Status.Phase == dikiv1alpha1.ComplianceScanRunning {
+							return fakeError
+						}
+
+						return client.SubResource(subResourceName).Patch(ctx, obj, patch, opts...)
+					},
+				}).Build()
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+
+			Expect(cr.Client.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+			Expect(complianceScan.Status.Conditions).To(ConsistOf(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+					"Status":  Equal(dikiv1alpha1.ConditionTrue),
+					"Reason":  Equal(compliancescan.ConditionReasonFailed),
+					"Message": Equal("ComplianceScan failed with error: failed to update ComplianceScan status to Running: err-foo"),
+				}),
+			))
+		})
+
+		Describe("diki run Job", func() {
+			var jobList *batchv1.JobList
+
+			BeforeEach(func() {
+				jobList = &batchv1.JobList{}
+				Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+			})
+
+			It("should create a Job with the correct spec", func() {
+				res, err := cr.Reconcile(ctx, request)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+				Expect(fakeClient.List(ctx, jobList, client.MatchingLabels{compliancescan.LabelComplianceScanUID: string(complianceScan.UID)})).To(Succeed())
+				Expect(jobList.Items).To(HaveLen(1))
+
+				job := jobList.Items[0]
+				expectedLabels := map[string]string{
+					"app.kubernetes.io/name":               "diki",
+					"app.kubernetes.io/managed-by":         "diki-operator",
+					compliancescan.LabelComplianceScanUID:  string(complianceScan.UID),
+					compliancescan.LabelComplianceScanName: complianceScan.Name,
+				}
+
+				Expect(job.Labels).To(Equal(expectedLabels))
+
+				Expect(job.Spec).To(MatchFields(IgnoreExtras, Fields{
+					"BackoffLimit": PointTo(Equal(int32(0))),
+					"Suspend":      PointTo(BeFalse()),
+					"Template": MatchFields(IgnoreExtras, Fields{
+						"ObjectMeta": MatchFields(IgnoreExtras, Fields{
+							"Labels": Equal(expectedLabels),
+						}),
+						"Spec": MatchFields(IgnoreExtras, Fields{
+							"ActiveDeadlineSeconds": PointTo(Equal(int64(5))),
+							"ServiceAccountName":    Equal("diki-runner"),
+							"RestartPolicy":         Equal(corev1.RestartPolicyNever),
+							"Containers": ConsistOf(MatchFields(IgnoreExtras, Fields{
+								"Name": Equal("diki-scan"),
+								"Args": Equal([]string{
+									"run",
+									"--config=/config/config.yaml",
+									"--all",
+								}),
+								"VolumeMounts": ConsistOf(MatchFields(IgnoreExtras, Fields{
+									"Name":      Equal("diki-config"),
+									"MountPath": Equal("/config"),
+									"ReadOnly":  BeTrue(),
+								})),
+								"SecurityContext": PointTo(MatchFields(IgnoreExtras, Fields{
+									"AllowPrivilegeEscalation": PointTo(BeFalse()),
+									"ReadOnlyRootFilesystem":   PointTo(BeTrue()),
+									"Privileged":               PointTo(BeFalse()),
+									"Capabilities": PointTo(MatchFields(IgnoreExtras, Fields{
+										"Drop": ConsistOf(corev1.Capability("ALL")),
+									})),
+								})),
+							})),
+							"Volumes": ConsistOf(MatchFields(IgnoreExtras, Fields{
+								"Name": Equal("diki-config"),
+								"VolumeSource": MatchFields(IgnoreExtras, Fields{
+									"ConfigMap": PointTo(MatchFields(IgnoreExtras, Fields{
+										"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
+											"Name": Equal(compliancescan.ConfigMapNamePrefix + string(complianceScan.UID)),
+										}),
+										"DefaultMode": PointTo(Equal(int32(0440))),
+									})),
+								}),
+							})),
+							"Tolerations": ConsistOf(
+								MatchFields(IgnoreExtras, Fields{
+									"Effect":   Equal(corev1.TaintEffectNoSchedule),
+									"Operator": Equal(corev1.TolerationOpExists),
+								}),
+								MatchFields(IgnoreExtras, Fields{
+									"Effect":   Equal(corev1.TaintEffectNoExecute),
+									"Operator": Equal(corev1.TolerationOpExists),
+								}),
+							),
+							"SecurityContext": PointTo(MatchFields(IgnoreExtras, Fields{
+								"RunAsNonRoot": PointTo(BeTrue()),
+								"FSGroup":      PointTo(Equal(int64(65532))),
+								"RunAsUser":    PointTo(Equal(int64(65532))),
+								"RunAsGroup":   PointTo(Equal(int64(65532))),
+								"SeccompProfile": PointTo(MatchFields(IgnoreExtras, Fields{
+									"Type": Equal(corev1.SeccompProfileTypeRuntimeDefault),
+								})),
+							})),
+						}),
+					}),
+				}))
+			})
+
+			It("should handle failed Job creation", func() {
+				cr.Client = fake.NewClientBuilder().
+					WithScheme(fakeClient.Scheme()).
+					WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).
+					WithObjects(complianceScan).
+					WithInterceptorFuncs(interceptor.Funcs{
+						Create: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.CreateOption) error {
+							if _, ok := obj.(*batchv1.Job); ok {
+								return errors.New("create-failed")
+							}
+							return c.Create(ctx, obj, opts...)
+						},
+					}).Build()
+
+				res, err := cr.Reconcile(ctx, request)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res).To(Equal(reconcile.Result{}))
+
+				Expect(cr.Client.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+				Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+				Expect(complianceScan.Status.Conditions).To(ContainElement(
+					MatchFields(IgnoreExtras, Fields{
+						"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+						"Status":  Equal(dikiv1alpha1.ConditionTrue),
+						"Message": ContainSubstring("create-failed"),
+					}),
+				))
+			})
+		})
+	})
+
+	Describe("check Job status", func() {
+		var (
+			dikiRunJob        *batchv1.Job
+			fakeClientBuilder *fake.ClientBuilder
+		)
+		BeforeEach(func() {
+			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanRunning
+			complianceScan.Status.Conditions = []dikiv1alpha1.Condition{
+				{
+					Type:               dikiv1alpha1.ConditionTypeCompleted,
+					Status:             dikiv1alpha1.ConditionFalse,
+					Reason:             compliancescan.ConditionReasonRunning,
+					Message:            "ComplianceScan is running",
+					LastTransitionTime: metav1.Now(),
+					LastUpdateTime:     metav1.Now(),
 				},
-			}).Build()
+			}
 
-		res, err := cr.Reconcile(ctx, request)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(res).To(Equal(reconcile.Result{}))
+			dikiRunJob = &batchv1.Job{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: compliancescan.JobNamePrefix + string(complianceScan.UID),
+					Labels: map[string]string{
+						"diki.gardener.cloud/compliancescan": "1",
+					},
+				},
+			}
 
-		Expect(cr.Client.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
-		Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
-		Expect(complianceScan.Status.Conditions).To(ConsistOf(
-			MatchFields(IgnoreExtras, Fields{
-				"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
-				"Status":  Equal(dikiv1alpha1.ConditionTrue),
-				"Reason":  Equal(compliancescan.ConditionReasonFailed),
-				"Message": Equal("ComplianceScan failed with error: err-foo"),
-			}),
-		))
+			fakeClientBuilder = fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithStatusSubresource(&dikiv1alpha1.ComplianceScan{})
+		})
+
+		DescribeTable("should reconcile correctly when Job is deployed",
+			func(jobConditions []batchv1.JobCondition, suspend *bool, expectedResult reconcile.Result, expectedPhase dikiv1alpha1.ComplianceScanPhase, conditionMatcher gomegatypes.GomegaMatcher) {
+				dikiRunJob.Status.Conditions = jobConditions
+				dikiRunJob.Spec.Suspend = suspend
+				fakeClient = fakeClientBuilder.WithObjects(complianceScan, dikiRunJob).Build()
+				cr.Client = fakeClient
+
+				res, err := cr.Reconcile(ctx, request)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res).To(Equal(expectedResult))
+
+				Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+				Expect(complianceScan.Status.Phase).To(Equal(expectedPhase))
+				if conditionMatcher != nil {
+					Expect(complianceScan.Status.Conditions).To(ContainElement(conditionMatcher))
+				}
+			},
+			Entry("Job succeeds",
+				[]batchv1.JobCondition{{Type: batchv1.JobComplete, Status: corev1.ConditionTrue}},
+				nil,
+				reconcile.Result{},
+				dikiv1alpha1.ComplianceScanCompleted,
+				MatchFields(IgnoreExtras, Fields{
+					"Type":   Equal(dikiv1alpha1.ConditionTypeCompleted),
+					"Status": Equal(dikiv1alpha1.ConditionTrue),
+					"Reason": Equal(compliancescan.ConditionReasonCompleted),
+				}),
+			),
+			Entry("Job fails",
+				[]batchv1.JobCondition{{Type: batchv1.JobFailed, Status: corev1.ConditionTrue, Message: "BackoffLimitExceeded"}},
+				nil,
+				reconcile.Result{},
+				dikiv1alpha1.ComplianceScanFailed,
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+					"Status":  Equal(dikiv1alpha1.ConditionTrue),
+					"Message": Equal("ComplianceScan failed with error: job failed: BackoffLimitExceeded"),
+				}),
+			),
+			Entry("Job is still running",
+				nil,
+				nil,
+				reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval},
+				dikiv1alpha1.ComplianceScanRunning,
+				nil,
+			),
+			Entry("Job is suspended",
+				nil,
+				ptr.To(true),
+				reconcile.Result{},
+				dikiv1alpha1.ComplianceScanFailed,
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+					"Status":  Equal(dikiv1alpha1.ConditionTrue),
+					"Message": ContainSubstring("job is unexpectedly suspended"),
+				}),
+			),
+		)
+
+		It("should fail when the Job is not found", func() {
+			fakeClient = fakeClientBuilder.WithObjects(complianceScan).Build()
+			cr.Client = fakeClient
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+			Expect(complianceScan.Status.Conditions).To(ContainElement(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+					"Status":  Equal(dikiv1alpha1.ConditionTrue),
+					"Message": ContainSubstring("failed to get diki runner job"),
+				}),
+			))
+		})
+
+		It("should return error when patchCompleted fails", func() {
+			dikiRunJob.Status.Conditions = []batchv1.JobCondition{
+				{
+					Type:   batchv1.JobComplete,
+					Status: corev1.ConditionTrue,
+				},
+			}
+			interceptingClient := fakeClientBuilder.
+				WithObjects(complianceScan, dikiRunJob).
+				WithInterceptorFuncs(interceptor.Funcs{
+					SubResourcePatch: func(ctx context.Context, client client.Client, subResourceName string, obj client.Object, patch client.Patch, opts ...client.SubResourcePatchOption) error {
+						cs := obj.(*dikiv1alpha1.ComplianceScan)
+						if cs.Status.Phase == dikiv1alpha1.ComplianceScanCompleted {
+							return errors.New("status-patch-failed")
+						}
+						return client.SubResource(subResourceName).Patch(ctx, obj, patch, opts...)
+					},
+				}).Build()
+			cr.Client = interceptingClient
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).To(MatchError(ContainSubstring("status-patch-failed")))
+			Expect(res).To(Equal(reconcile.Result{}))
+
+			Expect(interceptingClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
+		})
+
+		It("should return error when patchFailed fails", func() {
+			interceptingClient := fakeClientBuilder.
+				WithObjects(complianceScan).
+				WithInterceptorFuncs(interceptor.Funcs{
+					SubResourcePatch: func(ctx context.Context, client client.Client, subResourceName string, obj client.Object, patch client.Patch, opts ...client.SubResourcePatchOption) error {
+						cs := obj.(*dikiv1alpha1.ComplianceScan)
+						if cs.Status.Phase == dikiv1alpha1.ComplianceScanFailed {
+							return errors.New("status-patch-failed")
+						}
+						return client.SubResource(subResourceName).Patch(ctx, obj, patch, opts...)
+					},
+				}).Build()
+			cr.Client = interceptingClient
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).To(MatchError(ContainSubstring("failed to update ComplianceScan status to Failed")))
+			Expect(err).To(MatchError(ContainSubstring("failed to get diki runner job")))
+			Expect(res).To(Equal(reconcile.Result{}))
+
+			Expect(interceptingClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
+		})
 	})
 
-	var _ = Describe("diki config ConfigMap", func() {
+	Describe("diki config ConfigMap", func() {
 		var (
 			defaultRulesetOptions = `
           foo: bar`
@@ -228,10 +567,10 @@ var _ = Describe("Controller", func() {
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(res).To(Equal(reconcile.Result{}))
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
-			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
 
 			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
@@ -260,10 +599,10 @@ var _ = Describe("Controller", func() {
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(res).To(Equal(reconcile.Result{}))
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
-			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
 
 			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
@@ -326,10 +665,10 @@ var _ = Describe("Controller", func() {
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(res).To(Equal(reconcile.Result{}))
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
-			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanCompleted))
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
 
 			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},

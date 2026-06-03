@@ -10,21 +10,17 @@ metadata:
 {{ include "labels" . | indent 4 }}
 rules:
 - apiGroups:
-  - "diki.gardener.cloud"
+  - diki.gardener.cloud
+  resources:
+  - compliancescans
+  verbs:
+  - create
+  - delete
+- apiGroups:
+  - diki.gardener.cloud
   resources:
   - compliancescans
   - compliancescans/status
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - patch
-  - delete
-- apiGroups:
-  - "diki.gardener.cloud"
-  resources:
   - scheduledcompliancescans
   - scheduledcompliancescans/status
   verbs:
@@ -33,11 +29,9 @@ rules:
   - watch
   - update
   - patch
-- apiGroups: 
+- apiGroups:
   - ""
   resources:
   - configmaps
   verbs:
   - get
-  - list
-  - watch
