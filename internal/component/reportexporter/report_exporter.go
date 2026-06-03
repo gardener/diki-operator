@@ -7,9 +7,11 @@ package reportexporter
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	dikireport "github.com/gardener/diki/pkg/report"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,6 +22,8 @@ import (
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 	"github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
+
+var reportFilePollInterval = 5 * time.Second
 
 // ReportExporter is responsible for exporting compliance scan data.
 type ReportExporter struct {
@@ -54,6 +58,12 @@ func (d *ReportExporter) Export(ctx context.Context) error {
 	// This is a safety check to prevent overwriting the report in case the exporter is restarted after the ComplianceScan has completed
 	if complianceScan.Status.Phase == dikiv1alpha1.ComplianceScanCompleted {
 		return fmt.Errorf("complianceScan is already completed, cannot export report")
+	}
+
+	if d.Config.WaitForReport {
+		if err := d.waitForReportFile(ctx); err != nil {
+			return fmt.Errorf("error waiting for report file: %w", err)
+		}
 	}
 
 	report, err := d.readDikiReport()
@@ -145,6 +155,31 @@ func (d *ReportExporter) readDikiReport() (*dikireport.Report, error) {
 	}
 
 	return &report, nil
+}
+
+func (d *ReportExporter) waitForReportFile(ctx context.Context) error {
+	waitCtx := ctx
+	if d.Config.ReportWaitTimeout != nil {
+		var cancel context.CancelFunc
+		waitCtx, cancel = context.WithTimeout(ctx, d.Config.ReportWaitTimeout.Duration)
+		defer cancel()
+	}
+
+	for {
+		_, err := os.Stat(d.Config.ReportPath)
+		if err == nil {
+			return nil
+		}
+		if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("error checking report file: %w", err)
+		}
+
+		select {
+		case <-waitCtx.Done():
+			return fmt.Errorf("timed out waiting for report file: %w", waitCtx.Err())
+		case <-time.After(reportFilePollInterval):
+		}
+	}
 }
 
 func toRawExtension(v any) runtime.RawExtension {

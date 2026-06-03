@@ -10,6 +10,7 @@
 package v1alpha1
 
 import (
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -34,6 +35,11 @@ func (in *Output) DeepCopy() *Output {
 func (in *ReportExporterConfiguration) DeepCopyInto(out *ReportExporterConfiguration) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
+	if in.ReportWaitTimeout != nil {
+		in, out := &in.ReportWaitTimeout, &out.ReportWaitTimeout
+		*out = new(v1.Duration)
+		**out = **in
+	}
 	if in.Outputs != nil {
 		in, out := &in.Outputs, &out.Outputs
 		*out = make([]Output, len(*in))
