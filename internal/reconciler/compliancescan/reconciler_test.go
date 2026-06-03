@@ -453,6 +453,33 @@ var _ = Describe("Controller", func() {
 			),
 		)
 
+		It("should set phase to Failed when Job succeeds but outputs have failed", func() {
+			complianceScan.Status.Outputs = []dikiv1alpha1.OutputStatus{
+				{OutputName: "output-1", Phase: dikiv1alpha1.OutputStatusCompleted},
+				{OutputName: "output-2", Phase: dikiv1alpha1.OutputStatusFailed},
+			}
+			dikiRunJob.Status.Conditions = []batchv1.JobCondition{
+				{Type: batchv1.JobComplete, Status: corev1.ConditionTrue},
+			}
+
+			fakeClient = fakeClientBuilder.WithObjects(complianceScan, dikiRunJob).Build()
+			cr.Client = fakeClient
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+			Expect(complianceScan.Status.Conditions).To(ContainElement(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+					"Status":  Equal(dikiv1alpha1.ConditionTrue),
+					"Message": ContainSubstring("1/2 output(s) failed: output-2"),
+				}),
+			))
+		})
+
 		It("should fail when the Job is not found", func() {
 			fakeClient = fakeClientBuilder.WithObjects(complianceScan).Build()
 			cr.Client = fakeClient
