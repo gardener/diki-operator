@@ -29,8 +29,8 @@ const (
 
 	// ConfigMapNamePrefix is the prefix for diki config ConfigMap names.
 	ConfigMapNamePrefix = "diki-config-"
-	// ServiceAccountNameDikiRunner is the name for the diki-run Job related ServiceAccount.
-	ServiceAccountNameDikiRunner = "diki-runner"
+	// ServiceAccountNameDikiRun is the name for the diki-run Job related ServiceAccount.
+	ServiceAccountNameDikiRun = "diki-run"
 	// JobNamePrefix is the prefix for the diki-run Job names.
 	JobNamePrefix = "diki-run-"
 	// DikiConfigVolumeName is the name of the volume mounted in the diki-run Job pods.
@@ -41,6 +41,18 @@ const (
 	DikiConfigMountPath = "/config"
 	// DikiScanContainerName is the name of the container that is used for executing the scan within the diki-run Job pod.
 	DikiScanContainerName = "diki-scan"
+	// ReportExporterContainerName is the name of the report-exporter container in the diki-run Job pod.
+	ReportExporterContainerName = "report-exporter"
+
+	// ReportVolumeName is the name of the shared emptyDir volume used to pass the report between containers.
+	ReportVolumeName = "diki-report"
+	// ReportMountPath is the mount path for the shared report volume.
+	ReportMountPath = "/report"
+	// ReportFileName is the name of the report file written by the diki-scan container.
+	ReportFileName = "report.json"
+
+	// ExporterConfigKey is the key used to store the exporter configuration in the ConfigMap data.
+	ExporterConfigKey = "exporter-config.yaml"
 
 	// RuleOptionsSuffix is the suffix appended to ruleset IDs when looking up rule options in ConfigMaps.
 	RuleOptionsSuffix = "-rules"

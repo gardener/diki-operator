@@ -230,40 +230,83 @@ var _ = Describe("Controller", func() {
 						}),
 						"Spec": MatchFields(IgnoreExtras, Fields{
 							"ActiveDeadlineSeconds": PointTo(Equal(int64(5))),
-							"ServiceAccountName":    Equal("diki-runner"),
+							"ServiceAccountName":    Equal("diki-run"),
 							"RestartPolicy":         Equal(corev1.RestartPolicyNever),
-							"Containers": ConsistOf(MatchFields(IgnoreExtras, Fields{
-								"Name": Equal("diki-scan"),
-								"Args": Equal([]string{
-									"run",
-									"--config=/config/config.yaml",
-									"--all",
-								}),
-								"VolumeMounts": ConsistOf(MatchFields(IgnoreExtras, Fields{
-									"Name":      Equal("diki-config"),
-									"MountPath": Equal("/config"),
-									"ReadOnly":  BeTrue(),
-								})),
-								"SecurityContext": PointTo(MatchFields(IgnoreExtras, Fields{
-									"AllowPrivilegeEscalation": PointTo(BeFalse()),
-									"ReadOnlyRootFilesystem":   PointTo(BeTrue()),
-									"Privileged":               PointTo(BeFalse()),
-									"Capabilities": PointTo(MatchFields(IgnoreExtras, Fields{
-										"Drop": ConsistOf(corev1.Capability("ALL")),
-									})),
-								})),
-							})),
-							"Volumes": ConsistOf(MatchFields(IgnoreExtras, Fields{
-								"Name": Equal("diki-config"),
-								"VolumeSource": MatchFields(IgnoreExtras, Fields{
-									"ConfigMap": PointTo(MatchFields(IgnoreExtras, Fields{
-										"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
-											"Name": Equal(compliancescan.ConfigMapNamePrefix + string(complianceScan.UID)),
+							"Containers": ConsistOf(
+								MatchFields(IgnoreExtras, Fields{
+									"Name": Equal("diki-scan"),
+									"Args": Equal([]string{
+										"run",
+										"--config=/config/config.yaml",
+										"--all",
+										"--output=/report/report.json",
+									}),
+									"VolumeMounts": ConsistOf(
+										MatchFields(IgnoreExtras, Fields{
+											"Name":      Equal("diki-config"),
+											"MountPath": Equal("/config"),
+											"ReadOnly":  BeTrue(),
 										}),
-										"DefaultMode": PointTo(Equal(int32(0440))),
+										MatchFields(IgnoreExtras, Fields{
+											"Name":      Equal("diki-report"),
+											"MountPath": Equal("/report"),
+										}),
+									),
+									"SecurityContext": PointTo(MatchFields(IgnoreExtras, Fields{
+										"AllowPrivilegeEscalation": PointTo(BeFalse()),
+										"ReadOnlyRootFilesystem":   PointTo(BeTrue()),
+										"Privileged":               PointTo(BeFalse()),
+										"Capabilities": PointTo(MatchFields(IgnoreExtras, Fields{
+											"Drop": ConsistOf(corev1.Capability("ALL")),
+										})),
 									})),
 								}),
-							})),
+								MatchFields(IgnoreExtras, Fields{
+									"Name": Equal("report-exporter"),
+									"Args": Equal([]string{
+										"--config=/config/exporter-config.yaml",
+									}),
+									"VolumeMounts": ConsistOf(
+										MatchFields(IgnoreExtras, Fields{
+											"Name":      Equal("diki-report"),
+											"MountPath": Equal("/report"),
+											"ReadOnly":  BeTrue(),
+										}),
+										MatchFields(IgnoreExtras, Fields{
+											"Name":      Equal("diki-config"),
+											"MountPath": Equal("/config"),
+											"ReadOnly":  BeTrue(),
+										}),
+									),
+									"SecurityContext": PointTo(MatchFields(IgnoreExtras, Fields{
+										"AllowPrivilegeEscalation": PointTo(BeFalse()),
+										"ReadOnlyRootFilesystem":   PointTo(BeTrue()),
+										"Privileged":               PointTo(BeFalse()),
+										"Capabilities": PointTo(MatchFields(IgnoreExtras, Fields{
+											"Drop": ConsistOf(corev1.Capability("ALL")),
+										})),
+									})),
+								}),
+							),
+							"Volumes": ConsistOf(
+								MatchFields(IgnoreExtras, Fields{
+									"Name": Equal("diki-config"),
+									"VolumeSource": MatchFields(IgnoreExtras, Fields{
+										"ConfigMap": PointTo(MatchFields(IgnoreExtras, Fields{
+											"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
+												"Name": Equal(compliancescan.ConfigMapNamePrefix + string(complianceScan.UID)),
+											}),
+											"DefaultMode": PointTo(Equal(int32(0440))),
+										})),
+									}),
+								}),
+								MatchFields(IgnoreExtras, Fields{
+									"Name": Equal("diki-report"),
+									"VolumeSource": MatchFields(IgnoreExtras, Fields{
+										"EmptyDir": Not(BeNil()),
+									}),
+								}),
+							),
 							"Tolerations": ConsistOf(
 								MatchFields(IgnoreExtras, Fields{
 									"Effect":   Equal(corev1.TaintEffectNoSchedule),
@@ -684,6 +727,83 @@ var _ = Describe("Controller", func() {
 
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
 			Expect(configMap.Data["config.yaml"]).To(Equal(configFor(disaConfig, secK8sConfig)))
+		})
+	})
+
+	Describe("exporter config in ConfigMap", func() {
+		var configMapList *corev1.ConfigMapList
+
+		BeforeEach(func() {
+			configMapList = &corev1.ConfigMapList{}
+		})
+
+		It("should create exporter config with waitForReport and no outputs", func() {
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(configMapList.Items)).To(Equal(1))
+
+			configMap := configMapList.Items[0]
+			Expect(configMap.Data).To(HaveKey("exporter-config.yaml"))
+			Expect(configMap.Data["exporter-config.yaml"]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+complianceScanName: compliancescan
+kind: ReportExporterConfiguration
+outputs: null
+reportPath: /report/report.json
+waitForReport: true
+`))
+		})
+
+		It("should create exporter config with resolved ReportOutput", func() {
+			reportOutput := &dikiv1alpha1.ReportOutput{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "my-output",
+				},
+				Spec: dikiv1alpha1.ReportOutputSpec{
+					Output: dikiv1alpha1.Output{
+						ConfigMap: &dikiv1alpha1.OutputConfigMap{
+							Namespace:  "kube-system",
+							NamePrefix: "scan-report-",
+						},
+					},
+				},
+			}
+			Expect(fakeClient.Create(ctx, reportOutput)).To(Succeed())
+
+			complianceScan.Spec.Outputs = []dikiv1alpha1.ReportOutputRef{
+				{Name: "my-output"},
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(configMapList.Items)).To(Equal(1))
+
+			configMap := configMapList.Items[0]
+			Expect(configMap.Data).To(HaveKey("exporter-config.yaml"))
+			Expect(configMap.Data["exporter-config.yaml"]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+complianceScanName: compliancescan
+kind: ReportExporterConfiguration
+outputs:
+  - config:
+      namePrefix: scan-report-
+      namespace: kube-system
+    name: my-output
+    type: ConfigMap
+reportPath: /report/report.json
+waitForReport: true
+`))
 		})
 	})
 
