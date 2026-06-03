@@ -7,6 +7,8 @@ kind: ReportExporterConfiguration
 
 reportPath: ./example/report.json
 complianceScanName: example-compliancescan
+waitForReport: true
+reportWaitTimeout: 30m
 
 outputs:
 - type: ConfigMap
