@@ -208,15 +208,15 @@ var _ = Describe("Controller", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-				Expect(fakeClient.List(ctx, jobList, client.MatchingLabels{compliancescan.LabelComplianceScanUID: string(complianceScan.UID)})).To(Succeed())
+				Expect(fakeClient.List(ctx, jobList, client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": string(complianceScan.UID)})).To(Succeed())
 				Expect(jobList.Items).To(HaveLen(1))
 
 				job := jobList.Items[0]
 				expectedLabels := map[string]string{
-					"app.kubernetes.io/name":               "diki",
-					"app.kubernetes.io/managed-by":         "diki-operator",
-					compliancescan.LabelComplianceScanUID:  string(complianceScan.UID),
-					compliancescan.LabelComplianceScanName: complianceScan.Name,
+					"app.kubernetes.io/name":                  "diki",
+					"app.kubernetes.io/managed-by":            "diki-operator",
+					"compliancescan.diki.gardener.cloud/uid":  string(complianceScan.UID),
+					"compliancescan.diki.gardener.cloud/name": complianceScan.Name,
 				}
 
 				Expect(job.Labels).To(Equal(expectedLabels))
