@@ -17,8 +17,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/utils/ptr"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/gardener/diki-operator/internal/webhook/scheduledcompliancescan"
@@ -34,7 +32,6 @@ var _ = Describe("handler", func() {
 		handler       admission.Handler
 		request       admission.Request
 		encoder       runtime.Encoder
-		fakeClient    client.Client
 		scheduledScan *v1alpha1.ScheduledComplianceScan
 
 		responseAllowed = admission.Response{
@@ -52,12 +49,10 @@ var _ = Describe("handler", func() {
 		Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
 		Expect(authenticationv1.AddToScheme(scheme)).To(Succeed())
 
-		fakeClient = fake.NewClientBuilder().WithScheme(scheme).Build()
 		ctx = context.TODO()
 		decoder = admission.NewDecoder(scheme)
-		handler = &scheduledcompliancescan.Handler{
+		handler = &scheduledcompliancescan.ValidatingHandler{
 			Decoder: decoder,
-			Client:  fakeClient,
 		}
 
 		encoder = &json.Serializer{}
@@ -139,6 +134,21 @@ var _ = Describe("handler", func() {
 				Expect(resp.Allowed).To(BeFalse())
 				Expect(resp.Result.Message).To(ContainSubstring("spec.failedScansHistoryLimit"))
 			})
+
+			It("should deny creating with multiple validation errors", func() {
+				scheduledScan.Spec.Schedule = "not-a-cron"
+				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](-1)
+				scheduledScan.Spec.FailedScansHistoryLimit = ptr.To[int32](-2)
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.schedule"))
+				Expect(resp.Result.Message).To(ContainSubstring("spec.successfulScansHistoryLimit"))
+				Expect(resp.Result.Message).To(ContainSubstring("spec.failedScansHistoryLimit"))
+			})
 		})
 
 		Context("test updating the ScheduledComplianceScan resource", func() {
@@ -194,6 +204,27 @@ var _ = Describe("handler", func() {
 
 				resp := handler.Handle(ctx, request)
 				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.failedScansHistoryLimit"))
+			})
+
+			It("should deny updating with multiple validation errors", func() {
+				oldScheduledScan := scheduledScan.DeepCopy()
+				oldScheduledScanObj, err := runtime.Encode(encoder, oldScheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.OldObject.Raw = oldScheduledScanObj
+
+				scheduledScan.Spec.Schedule = "bad-cron"
+				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](-1)
+				scheduledScan.Spec.FailedScansHistoryLimit = ptr.To[int32](-2)
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+				request.Operation = admissionv1.Update
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.schedule"))
+				Expect(resp.Result.Message).To(ContainSubstring("spec.successfulScansHistoryLimit"))
 				Expect(resp.Result.Message).To(ContainSubstring("spec.failedScansHistoryLimit"))
 			})
 

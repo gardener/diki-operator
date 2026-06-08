@@ -12,22 +12,22 @@ import (
 	admissionv1 "k8s.io/api/admission/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	scheduledcompliancescan "github.com/gardener/diki-operator/internal/reconciler/scheduledcompliancescan"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-// Handler is an admission webhook handler that validates ScheduledComplianceScan resources.
-type Handler struct {
-	Client  client.Client
+// ValidatingHandler is an admission webhook handler that validates ScheduledComplianceScan resources.
+type ValidatingHandler struct {
 	Decoder admission.Decoder
 }
 
+var _ admission.Handler = &ValidatingHandler{}
+
 // Handle handles an admission request for a ScheduledComplianceScan resource and validates
 // the embedded ComplianceScan spec template.
-func (h *Handler) Handle(_ context.Context, req admission.Request) admission.Response {
+func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) admission.Response {
 	scheduledScan := &dikiv1alpha1.ScheduledComplianceScan{}
 	if err := h.Decoder.DecodeRaw(req.Object, scheduledScan); err != nil {
 		return admission.Errored(http.StatusBadRequest, err)

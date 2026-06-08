@@ -24,8 +24,7 @@ func AddToManager(mgr manager.Manager) error {
 	decoder := admission.NewDecoder(mgr.GetScheme())
 
 	mgr.GetWebhookServer().Register(ValidatingWebhookPath, &admission.Webhook{
-		Handler: &Handler{
-			Client:  mgr.GetClient(),
+		Handler: &ValidatingHandler{
 			Decoder: decoder,
 		},
 		RecoverPanic: ptr.To(true),

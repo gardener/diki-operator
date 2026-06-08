@@ -20,10 +20,12 @@ type MutatingHandler struct {
 	Decoder admission.Decoder
 }
 
+var _ admission.Handler = &MutatingHandler{}
+
 // Handle sets default values on ScheduledComplianceScan resources.
 func (h *MutatingHandler) Handle(_ context.Context, req admission.Request) admission.Response {
 	scheduledScan := &dikiv1alpha1.ScheduledComplianceScan{}
-	if err := json.Unmarshal(req.Object.Raw, scheduledScan); err != nil {
+	if err := h.Decoder.DecodeRaw(req.Object, scheduledScan); err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
