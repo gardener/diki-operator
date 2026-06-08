@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	compliancescan "github.com/gardener/diki-operator/internal/reconciler/compliancescan"
+	garbagecollector "github.com/gardener/diki-operator/internal/reconciler/garbagecollector"
 	scheduledcompliancescan "github.com/gardener/diki-operator/internal/reconciler/scheduledcompliancescan"
 	compliancescanwebhook "github.com/gardener/diki-operator/internal/webhook/compliancescan"
 	configv1alpha1 "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
@@ -170,6 +171,14 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	// Setup ScheduledComplianceScan controller
 	if err := (&scheduledcompliancescan.Reconciler{}).SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("unable to create scheduledComplianceScan reconcile controller: %w", err)
+	}
+	// Setup GarbageCollector controller
+	if err := (&garbagecollector.Reconciler{
+		Config: garbagecollector.Config{
+			Namespace: cfg.Controllers.ComplianceScan.DikiRunner.Namespace,
+		},
+	}).SetupWithManager(mgr); err != nil {
+		return fmt.Errorf("unable to create garbagecollector controller: %w", err)
 	}
 
 	log.Info("Adding webhook handler to manager")
