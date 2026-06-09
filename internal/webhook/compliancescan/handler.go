@@ -29,6 +29,8 @@ type Handler struct {
 	Decoder admission.Decoder
 }
 
+var _ admission.Handler = &Handler{}
+
 // Handle handles an admission request for a ComplianceScan resource and restricts updates
 // and creations if it contains references to invalid ConfigMaps.
 func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.Response {

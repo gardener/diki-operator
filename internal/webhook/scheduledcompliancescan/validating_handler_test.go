@@ -8,7 +8,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -46,7 +45,6 @@ var _ = Describe("handler", func() {
 
 	BeforeEach(func() {
 		scheme = runtime.NewScheme()
-		Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
 		Expect(authenticationv1.AddToScheme(scheme)).To(Succeed())
 
 		ctx = context.TODO()

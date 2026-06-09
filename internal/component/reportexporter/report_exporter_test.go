@@ -13,7 +13,6 @@ import (
 
 	dikireport "github.com/gardener/diki/pkg/report"
 	"github.com/gardener/diki/pkg/rule"
-	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
@@ -50,8 +49,8 @@ var _ = Describe("ReportExporter", func() {
 		reportPath = filepath.Join(tempDir, "report.json")
 
 		scheme := runtime.NewScheme()
-		Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
 		Expect(dikiinstall.AddToScheme(scheme)).To(Succeed())
+		Expect(corev1.AddToScheme(scheme)).To(Succeed())
 
 		fakeClient = fake.NewClientBuilder().
 			WithScheme(scheme).
@@ -461,7 +460,6 @@ var _ = Describe("ReportExporter", func() {
 
 		It("should handle output export failures and mark output as failed", func() {
 			scheme := runtime.NewScheme()
-			Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
 			Expect(dikiinstall.AddToScheme(scheme)).To(Succeed())
 
 			fakeClientWithError := fake.NewClientBuilder().

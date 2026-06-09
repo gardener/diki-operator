@@ -8,8 +8,6 @@ import (
 	"context"
 	"encoding/json"
 
-	jsonpatch "github.com/evanphx/json-patch/v5"
-	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -34,7 +32,6 @@ var _ = Describe("MutatingHandler", func() {
 
 	BeforeEach(func() {
 		scheme = runtime.NewScheme()
-		Expect(kubernetes.AddGardenSchemeToScheme(scheme)).To(Succeed())
 		Expect(authenticationv1.AddToScheme(scheme)).To(Succeed())
 
 		handler = &scheduledcompliancescan.MutatingHandler{
@@ -60,12 +57,14 @@ var _ = Describe("MutatingHandler", func() {
 			},
 		}
 
-		result := handleAndPatch(ctx, &request, handler, scan)
-		Expect(result.Spec.Schedule).To(Equal("0 0 * * 0"))
-		Expect(result.Spec.SuccessfulScansHistoryLimit).ToNot(BeNil())
-		Expect(*result.Spec.SuccessfulScansHistoryLimit).To(Equal(int32(3)))
-		Expect(result.Spec.FailedScansHistoryLimit).ToNot(BeNil())
-		Expect(*result.Spec.FailedScansHistoryLimit).To(Equal(int32(1)))
+		expected := scan.DeepCopy()
+		expected.Spec.Schedule = "0 0 * * 0"
+		expected.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](3)
+		expected.Spec.FailedScansHistoryLimit = ptr.To[int32](1)
+
+		resp := handle(ctx, &request, handler, scan)
+		Expect(resp.Allowed).To(BeTrue())
+		Expect(resp.Patches).To(ConsistOf(patchResponse(scan, expected).Patches))
 	})
 
 	It("should not override values that are already set", func() {
@@ -83,10 +82,9 @@ var _ = Describe("MutatingHandler", func() {
 			},
 		}
 
-		result := handleAndPatch(ctx, &request, handler, scan)
-		Expect(result.Spec.Schedule).To(Equal("*/5 * * * *"))
-		Expect(*result.Spec.SuccessfulScansHistoryLimit).To(Equal(int32(10)))
-		Expect(*result.Spec.FailedScansHistoryLimit).To(Equal(int32(5)))
+		resp := handle(ctx, &request, handler, scan)
+		Expect(resp.Allowed).To(BeTrue())
+		Expect(resp.Patches).To(BeEmpty())
 	})
 
 	It("should only default fields that are missing", func() {
@@ -102,33 +100,29 @@ var _ = Describe("MutatingHandler", func() {
 			},
 		}
 
-		result := handleAndPatch(ctx, &request, handler, scan)
-		Expect(result.Spec.Schedule).To(Equal("*/10 * * * *"))
-		Expect(*result.Spec.SuccessfulScansHistoryLimit).To(Equal(int32(3)))
-		Expect(*result.Spec.FailedScansHistoryLimit).To(Equal(int32(1)))
+		expected := scan.DeepCopy()
+		expected.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](3)
+		expected.Spec.FailedScansHistoryLimit = ptr.To[int32](1)
+
+		resp := handle(ctx, &request, handler, scan)
+		Expect(resp.Allowed).To(BeTrue())
+		Expect(resp.Patches).To(ConsistOf(patchResponse(scan, expected).Patches))
 	})
 })
 
-func handleAndPatch(ctx context.Context, request *admission.Request, handler admission.Handler, scan *v1alpha1.ScheduledComplianceScan) *v1alpha1.ScheduledComplianceScan {
+func handle(ctx context.Context, request *admission.Request, handler admission.Handler, scan *v1alpha1.ScheduledComplianceScan) admission.Response {
 	raw, err := json.Marshal(scan)
 	Expect(err).ToNot(HaveOccurred())
 	request.Object.Raw = raw
 
-	resp := handler.Handle(ctx, *request)
-	Expect(resp.Allowed).To(BeTrue())
+	return handler.Handle(ctx, *request)
+}
 
-	// Complete serializes Patches into the Patch byte field.
-	Expect(resp.Complete(*request)).To(Succeed())
+func patchResponse(original, mutated *v1alpha1.ScheduledComplianceScan) admission.Response {
+	originalJSON, err := json.Marshal(original)
+	Expect(err).ToNot(HaveOccurred())
+	mutatedJSON, err := json.Marshal(mutated)
+	Expect(err).ToNot(HaveOccurred())
 
-	patched := raw
-	if resp.Patch != nil {
-		patch, err := jsonpatch.DecodePatch(resp.Patch)
-		Expect(err).ToNot(HaveOccurred())
-		patched, err = patch.Apply(raw)
-		Expect(err).ToNot(HaveOccurred())
-	}
-
-	result := &v1alpha1.ScheduledComplianceScan{}
-	Expect(json.Unmarshal(patched, result)).To(Succeed())
-	return result
+	return admission.PatchResponseFromRaw(originalJSON, mutatedJSON)
 }
