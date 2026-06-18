@@ -58,8 +58,9 @@ var _ = Describe("Controller", func() {
 			Host: "foo",
 		}
 		cr = &compliancescan.Reconciler{
-			Client:     fakeClient,
-			RESTConfig: fakeConfig,
+			Client:      fakeClient,
+			LocalClient: fakeClient,
+			RESTConfig:  fakeConfig,
 			Config: configv1alpha1.ComplianceScanConfig{
 				SyncPeriod: &metav1.Duration{Duration: time.Hour},
 				DikiRunner: configv1alpha1.DikiRunnerConfig{
@@ -289,7 +290,7 @@ var _ = Describe("Controller", func() {
 			})
 
 			It("should handle failed Job creation", func() {
-				cr.Client = fake.NewClientBuilder().
+				interceptingClient := fake.NewClientBuilder().
 					WithScheme(fakeClient.Scheme()).
 					WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).
 					WithObjects(complianceScan).
@@ -301,6 +302,8 @@ var _ = Describe("Controller", func() {
 							return c.Create(ctx, obj, opts...)
 						},
 					}).Build()
+				cr.Client = interceptingClient
+				cr.LocalClient = interceptingClient
 
 				res, err := cr.Reconcile(ctx, request)
 				Expect(err).NotTo(HaveOccurred())
@@ -315,6 +318,103 @@ var _ = Describe("Controller", func() {
 						"Message": ContainSubstring("create-failed"),
 					}),
 				))
+			})
+
+			It("should create a Job with kubeconfig projected volume when kubeconfigSecretRef is set", func() {
+				cr.Config.DikiRunner.KubeconfigSecretRef = &configv1alpha1.SecretRef{
+					Name: "target-kubeconfig",
+				}
+
+				res, err := cr.Reconcile(ctx, request)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+				Expect(fakeClient.List(ctx, jobList, client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": string(complianceScan.UID)})).To(Succeed())
+				Expect(jobList.Items).To(HaveLen(1))
+
+				job := jobList.Items[0]
+				Expect(job.Spec.Template.Spec.Volumes).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+					"Name": Equal("kubeconfig"),
+					"VolumeSource": MatchFields(IgnoreExtras, Fields{
+						"Projected": PointTo(MatchFields(IgnoreExtras, Fields{
+							"DefaultMode": PointTo(Equal(int32(0440))),
+							"Sources": ConsistOf(MatchFields(IgnoreExtras, Fields{
+								"Secret": PointTo(MatchFields(IgnoreExtras, Fields{
+									"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
+										"Name": Equal("target-kubeconfig"),
+									}),
+									"Items": ConsistOf(MatchFields(IgnoreExtras, Fields{
+										"Key":  Equal("kubeconfig"),
+										"Path": Equal("kubeconfig"),
+									})),
+									"Optional": PointTo(BeFalse()),
+								})),
+							})),
+						})),
+					}),
+				})))
+				Expect(job.Spec.Template.Spec.Containers[0].VolumeMounts).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+					"Name":      Equal("kubeconfig"),
+					"MountPath": Equal("/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig"),
+					"ReadOnly":  BeTrue(),
+				})))
+			})
+
+			It("should create a Job with projected volume containing both kubeconfig and token when both refs are set", func() {
+				cr.Config.DikiRunner.KubeconfigSecretRef = &configv1alpha1.SecretRef{
+					Name: "target-kubeconfig",
+				}
+				cr.Config.DikiRunner.TokenSecretRef = &configv1alpha1.SecretRef{
+					Name: "target-token",
+				}
+
+				res, err := cr.Reconcile(ctx, request)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+				Expect(fakeClient.List(ctx, jobList, client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": string(complianceScan.UID)})).To(Succeed())
+				Expect(jobList.Items).To(HaveLen(1))
+
+				job := jobList.Items[0]
+				Expect(job.Spec.Template.Spec.Volumes).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+					"Name": Equal("kubeconfig"),
+					"VolumeSource": MatchFields(IgnoreExtras, Fields{
+						"Projected": PointTo(MatchFields(IgnoreExtras, Fields{
+							"DefaultMode": PointTo(Equal(int32(0440))),
+							"Sources": ConsistOf(
+								MatchFields(IgnoreExtras, Fields{
+									"Secret": PointTo(MatchFields(IgnoreExtras, Fields{
+										"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
+											"Name": Equal("target-kubeconfig"),
+										}),
+										"Items": ConsistOf(MatchFields(IgnoreExtras, Fields{
+											"Key":  Equal("kubeconfig"),
+											"Path": Equal("kubeconfig"),
+										})),
+										"Optional": PointTo(BeFalse()),
+									})),
+								}),
+								MatchFields(IgnoreExtras, Fields{
+									"Secret": PointTo(MatchFields(IgnoreExtras, Fields{
+										"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
+											"Name": Equal("target-token"),
+										}),
+										"Items": ConsistOf(MatchFields(IgnoreExtras, Fields{
+											"Key":  Equal("token"),
+											"Path": Equal("token"),
+										})),
+										"Optional": PointTo(BeFalse()),
+									})),
+								}),
+							),
+						})),
+					}),
+				})))
+				Expect(job.Spec.Template.Spec.Containers[0].VolumeMounts).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+					"Name":      Equal("kubeconfig"),
+					"MountPath": Equal("/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig"),
+					"ReadOnly":  BeTrue(),
+				})))
 			})
 		})
 	})
@@ -357,6 +457,7 @@ var _ = Describe("Controller", func() {
 				dikiRunJob.Spec.Suspend = suspend
 				fakeClient = fakeClientBuilder.WithObjects(complianceScan, dikiRunJob).Build()
 				cr.Client = fakeClient
+				cr.LocalClient = fakeClient
 
 				res, err := cr.Reconcile(ctx, request)
 				Expect(err).NotTo(HaveOccurred())
@@ -413,6 +514,7 @@ var _ = Describe("Controller", func() {
 		It("should fail when the Job is not found", func() {
 			fakeClient = fakeClientBuilder.WithObjects(complianceScan).Build()
 			cr.Client = fakeClient
+			cr.LocalClient = fakeClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
@@ -448,6 +550,7 @@ var _ = Describe("Controller", func() {
 					},
 				}).Build()
 			cr.Client = interceptingClient
+			cr.LocalClient = interceptingClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).To(MatchError(ContainSubstring("status-patch-failed")))
@@ -470,6 +573,7 @@ var _ = Describe("Controller", func() {
 					},
 				}).Build()
 			cr.Client = interceptingClient
+			cr.LocalClient = interceptingClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).To(MatchError(ContainSubstring("failed to update ComplianceScan status to Failed")))
@@ -541,6 +645,28 @@ var _ = Describe("Controller", func() {
     args: null
 `
 			}
+			configForWithKubeconfig = func(rulesets ...string) string {
+				config := `providers:
+  - id: managedk8s
+    name: Managed Kubernetes
+    metadata: {}
+    rulesets:`
+
+				rulesetsConfig := ""
+				for _, ruleset := range rulesets {
+					rulesetsConfig += ruleset
+				}
+
+				if len(rulesetsConfig) > 0 {
+					config += rulesetsConfig
+				} else {
+					config += ` []`
+				}
+				return config + `
+    args:
+      kubeconfigPath: /var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig
+`
+			}
 		)
 
 		BeforeEach(func() {
@@ -582,6 +708,27 @@ var _ = Describe("Controller", func() {
 
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
 			Expect(configMap.Data["config.yaml"]).To(Equal(configFor()))
+		})
+
+		It("should create a diki config ConfigMap with kubeconfigPath when kubeconfigSecretRef is set", func() {
+			cr.Config.DikiRunner.KubeconfigSecretRef = &configv1alpha1.SecretRef{
+				Name: "target-kubeconfig",
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": "1"},
+			)).To(Succeed())
+			Expect(len(configMapList.Items)).To(Equal(1))
+
+			configMap := configMapList.Items[0]
+			Expect(configMap.Data).To(HaveKey("config.yaml"))
+			Expect(configMap.Data["config.yaml"]).To(Equal(configForWithKubeconfig()))
 		})
 
 		It("should create a diki config for all rulesets without options", func() {

@@ -104,7 +104,61 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 		},
 	}
 
-	if err := r.Client.Create(ctx, job); err != nil {
+	if r.Config.DikiRunner.KubeconfigSecretRef != nil {
+		projectedSources := []corev1.VolumeProjection{
+			{
+				Secret: &corev1.SecretProjection{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: r.Config.DikiRunner.KubeconfigSecretRef.Name,
+					},
+					Items: []corev1.KeyToPath{
+						{
+							Key:  KubeconfigSecretKey,
+							Path: KubeconfigSecretKey,
+						},
+					},
+					Optional: ptr.To(false),
+				},
+			},
+		}
+
+		if r.Config.DikiRunner.TokenSecretRef != nil {
+			projectedSources = append(projectedSources, corev1.VolumeProjection{
+				Secret: &corev1.SecretProjection{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: r.Config.DikiRunner.TokenSecretRef.Name,
+					},
+					Items: []corev1.KeyToPath{
+						{
+							Key:  TokenSecretKey,
+							Path: TokenSecretKey,
+						},
+					},
+					Optional: ptr.To(false),
+				},
+			})
+		}
+
+		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name: KubeconfigVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				Projected: &corev1.ProjectedVolumeSource{
+					DefaultMode: ptr.To(int32(0440)),
+					Sources:     projectedSources,
+				},
+			},
+		})
+		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+			job.Spec.Template.Spec.Containers[0].VolumeMounts,
+			corev1.VolumeMount{
+				Name:      KubeconfigVolumeName,
+				MountPath: KubeconfigMountPath,
+				ReadOnly:  true,
+			},
+		)
+	}
+
+	if err := r.LocalClient.Create(ctx, job); err != nil {
 		return nil, fmt.Errorf("failed to create diki runner job: %w", err)
 	}
 
