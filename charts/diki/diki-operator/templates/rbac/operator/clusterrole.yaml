@@ -35,3 +35,5 @@ rules:
   - configmaps
   verbs:
   - get
+  - list
+  - watch
