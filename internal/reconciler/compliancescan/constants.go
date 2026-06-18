@@ -37,6 +37,18 @@ const (
 	// ExporterConfigKey is the key used to store the exporter configuration in the ConfigMap data.
 	ExporterConfigKey = "exporter-config.yaml"
 
+	// KubeconfigVolumeName is the name of the projected volume for the kubeconfig and token secrets.
+	KubeconfigVolumeName = "kubeconfig"
+	// KubeconfigMountPath is the mount path for the projected kubeconfig volume in the Job pod.
+	KubeconfigMountPath = "/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig"
+	// KubeconfigSecretKey is the key in the kubeconfig Secret that holds the kubeconfig data.
+	KubeconfigSecretKey = "kubeconfig"
+	// KubeconfigFilePath is the full file path to the mounted kubeconfig inside the pod.
+	KubeconfigFilePath = KubeconfigMountPath + "/" + KubeconfigSecretKey
+
+	// TokenSecretKey is the key in the token Secret that holds the token data.
+	TokenSecretKey = "token"
+
 	// RuleOptionsSuffix is the suffix appended to ruleset IDs when looking up rule options in ConfigMaps.
 	RuleOptionsSuffix = "-rules"
 
