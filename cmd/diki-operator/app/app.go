@@ -18,7 +18,9 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	batchv1 "k8s.io/api/batch/v1"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 	componentbaseconfigv1alpha1 "k8s.io/component-base/config/v1alpha1"
 	"k8s.io/component-base/version"
 	"k8s.io/component-base/version/verflag"
@@ -27,6 +29,7 @@ import (
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	controllerconfig "sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -100,6 +103,16 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	}, conf)
 
 	log.Info("Setting up manager")
+
+	var cacheOpts cache.Options
+	if cfg.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef == nil {
+		cacheOpts.ByObject = map[client.Object]cache.ByObject{
+			&batchv1.Job{}: {Namespaces: map[string]cache.Config{
+				cfg.Controllers.ComplianceScan.DikiRunner.Namespace: {},
+			}},
+		}
+	}
+
 	mgr, err := ctrl.NewManager(conf, ctrl.Options{
 		Logger: log.WithName("manager"),
 		Metrics: metricsserver.Options{
@@ -116,11 +129,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		RenewDeadline:                 &cfg.LeaderElection.RenewDeadline.Duration,
 		RetryPeriod:                   &cfg.LeaderElection.RetryPeriod.Duration,
 
-		Cache: cache.Options{
-			DefaultNamespaces: map[string]cache.Config{
-				cfg.Controllers.ComplianceScan.DikiRunner.Namespace: {},
-			},
-		},
+		Cache: cacheOpts,
 
 		PprofBindAddress: "",
 		HealthProbeBindAddress: net.JoinHostPort(
@@ -162,10 +171,27 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		return err
 	}
 
+	var localClient client.Client
+	if cfg.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef != nil {
+		localConfig, err := rest.InClusterConfig()
+		if err != nil {
+			return fmt.Errorf("unable to get in-cluster config for local client: %w", err)
+		}
+		localClient, err = client.New(localConfig, client.Options{Scheme: mgr.GetScheme()})
+		if err != nil {
+			return fmt.Errorf("unable to create local client: %w", err)
+		}
+	} else {
+		localClient = mgr.GetClient()
+	}
+
 	// Setup ComplianceScan controller
-	if err := (&compliancescan.Reconciler{
-		Config: cfg.Controllers.ComplianceScan,
-	}).SetupWithManager(mgr); err != nil {
+	complianceScanReconciler := &compliancescan.Reconciler{
+		LocalClient: localClient,
+		Config:      cfg.Controllers.ComplianceScan,
+	}
+
+	if err := complianceScanReconciler.SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("unable to create complianceScan reconcile controller: %w", err)
 	}
 	// Setup ScheduledComplianceScan controller
