@@ -110,7 +110,7 @@ func (r *Reconciler) findDikiRunJob(ctx context.Context, complianceScanUID types
 		},
 	}
 
-	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(job), job); err != nil {
+	if err := r.LocalClient.Get(ctx, client.ObjectKeyFromObject(job), job); err != nil {
 		return nil, fmt.Errorf("failed to get diki runner job: %w", err)
 	}
 
@@ -133,7 +133,7 @@ func (r *Reconciler) getOwnerReference(job *batchv1.Job) []metav1.OwnerReference
 func (r *Reconciler) startDikiRunJob(ctx context.Context, job *batchv1.Job) error {
 	jobPatch := client.MergeFrom(job.DeepCopy())
 	job.Spec.Suspend = ptr.To(false)
-	return r.Client.Patch(ctx, job, jobPatch)
+	return r.LocalClient.Patch(ctx, job, jobPatch)
 }
 
 func getFailedOutputs(complianceScan *v1alpha1.ComplianceScan) []string {
