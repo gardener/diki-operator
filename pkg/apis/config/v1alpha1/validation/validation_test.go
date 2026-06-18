@@ -136,6 +136,68 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 		}))))
 	})
 
+	Describe("SecretRef validation", func() {
+		It("should pass validation with valid kubeconfigSecretRef", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef = &v1alpha1.SecretRef{
+				Name: "target-kubeconfig",
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(BeEmpty())
+		})
+
+		It("should pass validation with both kubeconfigSecretRef and tokenSecretRef", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef = &v1alpha1.SecretRef{
+				Name: "target-kubeconfig",
+			}
+			conf.Controllers.ComplianceScan.DikiRunner.TokenSecretRef = &v1alpha1.SecretRef{
+				Name: "target-token",
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(BeEmpty())
+		})
+
+		It("should fail validation when kubeconfigSecretRef has empty name", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef = &v1alpha1.SecretRef{
+				Name: "",
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeRequired),
+				"Field": Equal("controllers.complianceScan.dikiRunner.kubeconfigSecretRef.name"),
+			}))))
+		})
+
+		It("should fail validation when tokenSecretRef has empty name", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef = &v1alpha1.SecretRef{
+				Name: "target-kubeconfig",
+			}
+			conf.Controllers.ComplianceScan.DikiRunner.TokenSecretRef = &v1alpha1.SecretRef{
+				Name: "",
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeRequired),
+				"Field": Equal("controllers.complianceScan.dikiRunner.tokenSecretRef.name"),
+			}))))
+		})
+
+		It("should fail validation when tokenSecretRef is set without kubeconfigSecretRef", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.TokenSecretRef = &v1alpha1.SecretRef{
+				Name: "target-token",
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeInvalid),
+				"Field": Equal("controllers.complianceScan.dikiRunner.tokenSecretRef"),
+			}))))
+		})
+	})
+
 	Describe("ServerConfiguration", func() {
 		It("should forbid negative HealthProbes port", func() {
 			conf.Server.HealthProbes.Port = -1
