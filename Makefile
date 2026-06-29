@@ -50,9 +50,9 @@ clean:
 	@bash $(GARDENER_HACK_DIR)/clean.sh ./cmd/... ./pkg/... ./internal/...
 
 .PHONY: generate
-generate: $(VGOPATH) $(CONTROLLER_GEN) $(CRD_REF_DOCS)
-	@REPO_ROOT=$(REPO_ROOT) VGOPATH=$(VGOPATH) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) bash $(GARDENER_HACK_DIR)/generate-sequential.sh ./cmd/... ./internal/... ./pkg/...
-	@REPO_ROOT=$(REPO_ROOT) VGOPATH=$(VGOPATH) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) $(REPO_ROOT)/hack/update-codegen.sh
+generate: $(CONTROLLER_GEN) $(CRD_REF_DOCS)
+	@REPO_ROOT=$(REPO_ROOT) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) bash $(GARDENER_HACK_DIR)/generate-sequential.sh ./cmd/... ./internal/... ./pkg/...
+	@REPO_ROOT=$(REPO_ROOT) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) $(REPO_ROOT)/hack/update-codegen.sh
 	@$(CONTROLLER_GEN) crd:crdVersions=v1 paths=./pkg/apis/diki/v1alpha1 output:crd:dir=./pkg/apis/diki/crds
 	@cp ./pkg/apis/diki/crds/*.yaml ./charts/diki/crds/
 	$(MAKE) format
