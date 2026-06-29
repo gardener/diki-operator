@@ -11,7 +11,7 @@ set -o pipefail
 CODE_GEN_DIR=$(go list -m -f '{{.Dir}}' k8s.io/code-generator)
 source "${CODE_GEN_DIR}/kube_codegen.sh"
 
-rm -f $GOPATH/bin/*-gen
+rm -f "$(go env GOPATH)"/bin/*-gen
 
 PROJECT_ROOT=$(dirname $0)/..
 
