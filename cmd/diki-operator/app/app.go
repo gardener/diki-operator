@@ -172,24 +172,24 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		return err
 	}
 
-	var localClient client.Client
+	var sourceClient client.Client
 	if cfg.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef != nil {
-		localConfig, err := rest.InClusterConfig()
+		sourceConfig, err := rest.InClusterConfig()
 		if err != nil {
-			return fmt.Errorf("unable to get in-cluster config for local client: %w", err)
+			return fmt.Errorf("unable to get in-cluster config for source client: %w", err)
 		}
-		localClient, err = client.New(localConfig, client.Options{Scheme: mgr.GetScheme()})
+		sourceClient, err = client.New(sourceConfig, client.Options{Scheme: mgr.GetScheme()})
 		if err != nil {
-			return fmt.Errorf("unable to create local client: %w", err)
+			return fmt.Errorf("unable to create source client: %w", err)
 		}
 	} else {
-		localClient = mgr.GetClient()
+		sourceClient = mgr.GetClient()
 	}
 
 	// Setup ComplianceScan controller
 	complianceScanReconciler := &compliancescan.Reconciler{
-		LocalClient: localClient,
-		Config:      cfg.Controllers.ComplianceScan,
+		SourceClient: sourceClient,
+		Config:       cfg.Controllers.ComplianceScan,
 	}
 
 	if err := complianceScanReconciler.SetupWithManager(mgr); err != nil {

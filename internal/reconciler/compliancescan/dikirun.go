@@ -204,7 +204,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 		)
 	}
 
-	if err := r.LocalClient.Create(ctx, job); err != nil {
+	if err := r.SourceClient.Create(ctx, job); err != nil {
 		return nil, fmt.Errorf("failed to create diki runner job: %w", err)
 	}
 

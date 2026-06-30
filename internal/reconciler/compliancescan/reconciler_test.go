@@ -58,9 +58,9 @@ var _ = Describe("Controller", func() {
 			Host: "foo",
 		}
 		cr = &compliancescan.Reconciler{
-			Client:      fakeClient,
-			LocalClient: fakeClient,
-			RESTConfig:  fakeConfig,
+			Client:       fakeClient,
+			SourceClient: fakeClient,
+			RESTConfig:   fakeConfig,
 			Config: configv1alpha1.ComplianceScanConfig{
 				SyncPeriod: &metav1.Duration{Duration: time.Hour},
 				DikiRunner: configv1alpha1.DikiRunnerConfig{
@@ -346,7 +346,7 @@ var _ = Describe("Controller", func() {
 						},
 					}).Build()
 				cr.Client = interceptingClient
-				cr.LocalClient = interceptingClient
+				cr.SourceClient = interceptingClient
 
 				res, err := cr.Reconcile(ctx, request)
 				Expect(err).NotTo(HaveOccurred())
@@ -500,7 +500,7 @@ var _ = Describe("Controller", func() {
 				dikiRunJob.Spec.Suspend = suspend
 				fakeClient = fakeClientBuilder.WithObjects(complianceScan, dikiRunJob).Build()
 				cr.Client = fakeClient
-				cr.LocalClient = fakeClient
+				cr.SourceClient = fakeClient
 
 				res, err := cr.Reconcile(ctx, request)
 				Expect(err).NotTo(HaveOccurred())
@@ -634,7 +634,7 @@ var _ = Describe("Controller", func() {
 		It("should fail when the Job is not found", func() {
 			fakeClient = fakeClientBuilder.WithObjects(complianceScan).Build()
 			cr.Client = fakeClient
-			cr.LocalClient = fakeClient
+			cr.SourceClient = fakeClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
@@ -670,7 +670,7 @@ var _ = Describe("Controller", func() {
 					},
 				}).Build()
 			cr.Client = interceptingClient
-			cr.LocalClient = interceptingClient
+			cr.SourceClient = interceptingClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).To(MatchError(ContainSubstring("status-patch-failed")))
@@ -693,7 +693,7 @@ var _ = Describe("Controller", func() {
 					},
 				}).Build()
 			cr.Client = interceptingClient
-			cr.LocalClient = interceptingClient
+			cr.SourceClient = interceptingClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).To(MatchError(ContainSubstring("failed to update ComplianceScan status to Failed")))
