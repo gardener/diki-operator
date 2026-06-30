@@ -102,7 +102,7 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 		},
 	}
 
-	if err := r.LocalClient.Create(ctx, configMap); err != nil {
+	if err := r.SourceClient.Create(ctx, configMap); err != nil {
 		return nil, fmt.Errorf("failed to create diki config configMap: %w", err)
 	}
 
