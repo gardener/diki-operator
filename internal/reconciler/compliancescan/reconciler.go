@@ -25,9 +25,10 @@ import (
 
 // Reconciler reconciles compliance scans.
 type Reconciler struct {
-	Client     client.Client
-	RESTConfig *rest.Config
-	Config     configv1alpha1.ComplianceScanConfig
+	Client       client.Client
+	SourceClient client.Client
+	RESTConfig   *rest.Config
+	Config       configv1alpha1.ComplianceScanConfig
 }
 
 // Reconcile handles reconciliation requests for ComplianceScan resources.

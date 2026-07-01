@@ -34,6 +34,10 @@ func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 		r.Client = mgr.GetClient()
 	}
 
+	if r.SourceClient == nil {
+		r.SourceClient = mgr.GetClient()
+	}
+
 	if r.RESTConfig == nil {
 		r.RESTConfig = mgr.GetConfig()
 	}

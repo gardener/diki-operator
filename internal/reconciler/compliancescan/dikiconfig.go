@@ -72,6 +72,12 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 		}
 	}
 
+	if r.Config.DikiRunner.KubeconfigSecretRef != nil {
+		managedk8sProvider.Args = map[string]any{
+			"kubeconfigPath": KubeconfigFilePath,
+		}
+	}
+
 	dikiConfig := dikiconfig.DikiConfig{
 		Providers: []dikiconfig.ProviderConfig{managedk8sProvider},
 	}
@@ -96,7 +102,7 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 		},
 	}
 
-	if err := r.Client.Create(ctx, configMap); err != nil {
+	if err := r.SourceClient.Create(ctx, configMap); err != nil {
 		return nil, fmt.Errorf("failed to create diki config configMap: %w", err)
 	}
 
