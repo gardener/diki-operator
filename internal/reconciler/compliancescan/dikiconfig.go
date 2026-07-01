@@ -98,6 +98,8 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 		},
 	}
 
+	// Marshal to JSON first because the YAML library ignores json: struct tags
+	// and embedded upstream types (e.g. metav1.TypeMeta) only have json: tags.
 	exporterConfigJSON, err := json.Marshal(exporterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal exporter config: %w", err)
