@@ -8,13 +8,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-# setup virtual GOPATH
-source "$GARDENER_HACK_DIR"/vgopath-setup.sh
-
+go mod download k8s.io/code-generator
 CODE_GEN_DIR=$(go list -m -f '{{.Dir}}' k8s.io/code-generator)
 source "${CODE_GEN_DIR}/kube_codegen.sh"
 
-rm -f $GOPATH/bin/*-gen
+rm -f "$(go env GOPATH)"/bin/*-gen
 
 PROJECT_ROOT=$(dirname $0)/..
 
