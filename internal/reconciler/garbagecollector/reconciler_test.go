@@ -7,6 +7,7 @@ package reconciler_test
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
@@ -50,7 +51,8 @@ var _ = Describe("Controller", func() {
 		cr = &garbagecollector.Reconciler{
 			Client: fakeClient,
 			Config: garbagecollector.Config{
-				Namespace: jobNamespace,
+				Namespace:       jobNamespace,
+				RequeueInterval: 1 * time.Minute,
 			},
 		}
 
@@ -65,7 +67,7 @@ var _ = Describe("Controller", func() {
 	It("should requeue after interval when no Jobs exist", func() {
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 	})
 
 	It("should not delete Job when ComplianceScan is Pending", func() {
@@ -78,7 +80,7 @@ var _ = Describe("Controller", func() {
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 
 		Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)).To(Succeed())
 	})
@@ -93,7 +95,7 @@ var _ = Describe("Controller", func() {
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 
 		Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)).To(Succeed())
 	})
@@ -108,7 +110,7 @@ var _ = Describe("Controller", func() {
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 
 		err = fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)
 		Expect(err).To(HaveOccurred())
@@ -125,7 +127,7 @@ var _ = Describe("Controller", func() {
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 
 		err = fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)
 		Expect(err).To(HaveOccurred())
@@ -138,7 +140,7 @@ var _ = Describe("Controller", func() {
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 
 		err = fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)
 		Expect(err).To(HaveOccurred())
@@ -152,7 +154,7 @@ var _ = Describe("Controller", func() {
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 
 		Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)).To(Succeed())
 	})
@@ -203,7 +205,7 @@ var _ = Describe("Controller", func() {
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).NotTo(HaveOccurred())
-		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 		Expect(deleteCallCount).To(Equal(2))
 	})
 })

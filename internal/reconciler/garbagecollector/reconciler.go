@@ -21,14 +21,10 @@ import (
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-const (
-	// RequeueInterval is the interval between periodic reconciliations.
-	RequeueInterval = 1 * time.Minute
-)
-
 // Config holds configuration for the garbagecollector controller.
 type Config struct {
-	Namespace string
+	Namespace       string
+	RequeueInterval time.Duration
 }
 
 // Reconciler periodically cleans up diki-run Jobs that are no longer needed.
@@ -74,7 +70,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, _ ctrl.Request) (ctrl.Result
 		}
 	}
 
-	return reconcile.Result{RequeueAfter: RequeueInterval}, nil
+	return reconcile.Result{RequeueAfter: r.Config.RequeueInterval}, nil
 }
 
 func shouldDeleteJob(scanPhases map[string]v1alpha1.ComplianceScanPhase, complianceScanUID string) bool {

@@ -175,7 +175,8 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	// Setup GarbageCollector controller
 	if err := (&garbagecollector.Reconciler{
 		Config: garbagecollector.Config{
-			Namespace: cfg.Controllers.ComplianceScan.DikiRunner.Namespace,
+			Namespace:       cfg.Controllers.ComplianceScan.DikiRunner.Namespace,
+			RequeueInterval: 2 * time.Minute,
 		},
 	}).SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("unable to create garbagecollector controller: %w", err)
