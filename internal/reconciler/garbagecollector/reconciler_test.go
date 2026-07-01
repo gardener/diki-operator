@@ -204,7 +204,7 @@ var _ = Describe("Controller", func() {
 		Expect(cr.Client.Status().Update(ctx, scan)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
-		Expect(err).NotTo(HaveOccurred())
+		Expect(err).To(MatchError(ContainSubstring("delete-failed")))
 		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
 		Expect(deleteCallCount).To(Equal(2))
 	})
