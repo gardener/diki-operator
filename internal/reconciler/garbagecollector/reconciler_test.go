@@ -37,7 +37,7 @@ var _ = Describe("Controller", func() {
 		scheme     *runtime.Scheme
 		scan       *dikiv1alpha1.ComplianceScan
 
-		jobNS = "kube-system"
+		jobNamespace = "kube-system"
 	)
 
 	BeforeEach(func() {
@@ -50,7 +50,7 @@ var _ = Describe("Controller", func() {
 		cr = &garbagecollector.Reconciler{
 			Client: fakeClient,
 			Config: garbagecollector.Config{
-				Namespace: jobNS,
+				Namespace: jobNamespace,
 			},
 		}
 
@@ -73,7 +73,7 @@ var _ = Describe("Controller", func() {
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
+		job := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -88,7 +88,7 @@ var _ = Describe("Controller", func() {
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
+		job := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -103,7 +103,7 @@ var _ = Describe("Controller", func() {
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
+		job := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -120,7 +120,7 @@ var _ = Describe("Controller", func() {
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
+		job := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -133,7 +133,7 @@ var _ = Describe("Controller", func() {
 	})
 
 	It("should delete Job when ComplianceScan does not exist (orphaned)", func() {
-		job := newDikiRunJob("diki-run-uid-orphan", jobNS, "uid-orphan")
+		job := newDikiRunJob("diki-run-uid-orphan", jobNamespace, "uid-orphan")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -146,7 +146,7 @@ var _ = Describe("Controller", func() {
 	})
 
 	It("should not delete Job that is missing the ComplianceScan UID label", func() {
-		job := newDikiRunJob("unrelated-job", jobNS, "uid-unlabeled")
+		job := newDikiRunJob("unrelated-job", jobNamespace, "uid-unlabeled")
 		delete(job.Labels, "compliancescan.diki.gardener.cloud/uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
@@ -179,10 +179,10 @@ var _ = Describe("Controller", func() {
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job1 := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
+		job1 := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
 		Expect(fakeClient.Create(ctx, job1)).To(Succeed())
 
-		job2 := newDikiRunJob("diki-run-uid-orphan2", jobNS, "uid-orphan2")
+		job2 := newDikiRunJob("diki-run-uid-orphan2", jobNamespace, "uid-orphan2")
 		Expect(fakeClient.Create(ctx, job2)).To(Succeed())
 
 		deleteCallCount := 0
