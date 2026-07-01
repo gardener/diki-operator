@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: exporter.diki.gardener.cloud
+  labels:
+{{ include "labels" . | indent 4 }}
+rules:
+- apiGroups:
+  - diki.gardener.cloud
+  resources:
+  - compliancescans
+  verbs:
+  - get
+- apiGroups:
+  - diki.gardener.cloud
+  resources:
+  - compliancescans/status
+  verbs:
+  - get
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
