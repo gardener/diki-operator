@@ -35,6 +35,7 @@ var _ = Describe("Controller", func() {
 		cr         *garbagecollector.Reconciler
 		fakeClient client.Client
 		scheme     *runtime.Scheme
+		scan       *dikiv1alpha1.ComplianceScan
 
 		jobNS = "kube-system"
 	)
@@ -52,6 +53,13 @@ var _ = Describe("Controller", func() {
 				Namespace: jobNS,
 			},
 		}
+
+		scan = &dikiv1alpha1.ComplianceScan{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "scan",
+				UID:  types.UID("scan-uid"),
+			},
+		}
 	})
 
 	It("should requeue after interval when no Jobs exist", func() {
@@ -61,19 +69,11 @@ var _ = Describe("Controller", func() {
 	})
 
 	It("should not delete Job when ComplianceScan is Pending", func() {
-		scan := &dikiv1alpha1.ComplianceScan{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "scan-pending",
-				UID:  types.UID("uid-pending"),
-			},
-			Status: dikiv1alpha1.ComplianceScanStatus{
-				Phase: dikiv1alpha1.ComplianceScanPending,
-			},
-		}
+		scan.Status.Phase = dikiv1alpha1.ComplianceScanPending
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job := newDikiRunJob("diki-run-uid-pending", jobNS, "uid-pending")
+		job := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -84,19 +84,11 @@ var _ = Describe("Controller", func() {
 	})
 
 	It("should not delete Job when ComplianceScan is still running", func() {
-		scan := &dikiv1alpha1.ComplianceScan{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "scan-running",
-				UID:  types.UID("uid-running"),
-			},
-			Status: dikiv1alpha1.ComplianceScanStatus{
-				Phase: dikiv1alpha1.ComplianceScanRunning,
-			},
-		}
+		scan.Status.Phase = dikiv1alpha1.ComplianceScanRunning
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job := newDikiRunJob("diki-run-uid-running", jobNS, "uid-running")
+		job := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -107,19 +99,11 @@ var _ = Describe("Controller", func() {
 	})
 
 	It("should delete Job when ComplianceScan is Completed", func() {
-		scan := &dikiv1alpha1.ComplianceScan{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "scan-completed",
-				UID:  types.UID("uid-completed"),
-			},
-			Status: dikiv1alpha1.ComplianceScanStatus{
-				Phase: dikiv1alpha1.ComplianceScanCompleted,
-			},
-		}
+		scan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job := newDikiRunJob("diki-run-uid-completed", jobNS, "uid-completed")
+		job := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -132,19 +116,11 @@ var _ = Describe("Controller", func() {
 	})
 
 	It("should delete Job when ComplianceScan is Failed", func() {
-		scan := &dikiv1alpha1.ComplianceScan{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "scan-failed",
-				UID:  types.UID("uid-failed"),
-			},
-			Status: dikiv1alpha1.ComplianceScanStatus{
-				Phase: dikiv1alpha1.ComplianceScanFailed,
-			},
-		}
+		scan.Status.Phase = dikiv1alpha1.ComplianceScanFailed
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job := newDikiRunJob("diki-run-uid-failed", jobNS, "uid-failed")
+		job := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
@@ -199,19 +175,11 @@ var _ = Describe("Controller", func() {
 	})
 
 	It("should continue processing other Jobs when one delete fails", func() {
-		scan := &dikiv1alpha1.ComplianceScan{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "scan-done",
-				UID:  types.UID("uid-done"),
-			},
-			Status: dikiv1alpha1.ComplianceScanStatus{
-				Phase: dikiv1alpha1.ComplianceScanCompleted,
-			},
-		}
+		scan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job1 := newDikiRunJob("diki-run-uid-done", jobNS, "uid-done")
+		job1 := newDikiRunJob("diki-run-scan-uid", jobNS, "scan-uid")
 		Expect(fakeClient.Create(ctx, job1)).To(Succeed())
 
 		job2 := newDikiRunJob("diki-run-uid-orphan2", jobNS, "uid-orphan2")
