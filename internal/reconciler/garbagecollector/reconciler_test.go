@@ -60,6 +60,29 @@ var _ = Describe("Controller", func() {
 		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
 	})
 
+	It("should not delete Job when ComplianceScan is Pending", func() {
+		scan := &dikiv1alpha1.ComplianceScan{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "scan-pending",
+				UID:  types.UID("uid-pending"),
+			},
+			Status: dikiv1alpha1.ComplianceScanStatus{
+				Phase: dikiv1alpha1.ComplianceScanPending,
+			},
+		}
+		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
+		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
+
+		job := newDikiRunJob("diki-run-uid-pending", jobNS, "uid-pending")
+		Expect(fakeClient.Create(ctx, job)).To(Succeed())
+
+		res, err := cr.Reconcile(ctx, reconcile.Request{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+
+		Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)).To(Succeed())
+	})
+
 	It("should not delete Job when ComplianceScan is still running", func() {
 		scan := &dikiv1alpha1.ComplianceScan{
 			ObjectMeta: metav1.ObjectMeta{
@@ -144,6 +167,18 @@ var _ = Describe("Controller", func() {
 		err = fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)
 		Expect(err).To(HaveOccurred())
 		Expect(client.IgnoreNotFound(err)).To(Succeed())
+	})
+
+	It("should not delete Job that is missing the ComplianceScan UID label", func() {
+		job := newDikiRunJob("unrelated-job", jobNS, "uid-unlabeled")
+		delete(job.Labels, "compliancescan.diki.gardener.cloud/uid")
+		Expect(fakeClient.Create(ctx, job)).To(Succeed())
+
+		res, err := cr.Reconcile(ctx, reconcile.Request{})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(res.RequeueAfter).To(Equal(garbagecollector.RequeueInterval))
+
+		Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)).To(Succeed())
 	})
 
 	It("should return error when listing Jobs fails", func() {
