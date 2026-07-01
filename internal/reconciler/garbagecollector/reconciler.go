@@ -26,7 +26,7 @@ const (
 	RequeueInterval = 1 * time.Minute
 )
 
-// Config holds configuration for the dikiruncleanup controller.
+// Config holds configuration for the garbagecollector controller.
 type Config struct {
 	Namespace string
 }
@@ -48,8 +48,8 @@ func (r *Reconciler) Reconcile(ctx context.Context, _ ctrl.Request) (ctrl.Result
 	}
 
 	scanPhases := make(map[string]v1alpha1.ComplianceScanPhase, len(complianceScanList.Items))
-	for i := range complianceScanList.Items {
-		scanPhases[string(complianceScanList.Items[i].UID)] = complianceScanList.Items[i].Status.Phase
+	for _, complianceScan := range complianceScanList.Items {
+		scanPhases[string(complianceScan.UID)] = complianceScan.Status.Phase
 	}
 
 	jobList := &batchv1.JobList{}

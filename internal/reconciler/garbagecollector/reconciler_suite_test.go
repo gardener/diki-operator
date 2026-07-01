@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDikiRunCleanupController(t *testing.T) {
+func TestGarbageCollectorController(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "DikiRunCleanup Controller Test Suite")
+	RunSpecs(t, "GarbageCollector Controller Test Suite")
 }
