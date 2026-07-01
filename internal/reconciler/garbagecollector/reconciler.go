@@ -6,7 +6,6 @@ package reconciler
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -57,7 +56,6 @@ func (r *Reconciler) Reconcile(ctx context.Context, _ ctrl.Request) (ctrl.Result
 		return reconcile.Result{}, fmt.Errorf("failed to list diki-run Jobs: %w", err)
 	}
 
-	var errs []error
 	for i := range jobList.Items {
 		job := &jobList.Items[i]
 		complianceScanUID := job.Labels[constants.LabelComplianceScanUID]
@@ -68,11 +66,11 @@ func (r *Reconciler) Reconcile(ctx context.Context, _ ctrl.Request) (ctrl.Result
 
 		log.Info("Deleting Job", "job", client.ObjectKeyFromObject(job), "complianceScanUID", complianceScanUID)
 		if err := r.Client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil && !apierrors.IsNotFound(err) {
-			errs = append(errs, fmt.Errorf("failed to delete Job %s: %w", client.ObjectKeyFromObject(job), err))
+			return reconcile.Result{}, fmt.Errorf("failed to delete Job %s: %w", client.ObjectKeyFromObject(job), err)
 		}
 	}
 
-	return reconcile.Result{RequeueAfter: r.Config.RequeueInterval}, errors.Join(errs...)
+	return reconcile.Result{RequeueAfter: r.Config.RequeueInterval}, nil
 }
 
 func shouldDeleteJob(scanPhases map[string]v1alpha1.ComplianceScanPhase, complianceScanUID string) bool {

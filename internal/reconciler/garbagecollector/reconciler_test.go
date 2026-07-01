@@ -176,37 +176,28 @@ var _ = Describe("Controller", func() {
 		Expect(res).To(Equal(reconcile.Result{}))
 	})
 
-	It("should continue processing other Jobs when one delete fails", func() {
+	It("should return error when deleting a Job fails", func() {
 		scan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
 		Expect(fakeClient.Create(ctx, scan)).To(Succeed())
 		Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
 
-		job1 := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
-		Expect(fakeClient.Create(ctx, job1)).To(Succeed())
+		job := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
+		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
-		job2 := newDikiRunJob("diki-run-uid-orphan2", jobNamespace, "uid-orphan2")
-		Expect(fakeClient.Create(ctx, job2)).To(Succeed())
-
-		deleteCallCount := 0
 		cr.Client = fake.NewClientBuilder().
 			WithScheme(scheme).
-			WithObjects(scan, job1, job2).
+			WithObjects(scan, job).
 			WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).
 			WithInterceptorFuncs(interceptor.Funcs{
-				Delete: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.DeleteOption) error {
-					deleteCallCount++
-					if deleteCallCount == 1 {
-						return errors.New("delete-failed")
-					}
-					return c.Delete(ctx, obj, opts...)
+				Delete: func(_ context.Context, _ client.WithWatch, _ client.Object, _ ...client.DeleteOption) error {
+					return errors.New("delete-failed")
 				},
 			}).Build()
 		Expect(cr.Client.Status().Update(ctx, scan)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).To(MatchError(ContainSubstring("delete-failed")))
-		Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
-		Expect(deleteCallCount).To(Equal(2))
+		Expect(res).To(Equal(reconcile.Result{}))
 	})
 })
 
