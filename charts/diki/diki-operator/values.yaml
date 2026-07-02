@@ -46,10 +46,14 @@ config:
     renewDeadline: 10s
     retryPeriod: 2s
     resourceLock: leases
+    # resourceNamespace defaults to the release namespace.
+    # resourceNamespace: kube-system
   controllers:
     complianceScan:
       syncPeriod: 1h
       dikiRunner:
+        # namespace defaults to the release namespace.
+        # namespace: kube-system
         waitInterval: 5s
         podCompletionTimeout: 10m
         execTimeout: 30s

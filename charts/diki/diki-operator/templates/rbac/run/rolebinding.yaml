@@ -6,7 +6,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: diki-runner
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace | default .Release.Namespace }}
   labels:
 {{ include "labels" . | indent 4 }}
 roleRef:
@@ -16,4 +16,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: diki-runner
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace | default .Release.Namespace }}
