@@ -57,3 +57,12 @@ config:
         waitInterval: 5s
         podCompletionTimeout: 10m
         execTimeout: 30s
+        # kubeconfig is used when the operator scans a different cluster than the one
+        # it runs on (e.g., operator on seed, target on shoot).
+        # When set, the chart template does not render these fields — they must be provided
+        # in the operator's configuration directly for remote deployments.
+        # kubeconfig:
+        #   secretRef:
+        #     name: target-cluster-kubeconfig
+        #   tokenSecretRef:
+        #     name: target-cluster-token

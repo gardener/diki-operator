@@ -75,13 +75,18 @@ type DikiRunnerConfig struct {
 	// PodCompletionTimeout is the maximum duration to wait for a DikiRunner pod to complete.
 	// +optional
 	PodCompletionTimeout *metav1.Duration `json:"podCompletionTimeout,omitempty"`
-	// KubeconfigSecretRef is a reference to a Secret containing a "kubeconfig" key
-	// with the target cluster's kubeconfig data. When set, the Job uses this kubeconfig
-	// instead of in-cluster credentials.
+	// Kubeconfig configures target cluster credentials for remote scanning.
+	// When set, the Job mounts a projected volume with the kubeconfig and optional token.
 	// +optional
-	KubeconfigSecretRef *SecretRef `json:"kubeconfigSecretRef,omitempty"`
-	// TokenSecretRef is a reference to a Secret containing a "token" key with a
-	// service account token. The kubeconfig may reference this token via its tokenFile field.
+	Kubeconfig *KubeconfigConfig `json:"kubeconfig,omitempty"`
+}
+
+// KubeconfigConfig holds references to Secrets for target cluster access.
+type KubeconfigConfig struct {
+	// SecretRef references a Secret containing the target cluster's kubeconfig.
+	SecretRef SecretRef `json:"secretRef"`
+	// TokenSecretRef optionally references a Secret containing a service account token
+	// that the kubeconfig may reference via its tokenFile field.
 	// +optional
 	TokenSecretRef *SecretRef `json:"tokenSecretRef,omitempty"`
 }
@@ -90,6 +95,10 @@ type DikiRunnerConfig struct {
 type SecretRef struct {
 	// Name is the name of the Secret.
 	Name string `json:"name"`
+	// Key is the key within the Secret to use. Defaults to "kubeconfig" or "token"
+	// depending on context.
+	// +optional
+	Key *string `json:"key,omitempty"`
 }
 
 // ServerConfiguration contains details for the HTTP(S) servers.

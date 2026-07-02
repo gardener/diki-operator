@@ -74,7 +74,7 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 		}
 	}
 
-	if r.Config.DikiRunner.KubeconfigSecretRef != nil {
+	if r.Config.DikiRunner.Kubeconfig != nil {
 		managedk8sProvider.Args = map[string]any{
 			"kubeconfigPath": KubeconfigFilePath,
 		}

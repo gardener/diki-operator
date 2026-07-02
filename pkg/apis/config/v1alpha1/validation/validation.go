@@ -67,20 +67,18 @@ func validateDikiRunner(dikiRunner v1alpha1.DikiRunnerConfig, fldPath *field.Pat
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("podCompletionTimeout"), dikiRunner.PodCompletionTimeout, "podCompletionTimeout must be greater than 0 and less than or equal to 1 hour"))
 	}
 
-	if dikiRunner.KubeconfigSecretRef != nil {
-		secretRefPath := fldPath.Child("kubeconfigSecretRef")
-		if dikiRunner.KubeconfigSecretRef.Name == "" {
+	if dikiRunner.Kubeconfig != nil {
+		kubeconfigPath := fldPath.Child("kubeconfig")
+		secretRefPath := kubeconfigPath.Child("secretRef")
+		if dikiRunner.Kubeconfig.SecretRef.Name == "" {
 			allErrs = append(allErrs, field.Required(secretRefPath.Child("name"), "secret name is required"))
 		}
-	}
 
-	if dikiRunner.TokenSecretRef != nil {
-		secretRefPath := fldPath.Child("tokenSecretRef")
-		if dikiRunner.TokenSecretRef.Name == "" {
-			allErrs = append(allErrs, field.Required(secretRefPath.Child("name"), "secret name is required"))
-		}
-		if dikiRunner.KubeconfigSecretRef == nil {
-			allErrs = append(allErrs, field.Invalid(secretRefPath, dikiRunner.TokenSecretRef, "tokenSecretRef requires kubeconfigSecretRef to be set"))
+		if dikiRunner.Kubeconfig.TokenSecretRef != nil {
+			tokenRefPath := kubeconfigPath.Child("tokenSecretRef")
+			if dikiRunner.Kubeconfig.TokenSecretRef.Name == "" {
+				allErrs = append(allErrs, field.Required(tokenRefPath.Child("name"), "secret name is required"))
+			}
 		}
 	}
 

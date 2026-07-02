@@ -150,16 +150,21 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 		},
 	}
 
-	if r.Config.DikiRunner.KubeconfigSecretRef != nil {
+	if r.Config.DikiRunner.Kubeconfig != nil {
+		kubeconfigKey := KubeconfigSecretKey
+		if r.Config.DikiRunner.Kubeconfig.SecretRef.Key != nil {
+			kubeconfigKey = *r.Config.DikiRunner.Kubeconfig.SecretRef.Key
+		}
+
 		projectedSources := []corev1.VolumeProjection{
 			{
 				Secret: &corev1.SecretProjection{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: r.Config.DikiRunner.KubeconfigSecretRef.Name,
+						Name: r.Config.DikiRunner.Kubeconfig.SecretRef.Name,
 					},
 					Items: []corev1.KeyToPath{
 						{
-							Key:  KubeconfigSecretKey,
+							Key:  kubeconfigKey,
 							Path: KubeconfigSecretKey,
 						},
 					},
@@ -168,15 +173,20 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			},
 		}
 
-		if r.Config.DikiRunner.TokenSecretRef != nil {
+		if r.Config.DikiRunner.Kubeconfig.TokenSecretRef != nil {
+			tokenKey := TokenSecretKey
+			if r.Config.DikiRunner.Kubeconfig.TokenSecretRef.Key != nil {
+				tokenKey = *r.Config.DikiRunner.Kubeconfig.TokenSecretRef.Key
+			}
+
 			projectedSources = append(projectedSources, corev1.VolumeProjection{
 				Secret: &corev1.SecretProjection{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: r.Config.DikiRunner.TokenSecretRef.Name,
+						Name: r.Config.DikiRunner.Kubeconfig.TokenSecretRef.Name,
 					},
 					Items: []corev1.KeyToPath{
 						{
-							Key:  TokenSecretKey,
+							Key:  tokenKey,
 							Path: TokenSecretKey,
 						},
 					},

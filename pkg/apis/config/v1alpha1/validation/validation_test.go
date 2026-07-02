@@ -137,63 +137,59 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 	})
 
 	Describe("SecretRef validation", func() {
-		It("should pass validation with valid kubeconfigSecretRef", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef = &v1alpha1.SecretRef{
-				Name: "target-kubeconfig",
+		It("should pass validation with valid kubeconfig secretRef", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+				SecretRef: v1alpha1.SecretRef{
+					Name: "target-kubeconfig",
+				},
 			}
 
 			errorList := ValidateDikiOperatorConfiguration(conf)
 			Expect(errorList).To(BeEmpty())
 		})
 
-		It("should pass validation with both kubeconfigSecretRef and tokenSecretRef", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef = &v1alpha1.SecretRef{
-				Name: "target-kubeconfig",
-			}
-			conf.Controllers.ComplianceScan.DikiRunner.TokenSecretRef = &v1alpha1.SecretRef{
-				Name: "target-token",
+		It("should pass validation with both kubeconfig secretRef and tokenSecretRef", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+				SecretRef: v1alpha1.SecretRef{
+					Name: "target-kubeconfig",
+				},
+				TokenSecretRef: &v1alpha1.SecretRef{
+					Name: "target-token",
+				},
 			}
 
 			errorList := ValidateDikiOperatorConfiguration(conf)
 			Expect(errorList).To(BeEmpty())
 		})
 
-		It("should fail validation when kubeconfigSecretRef has empty name", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef = &v1alpha1.SecretRef{
-				Name: "",
+		It("should fail validation when kubeconfig secretRef has empty name", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+				SecretRef: v1alpha1.SecretRef{
+					Name: "",
+				},
 			}
 
 			errorList := ValidateDikiOperatorConfiguration(conf)
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeRequired),
-				"Field": Equal("controllers.complianceScan.dikiRunner.kubeconfigSecretRef.name"),
+				"Field": Equal("controllers.complianceScan.dikiRunner.kubeconfig.secretRef.name"),
 			}))))
 		})
 
 		It("should fail validation when tokenSecretRef has empty name", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef = &v1alpha1.SecretRef{
-				Name: "target-kubeconfig",
-			}
-			conf.Controllers.ComplianceScan.DikiRunner.TokenSecretRef = &v1alpha1.SecretRef{
-				Name: "",
+			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+				SecretRef: v1alpha1.SecretRef{
+					Name: "target-kubeconfig",
+				},
+				TokenSecretRef: &v1alpha1.SecretRef{
+					Name: "",
+				},
 			}
 
 			errorList := ValidateDikiOperatorConfiguration(conf)
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeRequired),
-				"Field": Equal("controllers.complianceScan.dikiRunner.tokenSecretRef.name"),
-			}))))
-		})
-
-		It("should fail validation when tokenSecretRef is set without kubeconfigSecretRef", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.TokenSecretRef = &v1alpha1.SecretRef{
-				Name: "target-token",
-			}
-
-			errorList := ValidateDikiOperatorConfiguration(conf)
-			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
-				"Type":  Equal(field.ErrorTypeInvalid),
-				"Field": Equal("controllers.complianceScan.dikiRunner.tokenSecretRef"),
+				"Field": Equal("controllers.complianceScan.dikiRunner.kubeconfig.tokenSecretRef.name"),
 			}))))
 		})
 	})

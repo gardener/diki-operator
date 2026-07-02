@@ -106,7 +106,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	log.Info("Setting up manager")
 
 	var cacheOpts cache.Options
-	if cfg.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef == nil {
+	if cfg.Controllers.ComplianceScan.DikiRunner.Kubeconfig == nil {
 		cacheOpts.ByObject = map[client.Object]cache.ByObject{
 			&batchv1.Job{}: {Namespaces: map[string]cache.Config{
 				cfg.Controllers.ComplianceScan.DikiRunner.Namespace: {},
@@ -173,7 +173,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	}
 
 	var sourceClient client.Client
-	if cfg.Controllers.ComplianceScan.DikiRunner.KubeconfigSecretRef != nil {
+	if cfg.Controllers.ComplianceScan.DikiRunner.Kubeconfig != nil {
 		sourceConfig, err := rest.InClusterConfig()
 		if err != nil {
 			return fmt.Errorf("unable to get in-cluster config for source client: %w", err)
