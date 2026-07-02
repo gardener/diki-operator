@@ -69,7 +69,7 @@ server:
       serverCertDir: /etc/diki-operator/webhooks/tls
 leaderElection:
   resourceName: {{ include "leaderelectionid" . }}
-  resourceNamespace: {{ .Release.Namespace }}
+  resourceNamespace: {{ .Values.config.leaderElection.resourceNamespace | default .Release.Namespace }}
   {{- if .Values.config.leaderElection.leaderElect }}
   leaderElect: {{ .Values.config.leaderElection.leaderElect }}
   {{- end }}
