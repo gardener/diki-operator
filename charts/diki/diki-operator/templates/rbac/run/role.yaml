@@ -6,7 +6,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: runner.diki.gardener.cloud
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace | default .Release.Namespace }}
   labels:
 {{ include "labels" . | indent 4 }}
 rules:
