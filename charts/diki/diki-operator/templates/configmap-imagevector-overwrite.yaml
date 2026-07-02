@@ -1,0 +1,21 @@
+{{- if .Values.imageVectorOverwrite }}
+# SPDX-FileCopyrightText: SAP SE or an SAP affiliate company and Gardener contributors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diki-operator-imagevector-overwrite
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "labels" . | indent 4 }}
+data:
+  images_overwrite.yaml: |
+    images:
+    {{- if .Values.imageVectorOverwrite.reportExporter }}
+    - name: report-exporter
+      repository: {{ .Values.imageVectorOverwrite.reportExporter.repository }}
+      tag: {{ .Values.imageVectorOverwrite.reportExporter.tag | quote }}
+    {{- end }}
+{{- end }}

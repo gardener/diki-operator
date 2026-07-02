@@ -135,3 +135,13 @@ func (r *Reconciler) startDikiRunJob(ctx context.Context, job *batchv1.Job) erro
 	job.Spec.Suspend = ptr.To(false)
 	return r.Client.Patch(ctx, job, jobPatch)
 }
+
+func getFailedOutputs(complianceScan *v1alpha1.ComplianceScan) []string {
+	var failed []string
+	for _, output := range complianceScan.Status.Outputs {
+		if output.Phase == v1alpha1.OutputStatusFailed {
+			failed = append(failed, output.OutputName)
+		}
+	}
+	return failed
+}

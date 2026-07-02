@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
@@ -62,6 +63,16 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		for _, condition := range job.Status.Conditions {
 			if condition.Type == batchv1.JobComplete && condition.Status == corev1.ConditionTrue {
 				log.Info("Job completed successfully", "job", job.Name, "namespace", job.Namespace)
+
+				if err := r.Client.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan); err != nil {
+					return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log, fmt.Errorf("failed to get ComplianceScan status: %w", err))
+				}
+
+				if failedOutputs := getFailedOutputs(complianceScan); len(failedOutputs) > 0 {
+					return reconcile.Result{}, r.patchFailed(ctx, complianceScan, log,
+						fmt.Errorf("%d/%d output(s) failed: %s", len(failedOutputs), len(complianceScan.Status.Outputs), strings.Join(failedOutputs, ", ")))
+				}
+
 				return reconcile.Result{}, r.patchCompleted(ctx, complianceScan, log)
 			}
 
@@ -87,13 +98,18 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 func (r *Reconciler) deployResources(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger) error {
 	configMapName := ConfigMapNamePrefix + string(complianceScan.UID)
 
+	exporterConfig, err := r.buildExporterConfig(ctx, complianceScan)
+	if err != nil {
+		return fmt.Errorf("failed to build exporter config: %w", err)
+	}
+
 	job, err := r.deployDikiRunJob(ctx, complianceScan, configMapName)
 	if err != nil {
 		return err
 	}
 	log.Info("Created Job successfully", "job", job.Name, "namespace", job.Namespace)
 
-	configMap, err := r.deployDikiConfigMap(ctx, configMapName, complianceScan, job)
+	configMap, err := r.deployDikiConfigMap(ctx, configMapName, complianceScan, job, exporterConfig)
 	if err != nil {
 		return err
 	}
