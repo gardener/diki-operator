@@ -10,4 +10,4 @@ images:
   tag: "v0.24.0"
 - name: report-exporter
   sourceRepository: github.com/gardener/diki-operator
-  repository: europe-docker.pkg.dev/gardener-project/releases/gardener/report-exporter
+  repository: europe-docker.pkg.dev/gardener-project/releases/gardener/diki-operator/report-exporter
