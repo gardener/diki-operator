@@ -326,14 +326,35 @@ var _ = Describe("ReportExporter", func() {
 			Expect(err.Error()).To(ContainSubstring("failed to unmarshal ConfigMapOutput"))
 		})
 
-		It("should not export if ComplianceScan is already completed", func() {
+		It("should not export if ComplianceScan is not in Running phase", func() {
 			patch := client.MergeFrom(complianceScan.DeepCopy())
 			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
 			Expect(fakeClient.Status().Patch(ctx, complianceScan, patch)).To(Succeed())
 
 			err := exporter.Export(ctx)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("complianceScan is already completed"))
+			Expect(err.Error()).To(ContainSubstring("complianceScan is in phase"))
+			Expect(err.Error()).To(ContainSubstring(string(dikiv1alpha1.ComplianceScanRunning)))
+		})
+
+		It("should not export if ComplianceScan is in Pending phase", func() {
+			patch := client.MergeFrom(complianceScan.DeepCopy())
+			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanPending
+			Expect(fakeClient.Status().Patch(ctx, complianceScan, patch)).To(Succeed())
+
+			err := exporter.Export(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("complianceScan is in phase"))
+		})
+
+		It("should not export if ComplianceScan is in Failed phase", func() {
+			patch := client.MergeFrom(complianceScan.DeepCopy())
+			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanFailed
+			Expect(fakeClient.Status().Patch(ctx, complianceScan, patch)).To(Succeed())
+
+			err := exporter.Export(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("complianceScan is in phase"))
 		})
 
 		It("should return error if ComplianceScan does not exist", func() {

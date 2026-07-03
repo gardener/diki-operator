@@ -54,10 +54,9 @@ func (d *ReportExporter) Export(ctx context.Context) error {
 		return fmt.Errorf("error retrieving complianceScan: %w", err)
 	}
 
-	// If the ComplianceScan is already completed, we should not export the report again
-	// This is a safety check to prevent overwriting the report in case the exporter is restarted after the ComplianceScan has completed
-	if complianceScan.Status.Phase == dikiv1alpha1.ComplianceScanCompleted {
-		return fmt.Errorf("complianceScan is already completed, cannot export report")
+	// Only export the report when the ComplianceScan is in Running phase
+	if complianceScan.Status.Phase != dikiv1alpha1.ComplianceScanRunning {
+		return fmt.Errorf("complianceScan is in phase %q, expected %q", complianceScan.Status.Phase, dikiv1alpha1.ComplianceScanRunning)
 	}
 
 	if d.Config.WaitForReport {
