@@ -40,12 +40,12 @@ jobs:
             ocm-labels:
               name: gardener.cloud/cve-categorisation
               value:
-                network_exposure:
-                authentication_enforced:
-                user_interaction:
-                confidentiality_requirement:
-                integrity_requirement:
-                availability_requirement:
+                network_exposure: private
+                authentication_enforced: false
+                user_interaction: gardener-operator
+                confidentiality_requirement: high
+                integrity_requirement: high
+                availability_requirement: high
           - name: report-exporter
             target: report-exporter
             oci-repository: gardener/diki-operator/report-exporter
