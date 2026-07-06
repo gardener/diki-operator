@@ -19,6 +19,13 @@ type ReportExporterConfiguration struct {
 	ReportPath string `json:"reportPath"`
 	// ComplianceScanName is the name of the compliance scan, which generated the report.
 	ComplianceScanName string `json:"complianceScanName"`
+	// WaitForReport specifies whether the exporter should wait for the report file to appear before reading it.
+	// +optional
+	WaitForReport bool `json:"waitForReport,omitempty"`
+	// ReportWaitTimeout is the maximum duration to wait for the report file to appear.
+	// Only used when WaitForReport is true. If not set, the exporter waits indefinitely.
+	// +optional
+	ReportWaitTimeout *metav1.Duration `json:"reportWaitTimeout,omitempty"`
 	// Outputs contains the list of output configurations.
 	Outputs []Output `json:"outputs"`
 }

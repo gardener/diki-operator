@@ -35,3 +35,10 @@ rules:
   - configmaps
   verbs:
   - get
+- apiGroups:
+  - diki.gardener.cloud
+  resources:
+  - reportoutputs
+  verbs:
+  - get
+  - list

@@ -11,18 +11,26 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/component-base/version"
 	"k8s.io/utils/ptr"
 
 	"github.com/gardener/diki-operator/imagevector"
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-// deployDikiRunJob creates a Kubernetes Job that runs the diki compliance scan.
+// deployDikiRunJob creates a Kubernetes Job that runs the diki compliance scan
+// and exports the report to the configured outputs.
 func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, dikiConfigMapName string) (*batchv1.Job, error) {
 	dikiImage, err := imagevector.ImageVector().FindImage("diki")
 	if err != nil {
 		return nil, err
 	}
+
+	reportExporterImage, err := imagevector.ImageVector().FindImage("report-exporter")
+	if err != nil {
+		return nil, err
+	}
+	reportExporterImage.WithOptionalTag(version.Get().GitVersion)
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -45,10 +53,42 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 							Image: dikiImage.String(),
 							Args: []string{
 								"run",
-								fmt.Sprintf("--config=%s/config.yaml", DikiConfigMountPath),
+								fmt.Sprintf("--config=%s/%s", DikiConfigMountPath, DikiConfigKey),
 								"--all",
+								fmt.Sprintf("--output=%s/%s", ReportMountPath, ReportFileName),
 							},
 							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      DikiConfigVolumeName,
+									MountPath: DikiConfigMountPath,
+									ReadOnly:  true,
+								},
+								{
+									Name:      ReportVolumeName,
+									MountPath: ReportMountPath,
+								},
+							},
+							SecurityContext: &corev1.SecurityContext{
+								AllowPrivilegeEscalation: ptr.To(false),
+								ReadOnlyRootFilesystem:   ptr.To(true),
+								Privileged:               ptr.To(false),
+								Capabilities: &corev1.Capabilities{
+									Drop: []corev1.Capability{"ALL"},
+								},
+							},
+						},
+						{
+							Name:  ReportExporterContainerName,
+							Image: reportExporterImage.String(),
+							Args: []string{
+								fmt.Sprintf("--config=%s/%s", DikiConfigMountPath, ExporterConfigKey),
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      ReportVolumeName,
+									MountPath: ReportMountPath,
+									ReadOnly:  true,
+								},
 								{
 									Name:      DikiConfigVolumeName,
 									MountPath: DikiConfigMountPath,
@@ -77,8 +117,14 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 								},
 							},
 						},
+						{
+							Name: ReportVolumeName,
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
+							},
+						},
 					},
-					ServiceAccountName: ServiceAccountNameDikiRunner,
+					ServiceAccountName: ServiceAccountNameDikiRun,
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Tolerations: []corev1.Toleration{
 						{

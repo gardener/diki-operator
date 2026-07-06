@@ -46,6 +46,18 @@ jobs:
                 confidentiality_requirement:
                 integrity_requirement:
                 availability_requirement:
+          - name: report-exporter
+            target: report-exporter
+            oci-repository: gardener/diki-operator/report-exporter
+            ocm-labels:
+              name: gardener.cloud/cve-categorisation
+              value:
+                network_exposure: private
+                authentication_enforced: false
+                user_interaction: gardener-operator
+                confidentiality_requirement: high
+                integrity_requirement: high
+                availability_requirement: none
     with:
       name: ${{ matrix.args.name }}
       version: ${{ needs.prepare.outputs.version }}

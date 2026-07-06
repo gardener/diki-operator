@@ -10,6 +10,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"time"
 
 	dikireport "github.com/gardener/diki/pkg/report"
 	"github.com/gardener/diki/pkg/rule"
@@ -324,14 +325,35 @@ var _ = Describe("ReportExporter", func() {
 			Expect(err.Error()).To(ContainSubstring("failed to unmarshal ConfigMapOutput"))
 		})
 
-		It("should not export if ComplianceScan is already completed", func() {
+		It("should not export if ComplianceScan is not in Running phase", func() {
 			patch := client.MergeFrom(complianceScan.DeepCopy())
 			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
 			Expect(fakeClient.Status().Patch(ctx, complianceScan, patch)).To(Succeed())
 
 			err := exporter.Export(ctx)
 			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(ContainSubstring("complianceScan is already completed"))
+			Expect(err.Error()).To(ContainSubstring("complianceScan is in phase"))
+			Expect(err.Error()).To(ContainSubstring(string(dikiv1alpha1.ComplianceScanRunning)))
+		})
+
+		It("should not export if ComplianceScan is in Pending phase", func() {
+			patch := client.MergeFrom(complianceScan.DeepCopy())
+			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanPending
+			Expect(fakeClient.Status().Patch(ctx, complianceScan, patch)).To(Succeed())
+
+			err := exporter.Export(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("complianceScan is in phase"))
+		})
+
+		It("should not export if ComplianceScan is in Failed phase", func() {
+			patch := client.MergeFrom(complianceScan.DeepCopy())
+			complianceScan.Status.Phase = dikiv1alpha1.ComplianceScanFailed
+			Expect(fakeClient.Status().Patch(ctx, complianceScan, patch)).To(Succeed())
+
+			err := exporter.Export(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("complianceScan is in phase"))
 		})
 
 		It("should return error if ComplianceScan does not exist", func() {
@@ -344,10 +366,82 @@ var _ = Describe("ReportExporter", func() {
 
 		It("should return error if report file does not exist", func() {
 			exporter.Config.ReportPath = filepath.Join(tempDir, "non-existent-report.json")
+			exporter.Config.WaitForReport = true
+
+			ctxWithTimeout, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+			defer cancel()
+
+			err := exporter.Export(ctxWithTimeout)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("timed out waiting for report file"))
+		})
+
+		It("should return error when ReportWaitTimeout expires", func() {
+			cleanup := reportexporter.SetReportFilePollInterval(50 * time.Millisecond)
+			defer cleanup()
+
+			exporter.Config.ReportPath = filepath.Join(tempDir, "non-existent-report.json")
+			exporter.Config.WaitForReport = true
+			exporter.Config.ReportWaitTimeout = &metav1.Duration{Duration: 150 * time.Millisecond}
+
+			err := exporter.Export(ctx)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("timed out waiting for report file"))
+		})
+
+		It("should succeed when report file appears before ReportWaitTimeout", func() {
+			cleanup := reportexporter.SetReportFilePollInterval(50 * time.Millisecond)
+			defer cleanup()
+
+			delayedReportPath := filepath.Join(tempDir, "timeout-report.json")
+			exporter.Config.ReportPath = delayedReportPath
+			exporter.Config.WaitForReport = true
+			exporter.Config.ReportWaitTimeout = &metav1.Duration{Duration: 2 * time.Second}
+
+			go func() {
+				time.Sleep(200 * time.Millisecond)
+				reportData, err := json.Marshal(dikiReport)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(os.WriteFile(delayedReportPath, reportData, 0600)).To(Succeed())
+			}()
+
+			err := exporter.Export(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			updatedScan := &dikiv1alpha1.ComplianceScan{}
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, updatedScan)).To(Succeed())
+			Expect(updatedScan.Status.Rulesets).To(HaveLen(1))
+		})
+
+		It("should return error immediately if report file does not exist and WaitForReport is false", func() {
+			exporter.Config.ReportPath = filepath.Join(tempDir, "non-existent-report.json")
 
 			err := exporter.Export(ctx)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("error reading report file"))
+		})
+
+		It("should wait for report file to appear when WaitForReport is true", func() {
+			cleanup := reportexporter.SetReportFilePollInterval(50 * time.Millisecond)
+			defer cleanup()
+
+			delayedReportPath := filepath.Join(tempDir, "delayed-report.json")
+			exporter.Config.ReportPath = delayedReportPath
+			exporter.Config.WaitForReport = true
+
+			go func() {
+				time.Sleep(200 * time.Millisecond)
+				reportData, err := json.Marshal(dikiReport)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(os.WriteFile(delayedReportPath, reportData, 0600)).To(Succeed())
+			}()
+
+			err := exporter.Export(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			updatedScan := &dikiv1alpha1.ComplianceScan{}
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, updatedScan)).To(Succeed())
+			Expect(updatedScan.Status.Rulesets).To(HaveLen(1))
 		})
 
 		It("should return error if report file contains invalid JSON", func() {
