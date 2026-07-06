@@ -212,6 +212,21 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 				ReadOnly:  true,
 			},
 		)
+		job.Spec.Template.Spec.Containers[1].VolumeMounts = append(
+			job.Spec.Template.Spec.Containers[1].VolumeMounts,
+			corev1.VolumeMount{
+				Name:      KubeconfigVolumeName,
+				MountPath: KubeconfigMountPath,
+				ReadOnly:  true,
+			},
+		)
+		job.Spec.Template.Spec.Containers[1].Env = append(
+			job.Spec.Template.Spec.Containers[1].Env,
+			corev1.EnvVar{
+				Name:  "KUBECONFIG",
+				Value: KubeconfigFilePath,
+			},
+		)
 	}
 
 	if err := r.SourceClient.Create(ctx, job); err != nil {

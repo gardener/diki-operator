@@ -403,6 +403,15 @@ var _ = Describe("Controller", func() {
 					"MountPath": Equal("/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig"),
 					"ReadOnly":  BeTrue(),
 				})))
+				Expect(job.Spec.Template.Spec.Containers[1].VolumeMounts).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+					"Name":      Equal("kubeconfig"),
+					"MountPath": Equal("/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig"),
+					"ReadOnly":  BeTrue(),
+				})))
+				Expect(job.Spec.Template.Spec.Containers[1].Env).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+					"Name":  Equal("KUBECONFIG"),
+					"Value": Equal("/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig"),
+				})))
 			})
 
 			It("should create a Job with projected volume containing both kubeconfig and token when both refs are set", func() {
@@ -461,6 +470,15 @@ var _ = Describe("Controller", func() {
 					"Name":      Equal("kubeconfig"),
 					"MountPath": Equal("/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig"),
 					"ReadOnly":  BeTrue(),
+				})))
+				Expect(job.Spec.Template.Spec.Containers[1].VolumeMounts).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+					"Name":      Equal("kubeconfig"),
+					"MountPath": Equal("/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig"),
+					"ReadOnly":  BeTrue(),
+				})))
+				Expect(job.Spec.Template.Spec.Containers[1].Env).To(ContainElement(MatchFields(IgnoreExtras, Fields{
+					"Name":  Equal("KUBECONFIG"),
+					"Value": Equal("/var/run/secrets/gardener.cloud/shoot/generic-kubeconfig/kubeconfig"),
 				})))
 			})
 		})
