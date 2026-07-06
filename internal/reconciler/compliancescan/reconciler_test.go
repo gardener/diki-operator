@@ -565,6 +565,7 @@ var _ = Describe("Controller", func() {
 
 			fakeClient = fakeClientBuilder.WithObjects(complianceScan, dikiRunJob).Build()
 			cr.Client = fakeClient
+			cr.SourceClient = fakeClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
@@ -592,6 +593,7 @@ var _ = Describe("Controller", func() {
 
 			fakeClient = fakeClientBuilder.WithObjects(complianceScan, dikiRunJob).Build()
 			cr.Client = fakeClient
+			cr.SourceClient = fakeClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
@@ -619,6 +621,7 @@ var _ = Describe("Controller", func() {
 
 			fakeClient = fakeClientBuilder.WithObjects(complianceScan, dikiRunJob).Build()
 			cr.Client = fakeClient
+			cr.SourceClient = fakeClient
 
 			res, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
