@@ -201,6 +201,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	}
 	// Setup GarbageCollector controller
 	if err := (&garbagecollector.Reconciler{
+		SourceClient: sourceClient,
 		Config: garbagecollector.Config{
 			Namespace:       cfg.Controllers.ComplianceScan.DikiRunner.Namespace,
 			RequeueInterval: 2 * time.Minute,

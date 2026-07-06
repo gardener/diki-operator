@@ -27,6 +27,9 @@ func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if r.Client == nil {
 		r.Client = mgr.GetClient()
 	}
+	if r.SourceClient == nil {
+		r.SourceClient = mgr.GetClient()
+	}
 
 	return builder.ControllerManagedBy(mgr).
 		Named(ControllerName).

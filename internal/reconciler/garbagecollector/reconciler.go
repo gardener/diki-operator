@@ -29,8 +29,9 @@ type Config struct {
 
 // Reconciler periodically cleans up diki-run Jobs that are no longer needed.
 type Reconciler struct {
-	Client client.Client
-	Config Config
+	Client       client.Client
+	SourceClient client.Client
+	Config       Config
 }
 
 // Reconcile lists all diki-run Jobs and deletes those linked to a ComplianceScan
@@ -49,7 +50,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, _ ctrl.Request) (ctrl.Result
 	}
 
 	jobList := &batchv1.JobList{}
-	if err := r.Client.List(ctx, jobList,
+	if err := r.SourceClient.List(ctx, jobList,
 		client.InNamespace(r.Config.Namespace),
 		client.HasLabels{constants.LabelComplianceScanUID},
 	); err != nil {
@@ -65,7 +66,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, _ ctrl.Request) (ctrl.Result
 		}
 
 		log.Info("Deleting Job", "job", client.ObjectKeyFromObject(job), "complianceScanUID", complianceScanUID)
-		if err := r.Client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil && !apierrors.IsNotFound(err) {
+		if err := r.SourceClient.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil && !apierrors.IsNotFound(err) {
 			return reconcile.Result{}, fmt.Errorf("failed to delete Job %s: %w", client.ObjectKeyFromObject(job), err)
 		}
 	}
