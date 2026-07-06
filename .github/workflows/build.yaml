@@ -42,7 +42,7 @@ jobs:
               value:
                 network_exposure: private
                 authentication_enforced: false
-                user_interaction: gardener-operator
+                user_interaction: end-user
                 confidentiality_requirement: high
                 integrity_requirement: high
                 availability_requirement: low
