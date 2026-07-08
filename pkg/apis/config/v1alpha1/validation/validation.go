@@ -5,6 +5,7 @@
 package validation
 
 import (
+	"path/filepath"
 	"time"
 
 	"github.com/gardener/gardener/pkg/logger"
@@ -72,6 +73,10 @@ func validateDikiRunner(dikiRunner v1alpha1.DikiRunnerConfig, fldPath *field.Pat
 		secretRefPath := kubeconfigPath.Child("secretRef")
 		if dikiRunner.Kubeconfig.SecretRef.Name == "" {
 			allErrs = append(allErrs, field.Required(secretRefPath.Child("name"), "secret name is required"))
+		}
+
+		if dikiRunner.Kubeconfig.MountPath != "" && !filepath.IsAbs(dikiRunner.Kubeconfig.MountPath) {
+			allErrs = append(allErrs, field.Invalid(kubeconfigPath.Child("mountPath"), dikiRunner.Kubeconfig.MountPath, "must be an absolute path"))
 		}
 
 		if dikiRunner.Kubeconfig.TokenSecretRef != nil {

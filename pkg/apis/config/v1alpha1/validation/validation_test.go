@@ -192,6 +192,34 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 				"Field": Equal("controllers.complianceScan.dikiRunner.kubeconfig.tokenSecretRef.name"),
 			}))))
 		})
+
+		It("should pass validation with valid absolute mountPath", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+				SecretRef: v1alpha1.SecretRef{
+					Name: "target-kubeconfig",
+				},
+				MountPath: "/var/run/secrets/my-kubeconfig",
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(BeEmpty())
+		})
+
+		It("should fail validation when mountPath is not an absolute path", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+				SecretRef: v1alpha1.SecretRef{
+					Name: "target-kubeconfig",
+				},
+				MountPath: "relative/path",
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":     Equal(field.ErrorTypeInvalid),
+				"Field":    Equal("controllers.complianceScan.dikiRunner.kubeconfig.mountPath"),
+				"BadValue": Equal("relative/path"),
+			}))))
+		})
 	})
 
 	Describe("ServerConfiguration", func() {

@@ -208,7 +208,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			job.Spec.Template.Spec.Containers[0].VolumeMounts,
 			corev1.VolumeMount{
 				Name:      KubeconfigVolumeName,
-				MountPath: KubeconfigMountPath,
+				MountPath: r.Config.DikiRunner.Kubeconfig.MountPath,
 				ReadOnly:  true,
 			},
 		)
@@ -216,7 +216,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			job.Spec.Template.Spec.Containers[1].VolumeMounts,
 			corev1.VolumeMount{
 				Name:      KubeconfigVolumeName,
-				MountPath: KubeconfigMountPath,
+				MountPath: r.Config.DikiRunner.Kubeconfig.MountPath,
 				ReadOnly:  true,
 			},
 		)
@@ -224,7 +224,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			job.Spec.Template.Spec.Containers[1].Env,
 			corev1.EnvVar{
 				Name:  "KUBECONFIG",
-				Value: KubeconfigFilePath,
+				Value: fmt.Sprintf("%s/%s", r.Config.DikiRunner.Kubeconfig.MountPath, KubeconfigSecretKey),
 			},
 		)
 	}

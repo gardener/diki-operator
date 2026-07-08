@@ -20,6 +20,8 @@ const (
 	DefaultDikiRunnerNamespace = "kube-system"
 	// DefaultPodCompletionTimeout is the default maximum duration to wait for pod completion.
 	DefaultPodCompletionTimeout = 10 * time.Minute
+	// DefaultKubeconfigMountPath is the default mount path for the projected kubeconfig volume in the Job pod.
+	DefaultKubeconfigMountPath = "/var/run/secrets/target-cluster/kubeconfig"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -89,6 +91,10 @@ type KubeconfigConfig struct {
 	// that the kubeconfig may reference via its tokenFile field.
 	// +optional
 	TokenSecretRef *SecretRef `json:"tokenSecretRef,omitempty"`
+	// MountPath is the mount path for the projected kubeconfig volume in the Job pod.
+	// Defaults to "/var/run/secrets/target-cluster/kubeconfig".
+	// +optional
+	MountPath string `json:"mountPath,omitempty"`
 }
 
 // SecretRef is a reference to a Secret that resides in the same namespace as the diki runner Job.

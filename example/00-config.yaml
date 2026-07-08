@@ -20,6 +20,7 @@ kind: DikiOperatorConfiguration
 #           name: target-cluster-kubeconfig
 #         tokenSecretRef:
 #           name: target-cluster-token
+#         mountPath: /var/run/secrets/target-cluster/kubeconfig
 # server:
 #   healthProbes:
 #     port: 8081
