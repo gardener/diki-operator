@@ -14,7 +14,7 @@ tool (
 go 1.26.0
 
 require (
-	github.com/gardener/diki v0.26.0
+	github.com/gardener/diki v0.27.0
 	github.com/gardener/gardener v1.145.0
 	github.com/go-logr/logr v1.4.4
 	github.com/onsi/ginkgo/v2 v2.32.0
@@ -85,7 +85,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gardener/cert-management v0.23.0 // indirect
 	github.com/gardener/etcd-druid/api v0.36.4 // indirect
-	github.com/gardener/gardener/pkg/apis v1.143.0 // indirect
+	github.com/gardener/gardener/pkg/apis v1.145.0 // indirect
 	github.com/gardener/machine-controller-manager v0.61.3 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
