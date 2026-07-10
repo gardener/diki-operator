@@ -6,13 +6,31 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: diki-operator
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "diki-runner.namespace" . }}
   labels:
 {{ include "labels" . | indent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: diki-operator
+subjects:
+- kind: ServiceAccount
+  name: diki-operator
+  namespace: {{ .Release.Namespace }}
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: diki-operator-leader-election
+  namespace: {{ include "leaderelection.namespace" . }}
+  labels:
+{{ include "labels" . | indent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: diki-operator-leader-election
 subjects:
 - kind: ServiceAccount
   name: diki-operator

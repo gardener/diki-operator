@@ -18,6 +18,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	batchv1 "k8s.io/api/batch/v1"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	componentbaseconfigv1alpha1 "k8s.io/component-base/config/v1alpha1"
 	"k8s.io/component-base/version"
@@ -27,6 +28,7 @@ import (
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	controllerconfig "sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -118,8 +120,10 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		RetryPeriod:                   &cfg.LeaderElection.RetryPeriod.Duration,
 
 		Cache: cache.Options{
-			DefaultNamespaces: map[string]cache.Config{
-				cfg.Controllers.ComplianceScan.DikiRunner.Namespace: {},
+			ByObject: map[client.Object]cache.ByObject{
+				&batchv1.Job{}: {Namespaces: map[string]cache.Config{
+					cfg.Controllers.ComplianceScan.DikiRunner.Namespace: {},
+				}},
 			},
 		},
 
