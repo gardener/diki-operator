@@ -6,7 +6,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: diki-operator-leader-election
-  namespace: {{ include "leaderelectionnamespace" . }}
+  namespace: {{ include "leaderelection.namespace" . }}
   labels:
 {{ include "labels" . | indent 4 }}
 rules:
