@@ -6,6 +6,14 @@ diki-operator
 diki-operator-leader-election
 {{- end -}}
 
+{{- define "dikirunnernamespace" -}}
+{{ .Values.config.controllers.complianceScan.dikiRunner.namespace | default .Release.Namespace }}
+{{- end -}}
+
+{{- define "leaderelectionnamespace" -}}
+{{ .Values.config.leaderElection.resourceNamespace | default .Release.Namespace }}
+{{- end -}}
+
 {{- define "labels.app.key" -}}
 app.kubernetes.io/name
 {{- end -}}
@@ -50,11 +58,7 @@ controllers:
       waitInterval: {{ .Values.config.controllers.complianceScan.dikiRunner.waitInterval }}
       podCompletionTimeout: {{ .Values.config.controllers.complianceScan.dikiRunner.podCompletionTimeout }}
       execTimeout: {{ .Values.config.controllers.complianceScan.dikiRunner.execTimeout }}
-      {{- if .Values.config.controllers.complianceScan.dikiRunner.namespace }}
-      namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace }}
-      {{- else }}
-      namespace: {{ .Release.Namespace }}
-      {{- end }}
+      namespace: {{ include "dikirunnernamespace" . }}
 server:
   healthProbes:
     port: {{ .Values.config.server.healthProbes.port }}
@@ -69,7 +73,7 @@ server:
       serverCertDir: /etc/diki-operator/webhooks/tls
 leaderElection:
   resourceName: {{ include "leaderelectionid" . }}
-  resourceNamespace: {{ .Values.config.leaderElection.resourceNamespace | default .Release.Namespace }}
+  resourceNamespace: {{ include "leaderelectionnamespace" . }}
   {{- if .Values.config.leaderElection.leaderElect }}
   leaderElect: {{ .Values.config.leaderElection.leaderElect }}
   {{- end }}

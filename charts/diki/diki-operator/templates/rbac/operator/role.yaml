@@ -6,7 +6,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: diki-operator
-  namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace | default .Release.Namespace }}
+  namespace: {{ include "dikirunnernamespace" . }}
   labels:
 {{ include "labels" . | indent 4 }}
 rules:
