@@ -35,6 +35,8 @@ rules:
   - configmaps
   verbs:
   - get
+  - list
+  - watch
 - apiGroups:
   - diki.gardener.cloud
   resources:
@@ -42,3 +44,4 @@ rules:
   verbs:
   - get
   - list
+  - watch
