@@ -68,20 +68,20 @@ func validateDikiRunner(dikiRunner v1alpha1.DikiRunnerConfig, fldPath *field.Pat
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("podCompletionTimeout"), dikiRunner.PodCompletionTimeout, "podCompletionTimeout must be greater than 0 and less than or equal to 1 hour"))
 	}
 
-	if dikiRunner.Kubeconfig != nil {
-		kubeconfigPath := fldPath.Child("kubeconfig")
+	if dikiRunner.TargetKubeconfig != nil {
+		kubeconfigPath := fldPath.Child("targetKubeconfig")
 		secretRefPath := kubeconfigPath.Child("secretRef")
-		if dikiRunner.Kubeconfig.SecretRef.Name == "" {
+		if dikiRunner.TargetKubeconfig.SecretRef.Name == "" {
 			allErrs = append(allErrs, field.Required(secretRefPath.Child("name"), "secret name is required"))
 		}
 
-		if dikiRunner.Kubeconfig.MountPath != "" && !filepath.IsAbs(dikiRunner.Kubeconfig.MountPath) {
-			allErrs = append(allErrs, field.Invalid(kubeconfigPath.Child("mountPath"), dikiRunner.Kubeconfig.MountPath, "must be an absolute path"))
+		if dikiRunner.TargetKubeconfig.MountPath != "" && !filepath.IsAbs(dikiRunner.TargetKubeconfig.MountPath) {
+			allErrs = append(allErrs, field.Invalid(kubeconfigPath.Child("mountPath"), dikiRunner.TargetKubeconfig.MountPath, "must be an absolute path"))
 		}
 
-		if dikiRunner.Kubeconfig.TokenSecretRef != nil {
+		if dikiRunner.TargetKubeconfig.TokenSecretRef != nil {
 			tokenRefPath := kubeconfigPath.Child("tokenSecretRef")
-			if dikiRunner.Kubeconfig.TokenSecretRef.Name == "" {
+			if dikiRunner.TargetKubeconfig.TokenSecretRef.Name == "" {
 				allErrs = append(allErrs, field.Required(tokenRefPath.Child("name"), "secret name is required"))
 			}
 		}

@@ -150,17 +150,17 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 		},
 	}
 
-	if r.Config.DikiRunner.Kubeconfig != nil {
+	if r.Config.DikiRunner.TargetKubeconfig != nil {
 		kubeconfigKey := KubeconfigSecretKey
-		if r.Config.DikiRunner.Kubeconfig.SecretRef.Key != nil {
-			kubeconfigKey = *r.Config.DikiRunner.Kubeconfig.SecretRef.Key
+		if r.Config.DikiRunner.TargetKubeconfig.SecretRef.Key != nil {
+			kubeconfigKey = *r.Config.DikiRunner.TargetKubeconfig.SecretRef.Key
 		}
 
 		projectedSources := []corev1.VolumeProjection{
 			{
 				Secret: &corev1.SecretProjection{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: r.Config.DikiRunner.Kubeconfig.SecretRef.Name,
+						Name: r.Config.DikiRunner.TargetKubeconfig.SecretRef.Name,
 					},
 					Items: []corev1.KeyToPath{
 						{
@@ -173,16 +173,16 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			},
 		}
 
-		if r.Config.DikiRunner.Kubeconfig.TokenSecretRef != nil {
+		if r.Config.DikiRunner.TargetKubeconfig.TokenSecretRef != nil {
 			tokenKey := TokenSecretKey
-			if r.Config.DikiRunner.Kubeconfig.TokenSecretRef.Key != nil {
-				tokenKey = *r.Config.DikiRunner.Kubeconfig.TokenSecretRef.Key
+			if r.Config.DikiRunner.TargetKubeconfig.TokenSecretRef.Key != nil {
+				tokenKey = *r.Config.DikiRunner.TargetKubeconfig.TokenSecretRef.Key
 			}
 
 			projectedSources = append(projectedSources, corev1.VolumeProjection{
 				Secret: &corev1.SecretProjection{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: r.Config.DikiRunner.Kubeconfig.TokenSecretRef.Name,
+						Name: r.Config.DikiRunner.TargetKubeconfig.TokenSecretRef.Name,
 					},
 					Items: []corev1.KeyToPath{
 						{
@@ -208,7 +208,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			job.Spec.Template.Spec.Containers[0].VolumeMounts,
 			corev1.VolumeMount{
 				Name:      KubeconfigVolumeName,
-				MountPath: r.Config.DikiRunner.Kubeconfig.MountPath,
+				MountPath: r.Config.DikiRunner.TargetKubeconfig.MountPath,
 				ReadOnly:  true,
 			},
 		)
@@ -216,7 +216,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			job.Spec.Template.Spec.Containers[1].VolumeMounts,
 			corev1.VolumeMount{
 				Name:      KubeconfigVolumeName,
-				MountPath: r.Config.DikiRunner.Kubeconfig.MountPath,
+				MountPath: r.Config.DikiRunner.TargetKubeconfig.MountPath,
 				ReadOnly:  true,
 			},
 		)
@@ -224,7 +224,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			job.Spec.Template.Spec.Containers[1].Env,
 			corev1.EnvVar{
 				Name:  "KUBECONFIG",
-				Value: fmt.Sprintf("%s/%s", r.Config.DikiRunner.Kubeconfig.MountPath, KubeconfigSecretKey),
+				Value: fmt.Sprintf("%s/%s", r.Config.DikiRunner.TargetKubeconfig.MountPath, KubeconfigSecretKey),
 			},
 		)
 	}

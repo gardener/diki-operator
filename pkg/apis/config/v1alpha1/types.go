@@ -77,10 +77,10 @@ type DikiRunnerConfig struct {
 	// PodCompletionTimeout is the maximum duration to wait for a DikiRunner pod to complete.
 	// +optional
 	PodCompletionTimeout *metav1.Duration `json:"podCompletionTimeout,omitempty"`
-	// Kubeconfig configures target cluster credentials for remote scanning.
+	// TargetKubeconfig configures target cluster credentials for remote scanning.
 	// When set, the Job mounts a projected volume with the kubeconfig and optional token.
 	// +optional
-	Kubeconfig *KubeconfigConfig `json:"kubeconfig,omitempty"`
+	TargetKubeconfig *KubeconfigConfig `json:"targetKubeconfig,omitempty"`
 }
 
 // KubeconfigConfig holds references to Secrets for target cluster access.

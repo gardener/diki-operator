@@ -137,8 +137,8 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 	})
 
 	Describe("SecretRef validation", func() {
-		It("should pass validation with valid kubeconfig secretRef", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+		It("should pass validation with valid targetKubeconfig secretRef", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.TargetKubeconfig = &v1alpha1.KubeconfigConfig{
 				SecretRef: v1alpha1.SecretRef{
 					Name: "target-kubeconfig",
 				},
@@ -148,8 +148,8 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			Expect(errorList).To(BeEmpty())
 		})
 
-		It("should pass validation with both kubeconfig secretRef and tokenSecretRef", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+		It("should pass validation with both targetKubeconfig secretRef and tokenSecretRef", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.TargetKubeconfig = &v1alpha1.KubeconfigConfig{
 				SecretRef: v1alpha1.SecretRef{
 					Name: "target-kubeconfig",
 				},
@@ -162,8 +162,8 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			Expect(errorList).To(BeEmpty())
 		})
 
-		It("should fail validation when kubeconfig secretRef has empty name", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+		It("should fail validation when targetKubeconfig secretRef has empty name", func() {
+			conf.Controllers.ComplianceScan.DikiRunner.TargetKubeconfig = &v1alpha1.KubeconfigConfig{
 				SecretRef: v1alpha1.SecretRef{
 					Name: "",
 				},
@@ -172,12 +172,12 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			errorList := ValidateDikiOperatorConfiguration(conf)
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeRequired),
-				"Field": Equal("controllers.complianceScan.dikiRunner.kubeconfig.secretRef.name"),
+				"Field": Equal("controllers.complianceScan.dikiRunner.targetKubeconfig.secretRef.name"),
 			}))))
 		})
 
 		It("should fail validation when tokenSecretRef has empty name", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+			conf.Controllers.ComplianceScan.DikiRunner.TargetKubeconfig = &v1alpha1.KubeconfigConfig{
 				SecretRef: v1alpha1.SecretRef{
 					Name: "target-kubeconfig",
 				},
@@ -189,12 +189,12 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			errorList := ValidateDikiOperatorConfiguration(conf)
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeRequired),
-				"Field": Equal("controllers.complianceScan.dikiRunner.kubeconfig.tokenSecretRef.name"),
+				"Field": Equal("controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef.name"),
 			}))))
 		})
 
 		It("should pass validation with valid absolute mountPath", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+			conf.Controllers.ComplianceScan.DikiRunner.TargetKubeconfig = &v1alpha1.KubeconfigConfig{
 				SecretRef: v1alpha1.SecretRef{
 					Name: "target-kubeconfig",
 				},
@@ -206,7 +206,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 		})
 
 		It("should fail validation when mountPath is not an absolute path", func() {
-			conf.Controllers.ComplianceScan.DikiRunner.Kubeconfig = &v1alpha1.KubeconfigConfig{
+			conf.Controllers.ComplianceScan.DikiRunner.TargetKubeconfig = &v1alpha1.KubeconfigConfig{
 				SecretRef: v1alpha1.SecretRef{
 					Name: "target-kubeconfig",
 				},
@@ -216,7 +216,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			errorList := ValidateDikiOperatorConfiguration(conf)
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":     Equal(field.ErrorTypeInvalid),
-				"Field":    Equal("controllers.complianceScan.dikiRunner.kubeconfig.mountPath"),
+				"Field":    Equal("controllers.complianceScan.dikiRunner.targetKubeconfig.mountPath"),
 				"BadValue": Equal("relative/path"),
 			}))))
 		})

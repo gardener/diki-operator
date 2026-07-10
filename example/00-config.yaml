@@ -15,7 +15,7 @@ kind: DikiOperatorConfiguration
 #     dikiRunner:
 #       podCompletionTimeout: 10m
 #       namespace: kube-system
-#       kubeconfig:
+#       targetKubeconfig:
 #         secretRef:
 #           name: target-cluster-kubeconfig
 #         tokenSecretRef:

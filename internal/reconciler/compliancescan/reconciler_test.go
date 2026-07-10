@@ -364,7 +364,7 @@ var _ = Describe("Controller", func() {
 			})
 
 			It("should create a Job with kubeconfig projected volume when kubeconfig is set", func() {
-				cr.Config.DikiRunner.Kubeconfig = &configv1alpha1.KubeconfigConfig{
+				cr.Config.DikiRunner.TargetKubeconfig = &configv1alpha1.KubeconfigConfig{
 					SecretRef: configv1alpha1.SecretRef{
 						Name: "target-kubeconfig",
 					},
@@ -416,7 +416,7 @@ var _ = Describe("Controller", func() {
 			})
 
 			It("should create a Job with projected volume containing both kubeconfig and token when both refs are set", func() {
-				cr.Config.DikiRunner.Kubeconfig = &configv1alpha1.KubeconfigConfig{
+				cr.Config.DikiRunner.TargetKubeconfig = &configv1alpha1.KubeconfigConfig{
 					SecretRef: configv1alpha1.SecretRef{
 						Name: "target-kubeconfig",
 					},
@@ -858,7 +858,7 @@ var _ = Describe("Controller", func() {
 		})
 
 		It("should create a diki config ConfigMap with kubeconfigPath when kubeconfig is set", func() {
-			cr.Config.DikiRunner.Kubeconfig = &configv1alpha1.KubeconfigConfig{
+			cr.Config.DikiRunner.TargetKubeconfig = &configv1alpha1.KubeconfigConfig{
 				SecretRef: configv1alpha1.SecretRef{
 					Name: "target-kubeconfig",
 				},
@@ -882,7 +882,7 @@ var _ = Describe("Controller", func() {
 		})
 
 		It("should create a diki config ConfigMap with custom kubeconfigPath when non-default mount path is set", func() {
-			cr.Config.DikiRunner.Kubeconfig = &configv1alpha1.KubeconfigConfig{
+			cr.Config.DikiRunner.TargetKubeconfig = &configv1alpha1.KubeconfigConfig{
 				SecretRef: configv1alpha1.SecretRef{
 					Name: "target-kubeconfig",
 				},
