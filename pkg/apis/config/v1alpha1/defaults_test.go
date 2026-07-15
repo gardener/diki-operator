@@ -134,6 +134,35 @@ var _ = Describe("Defaults", func() {
 				Expect(obj.PodCompletionTimeout).To(Equal(&metav1.Duration{Duration: 10 * time.Second}))
 			})
 		})
+
+		Context("TargetKubeconfig.MountPath", func() {
+			It("should not set mount path when targetKubeconfig is nil", func() {
+				SetDefaults_DikiRunnerConfig(obj)
+
+				Expect(obj.TargetKubeconfig).To(BeNil())
+			})
+
+			It("should default mount path when targetKubeconfig is set and mount path is empty", func() {
+				obj.TargetKubeconfig = &KubeconfigConfig{
+					SecretRef: SecretRef{Name: "my-secret"},
+				}
+
+				SetDefaults_DikiRunnerConfig(obj)
+
+				Expect(obj.TargetKubeconfig.MountPath).To(Equal(DefaultKubeconfigMountPath))
+			})
+
+			It("should not overwrite already set value for mount path", func() {
+				obj.TargetKubeconfig = &KubeconfigConfig{
+					SecretRef: SecretRef{Name: "my-secret"},
+					MountPath: "/custom/path",
+				}
+
+				SetDefaults_DikiRunnerConfig(obj)
+
+				Expect(obj.TargetKubeconfig.MountPath).To(Equal("/custom/path"))
+			})
+		})
 	})
 
 	Describe("#SetDefaults_ServerConfiguration", func() {

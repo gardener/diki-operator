@@ -20,6 +20,8 @@ const (
 	DefaultDikiRunnerNamespace = "kube-system"
 	// DefaultPodCompletionTimeout is the default maximum duration to wait for pod completion.
 	DefaultPodCompletionTimeout = 10 * time.Minute
+	// DefaultKubeconfigMountPath is the default mount path for the projected kubeconfig volume in the Job pod.
+	DefaultKubeconfigMountPath = "/var/run/secrets/target-cluster/kubeconfig"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -75,6 +77,34 @@ type DikiRunnerConfig struct {
 	// PodCompletionTimeout is the maximum duration to wait for a DikiRunner pod to complete.
 	// +optional
 	PodCompletionTimeout *metav1.Duration `json:"podCompletionTimeout,omitempty"`
+	// TargetKubeconfig configures target cluster credentials for remote scanning.
+	// When set, the Job mounts a projected volume with the kubeconfig and optional token.
+	// +optional
+	TargetKubeconfig *KubeconfigConfig `json:"targetKubeconfig,omitempty"`
+}
+
+// KubeconfigConfig holds references to Secrets for target cluster access.
+type KubeconfigConfig struct {
+	// SecretRef references a Secret containing the target cluster's kubeconfig.
+	SecretRef SecretRef `json:"secretRef"`
+	// TokenSecretRef optionally references a Secret containing a service account token
+	// that the kubeconfig may reference via its tokenFile field.
+	// +optional
+	TokenSecretRef *SecretRef `json:"tokenSecretRef,omitempty"`
+	// MountPath is the mount path for the projected kubeconfig volume in the Job pod.
+	// Defaults to "/var/run/secrets/target-cluster/kubeconfig".
+	// +optional
+	MountPath string `json:"mountPath,omitempty"`
+}
+
+// SecretRef is a reference to a Secret that resides in the same namespace as the diki runner Job.
+type SecretRef struct {
+	// Name is the name of the Secret.
+	Name string `json:"name"`
+	// Key is the key within the Secret to use. Defaults to "kubeconfig" or "token"
+	// depending on context.
+	// +optional
+	Key *string `json:"key,omitempty"`
 }
 
 // ServerConfiguration contains details for the HTTP(S) servers.

@@ -49,7 +49,8 @@ var _ = Describe("Controller", func() {
 		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).Build()
 
 		cr = &garbagecollector.Reconciler{
-			Client: fakeClient,
+			Client:       fakeClient,
+			SourceClient: fakeClient,
 			Config: garbagecollector.Config{
 				Namespace:       jobNamespace,
 				RequeueInterval: 1 * time.Minute,
@@ -159,8 +160,47 @@ var _ = Describe("Controller", func() {
 		Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(job), job)).To(Succeed())
 	})
 
+	Context("when source and target clusters are different", func() {
+		var sourceClient client.Client
+
+		BeforeEach(func() {
+			sourceClient = fake.NewClientBuilder().WithScheme(scheme).Build()
+			cr.SourceClient = sourceClient
+		})
+
+		It("should delete Job from source cluster when ComplianceScan on target cluster is Completed", func() {
+			scan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
+			Expect(fakeClient.Create(ctx, scan)).To(Succeed())
+			Expect(fakeClient.Status().Update(ctx, scan)).To(Succeed())
+
+			job := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
+			Expect(sourceClient.Create(ctx, job)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, reconcile.Request{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
+
+			err = sourceClient.Get(ctx, client.ObjectKeyFromObject(job), job)
+			Expect(err).To(HaveOccurred())
+			Expect(client.IgnoreNotFound(err)).To(Succeed())
+		})
+
+		It("should delete Job from source cluster when ComplianceScan does not exist on target cluster", func() {
+			job := newDikiRunJob("diki-run-orphan-uid", jobNamespace, "orphan-uid")
+			Expect(sourceClient.Create(ctx, job)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, reconcile.Request{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.RequeueAfter).To(Equal(cr.Config.RequeueInterval))
+
+			err = sourceClient.Get(ctx, client.ObjectKeyFromObject(job), job)
+			Expect(err).To(HaveOccurred())
+			Expect(client.IgnoreNotFound(err)).To(Succeed())
+		})
+	})
+
 	It("should return error when listing Jobs fails", func() {
-		cr.Client = fake.NewClientBuilder().
+		cr.SourceClient = fake.NewClientBuilder().
 			WithScheme(scheme).
 			WithInterceptorFuncs(interceptor.Funcs{
 				List: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
@@ -184,16 +224,14 @@ var _ = Describe("Controller", func() {
 		job := newDikiRunJob("diki-run-scan-uid", jobNamespace, "scan-uid")
 		Expect(fakeClient.Create(ctx, job)).To(Succeed())
 
-		cr.Client = fake.NewClientBuilder().
+		cr.SourceClient = fake.NewClientBuilder().
 			WithScheme(scheme).
-			WithObjects(scan, job).
-			WithStatusSubresource(&dikiv1alpha1.ComplianceScan{}).
+			WithObjects(job).
 			WithInterceptorFuncs(interceptor.Funcs{
 				Delete: func(_ context.Context, _ client.WithWatch, _ client.Object, _ ...client.DeleteOption) error {
 					return errors.New("delete-failed")
 				},
 			}).Build()
-		Expect(cr.Client.Status().Update(ctx, scan)).To(Succeed())
 
 		res, err := cr.Reconcile(ctx, reconcile.Request{})
 		Expect(err).To(MatchError(ContainSubstring("delete-failed")))

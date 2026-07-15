@@ -49,6 +49,9 @@ func SetDefaults_DikiRunnerConfig(obj *DikiRunnerConfig) {
 	if obj.PodCompletionTimeout == nil {
 		obj.PodCompletionTimeout = &metav1.Duration{Duration: DefaultPodCompletionTimeout}
 	}
+	if obj.TargetKubeconfig != nil && len(obj.TargetKubeconfig.MountPath) == 0 {
+		obj.TargetKubeconfig.MountPath = DefaultKubeconfigMountPath
+	}
 }
 
 // SetDefaults_ServerConfiguration sets defaults for the ServerConfiguration object.

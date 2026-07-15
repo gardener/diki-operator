@@ -37,6 +37,14 @@ const (
 	// ExporterConfigKey is the key used to store the exporter configuration in the ConfigMap data.
 	ExporterConfigKey = "exporter-config.yaml"
 
+	// KubeconfigVolumeName is the name of the projected volume for the kubeconfig and token secrets.
+	KubeconfigVolumeName = "kubeconfig"
+	// KubeconfigSecretKey is the key in the kubeconfig Secret that holds the kubeconfig data.
+	KubeconfigSecretKey = "kubeconfig"
+
+	// TokenSecretKey is the key in the token Secret that holds the token data.
+	TokenSecretKey = "token"
+
 	// RuleOptionsSuffix is the suffix appended to ruleset IDs when looking up rule options in ConfigMaps.
 	RuleOptionsSuffix = "-rules"
 

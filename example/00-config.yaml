@@ -15,6 +15,12 @@ kind: DikiOperatorConfiguration
 #     dikiRunner:
 #       podCompletionTimeout: 10m
 #       namespace: kube-system
+#       targetKubeconfig:
+#         secretRef:
+#           name: target-cluster-kubeconfig
+#         tokenSecretRef:
+#           name: target-cluster-token
+#         mountPath: /var/run/secrets/target-cluster/kubeconfig
 # server:
 #   healthProbes:
 #     port: 8081
