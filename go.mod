@@ -16,7 +16,7 @@ go 1.26.0
 require (
 	github.com/gardener/diki v0.26.0
 	github.com/gardener/gardener v1.145.0
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	github.com/robfig/cron/v3 v3.0.1
