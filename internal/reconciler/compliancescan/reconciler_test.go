@@ -807,7 +807,6 @@ var _ = Describe("Controller", func() {
 				config := `providers:
   - id: managedk8s
     name: Managed Kubernetes
-    metadata: {}
     rulesets:`
 
 				rulesetsConfig := ""
