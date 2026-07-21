@@ -756,26 +756,39 @@ var _ = Describe("Controller", func() {
 			configMapList    *corev1.ConfigMapList
 
 			disaConfigWith = func(version, rulesetOptions, ruleOptions string) string {
-				return `
+				result := `
       - id: disa-kubernetes-stig
         name: DISA Kubernetes Security Technical Implementation Guide
-        version: ` + version + `
-        ruleOptions:` + ruleOptions + `
+        version: ` + version
+				if ruleOptions != "" {
+					result += `
+        ruleOptions:` + ruleOptions
+				}
+				if rulesetOptions != "" {
+					result += `
         args:` + rulesetOptions
+				}
+				return result
 			}
 			secK8sConfigWith = func(version, rulesetOptions, ruleOptions string) string {
-				return `
+				result := `
       - id: security-hardened-k8s
         name: Security Hardened Kubernetes Cluster
-        version: ` + version + `
-        ruleOptions:` + ruleOptions + `
+        version: ` + version
+				if ruleOptions != "" {
+					result += `
+        ruleOptions:` + ruleOptions
+				}
+				if rulesetOptions != "" {
+					result += `
         args:` + rulesetOptions
+				}
+				return result
 			}
 			configFor = func(rulesets ...string) string {
 				config := `providers:
   - id: managedk8s
     name: Managed Kubernetes
-    metadata: {}
     rulesets:`
 
 				rulesetsConfig := ""
@@ -788,9 +801,7 @@ var _ = Describe("Controller", func() {
 				} else {
 					config += ` []`
 				}
-				return config + `
-    args: null
-`
+				return config + "\n"
 			}
 			configForWithKubeconfig = func(mountPath string, rulesets ...string) string {
 				config := `providers:
@@ -933,8 +944,8 @@ var _ = Describe("Controller", func() {
 
 			var (
 				configMap    = configMapList.Items[0]
-				disaConfig   = disaConfigWith("v1", " null", " []")
-				secK8sConfig = secK8sConfigWith("v1", " null", " []")
+				disaConfig   = disaConfigWith("v1", "", "")
+				secK8sConfig = secK8sConfigWith("v1", "", "")
 			)
 
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
