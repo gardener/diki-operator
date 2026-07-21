@@ -168,8 +168,8 @@ github.com/fxamacker/cbor/v2 v2.9.0 h1:NpKPmjDBgUfBms6tr6JZkTHtfFGcMKsw3eGcmD/sa
 github.com/fxamacker/cbor/v2 v2.9.0/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/gardener/cert-management v0.23.0 h1:kD88XcPn6C4zLc8EYtrHyb+/45Iyaozhb+HEM44MKz0=
 github.com/gardener/cert-management v0.23.0/go.mod h1:Mehn8XY+iAkm8XOBbNGHmbMft8fP9ZEJFWzWSonPkfc=
-github.com/gardener/diki v0.27.0 h1:nggl/PsAZzKfjRH3oM9znT5nTzBNzLU0zrnTiGrPcNc=
-github.com/gardener/diki v0.27.0/go.mod h1:pAXZvHbvYAvlYzjORW2bRuhplTg2juqnCcP2NvGMOzE=
+github.com/gardener/diki v0.27.1 h1:lp+5s1mFcCW1u4xYD6nVa+QWA8BtF2x6mFKJktqFmxM=
+github.com/gardener/diki v0.27.1/go.mod h1:pAXZvHbvYAvlYzjORW2bRuhplTg2juqnCcP2NvGMOzE=
 github.com/gardener/etcd-druid/api v0.36.4 h1:o/17ciPrbh/w+igKMUuglW7N9XLjoMh7AvRKTzsBEVs=
 github.com/gardener/etcd-druid/api v0.36.4/go.mod h1:RwZzKp8K415AS0zg8VoODjBxYepCAUYyLgXnZc1bmbo=
 github.com/gardener/gardener v1.145.0 h1:4vwUQtjr+hLIiDGci0Mu6sJhVWWSj/CoLD3T172nmg0=
