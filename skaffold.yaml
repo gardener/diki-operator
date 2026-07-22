@@ -11,7 +11,6 @@ build:
             - cmd/diki-operator
             - cmd/diki-operator/app
             - imagevector
-            - imagevector/images.yaml
             - internal/constants
             - internal/reconciler/compliancescan
             - internal/reconciler/garbagecollector
