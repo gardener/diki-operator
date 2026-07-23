@@ -63,24 +63,24 @@ controllers:
       {{- else }}
       namespace: {{ .Release.Namespace }}
       {{- end }}
-{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig }}
+      {{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig }}
       targetKubeconfig:
         secretRef:
           name: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.secretRef.name }}
-{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.secretRef.key }}
+          {{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.secretRef.key }}
           key: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.secretRef.key }}
-{{- end }}
-{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef }}
+          {{- end }}
+        {{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef }}
         tokenSecretRef:
           name: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef.name }}
-{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef.key }}
+          {{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef.key }}
           key: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef.key }}
-{{- end }}
-{{- end }}
-{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.mountPath }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.mountPath }}
         mountPath: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.mountPath }}
-{{- end }}
-{{- end }}
+        {{- end }}
+      {{- end }}
 server:
   healthProbes:
     port: {{ .Values.config.server.healthProbes.port }}
