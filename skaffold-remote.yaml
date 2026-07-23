@@ -1,0 +1,73 @@
+apiVersion: skaffold/v4beta12
+kind: Config
+metadata:
+  name: diki-operator-remote
+build:
+  artifacts:
+    - image: local-skaffold/diki-operator
+      ko:
+        dependencies:
+          paths:
+            - cmd/diki-operator
+            - cmd/diki-operator/app
+            - imagevector
+            - imagevector/images.yaml
+            - internal/constants
+            - internal/reconciler/compliancescan
+            - internal/reconciler/garbagecollector
+            - internal/reconciler/scheduledcompliancescan
+            - internal/webhook/compliancescan
+            - internal/webhook/scheduledcompliancescan
+            - pkg/apis/config/v1alpha1
+            - pkg/apis/config/v1alpha1/validation
+            - pkg/apis/diki
+            - pkg/apis/diki/install
+            - pkg/apis/diki/v1alpha1
+            - pkg/apis/diki/v1alpha1/helper
+            - pkg/apis/reportexporter/v1alpha1
+            - VERSION
+        ldflags:
+          - '{{.LD_FLAGS}}'
+        main: ./cmd/diki-operator
+    - image: local-skaffold/report-exporter
+      ko:
+        dependencies:
+          paths:
+            - cmd/report-exporter
+            - cmd/report-exporter/app
+            - internal/component/reportexporter
+            - internal/constants
+            - pkg/apis/diki
+            - pkg/apis/diki/install
+            - pkg/apis/diki/v1alpha1
+            - pkg/apis/diki/v1alpha1/helper
+            - pkg/apis/reportexporter
+            - pkg/apis/reportexporter/v1alpha1
+            - VERSION
+        ldflags:
+          - '{{.LD_FLAGS}}'
+        main: ./cmd/report-exporter
+  tagPolicy:
+    customTemplate:
+      template: '{{.version}}-{{.sha}}'
+      components:
+        - name: sha
+          gitCommit:
+            variant: AbbrevCommitSha
+deploy:
+  kubeContext: kind-diki-source
+  helm:
+    releases:
+      - name: diki-operator
+        chartPath: charts/diki/diki-operator
+        valuesFiles:
+          - charts/diki/diki-operator/values.yaml
+          - dev/remote/operator-values.yaml
+        namespace: kube-system
+        setValueTemplates:
+          image.repository: '{{.IMAGE_REPO_local_skaffold_diki_operator}}'
+          image.tag: '{{.IMAGE_TAG_local_skaffold_diki_operator}}@{{.IMAGE_DIGEST_local_skaffold_diki_operator}}'
+          imageVectorOverwrite.reportExporter.repository: '{{.IMAGE_REPO_local_skaffold_report_exporter}}'
+          imageVectorOverwrite.reportExporter.tag: '{{.IMAGE_TAG_local_skaffold_report_exporter}}@{{.IMAGE_DIGEST_local_skaffold_report_exporter}}'
+        createNamespace: false
+        wait: true

@@ -36,6 +36,11 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         args:
         - --config=/etc/diki-operator/config/config.yaml
+        {{- if .Values.targetKubeconfig }}
+        {{- if .Values.targetKubeconfig.secretName }}
+        - --kubeconfig=/etc/diki-operator/target-kubeconfig/kubeconfig
+        {{- end }}
+        {{- end }}
         {{- if .Values.imageVectorOverwrite }}
         env:
         - name: IMAGEVECTOR_OVERWRITE
@@ -69,6 +74,13 @@ spec:
           mountPath: /etc/diki-operator/imagevector-overwrite
           readOnly: true
         {{- end }}
+        {{- if .Values.targetKubeconfig }}
+        {{- if .Values.targetKubeconfig.secretName }}
+        - name: target-kubeconfig
+          mountPath: /etc/diki-operator/target-kubeconfig
+          readOnly: true
+        {{- end }}
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /healthz
@@ -99,4 +111,12 @@ spec:
         configMap:
           defaultMode: 0440
           name: diki-operator-imagevector-overwrite
+      {{- end }}
+      {{- if .Values.targetKubeconfig }}
+      {{- if .Values.targetKubeconfig.secretName }}
+      - name: target-kubeconfig
+        secret:
+          defaultMode: 0440
+          secretName: {{ .Values.targetKubeconfig.secretName }}
+      {{- end }}
       {{- end }}

@@ -58,7 +58,29 @@ controllers:
       waitInterval: {{ .Values.config.controllers.complianceScan.dikiRunner.waitInterval }}
       podCompletionTimeout: {{ .Values.config.controllers.complianceScan.dikiRunner.podCompletionTimeout }}
       execTimeout: {{ .Values.config.controllers.complianceScan.dikiRunner.execTimeout }}
-      namespace: {{ include "diki-runner.namespace" . }}
+      {{- if .Values.config.controllers.complianceScan.dikiRunner.namespace }}
+      namespace: {{ .Values.config.controllers.complianceScan.dikiRunner.namespace }}
+      {{- else }}
+      namespace: {{ .Release.Namespace }}
+      {{- end }}
+{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig }}
+      targetKubeconfig:
+        secretRef:
+          name: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.secretRef.name }}
+{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.secretRef.key }}
+          key: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.secretRef.key }}
+{{- end }}
+{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef }}
+        tokenSecretRef:
+          name: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef.name }}
+{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef.key }}
+          key: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.tokenSecretRef.key }}
+{{- end }}
+{{- end }}
+{{- if .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.mountPath }}
+        mountPath: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.mountPath }}
+{{- end }}
+{{- end }}
 server:
   healthProbes:
     port: {{ .Values.config.server.healthProbes.port }}
