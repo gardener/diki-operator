@@ -2,19 +2,21 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-ENSURE_GARDENER_MOD    := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
-GARDENER_HACK_DIR      := $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
-NAME                   := diki-operator
-EXPORTER_NAME		   := report-exporter
-IMAGE                  := europe-docker.pkg.dev/gardener-project/public/gardener/$(NAME)
-EXPORTER_IMAGE		   := europe-docker.pkg.dev/gardener-project/public/gardener/$(EXPORTER_NAME)
-REPO_ROOT              := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-HACK_DIR               := $(REPO_ROOT)/hack
-VERSION                := $(shell cat "$(REPO_ROOT)/VERSION")
-GOARCH                 ?= $(shell go env GOARCH)
-EFFECTIVE_VERSION      := $(VERSION)-$(shell git rev-parse HEAD)
-LD_FLAGS               := "-w $(shell bash $(GARDENER_HACK_DIR)/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION $(NAME))"
-KIND_LOCAL_KUBECONFIG  := $(REPO_ROOT)/dev/local/kind/kubeconfig
+ENSURE_GARDENER_MOD      := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
+GARDENER_HACK_DIR        := $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
+NAME                     := diki-operator
+EXPORTER_NAME		     := report-exporter
+IMAGE                    := europe-docker.pkg.dev/gardener-project/public/gardener/$(NAME)
+EXPORTER_IMAGE		     := europe-docker.pkg.dev/gardener-project/public/gardener/$(EXPORTER_NAME)
+REPO_ROOT                := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+HACK_DIR                 := $(REPO_ROOT)/hack
+VERSION                  := $(shell cat "$(REPO_ROOT)/VERSION")
+GOARCH                   ?= $(shell go env GOARCH)
+EFFECTIVE_VERSION        := $(VERSION)-$(shell git rev-parse HEAD)
+LD_FLAGS                 := "-w $(shell bash $(GARDENER_HACK_DIR)/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION $(NAME))"
+KIND_LOCAL_KUBECONFIG    := $(REPO_ROOT)/dev/local/kind/kubeconfig
+REMOTE_SOURCE_KUBECONFIG := $(REPO_ROOT)/dev/local/remote-kind/source-kubeconfig
+REMOTE_TARGET_KUBECONFIG := $(REPO_ROOT)/dev/local/remote-kind/target-kubeconfig
 
 ifneq ($(strip $(shell git status --porcelain 2>/dev/null)),)
 	EFFECTIVE_VERSION := $(EFFECTIVE_VERSION)-dirty
@@ -115,8 +117,23 @@ kind-up: $(KIND) $(KUBECTL) $(YQ)
 kind-down: $(KIND)
 	@bash $(HACK_DIR)/kind-down.sh
 
-operator-up: export LD_FLAGS = $(bash $(GARDENER_HACK_DIR)/hack/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION diki-operator $(BUILD_DATE))
+operator-up remote-operator-up: export LD_FLAGS = $(shell bash $(GARDENER_HACK_DIR)/get-build-ld-flags.sh k8s.io/component-base $(REPO_ROOT)/VERSION diki-operator)
 
 .PHONY: operator-up
 operator-up: $(SKAFFOLD) $(HELM) $(KUBECTL)
 	@bash $(HACK_DIR)/operator-up.sh
+
+remote-kind-up remote-kind-down: export KIND_KUBECONFIG = $(REMOTE_SOURCE_KUBECONFIG)
+remote-kind-up remote-kind-down remote-operator-up: export KUBECONFIG = $(REMOTE_SOURCE_KUBECONFIG)
+
+.PHONY: remote-kind-up
+remote-kind-up: $(KIND) $(KUBECTL) $(YQ)
+	@bash $(HACK_DIR)/remote-kind-up.sh
+
+.PHONY: remote-kind-down
+remote-kind-down: $(KIND)
+	@bash $(HACK_DIR)/remote-kind-down.sh
+
+.PHONY: remote-operator-up
+remote-operator-up: $(SKAFFOLD) $(HELM) $(KUBECTL) $(YQ)
+	@bash $(HACK_DIR)/remote-operator-up.sh
