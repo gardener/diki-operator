@@ -6,88 +6,52 @@ metadata:
 data:
   disa-kubernetes-stig: ""
   disa-kubernetes-stig-rules: |
-    - ruleID: "242393"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242394"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242396"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242404"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242406"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242407"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242414"
-      args:
-        acceptedPods:
-        - labelSelector:
-            matchLabels:
-              k8s-app: node-local-dns
-          namespaceLabelSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          justification: "Node local dns requires port 53 in order to operate properly."
-          ports:
-          - 53
     - ruleID: "242417"
       args:
         acceptedPods:
         - labelSelector:
             matchLabels:
-              resources.gardener.cloud/managed-by: gardener
+              k8s-app: kube-dns
           namespaceLabelSelector:
             matchLabels:
               kubernetes.io/metadata.name: kube-system
-          justification: "Pods managed by Gardener are not considered as user pods."
-    - ruleID: "242449"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242450"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242451"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242452"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242453"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242466"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
-    - ruleID: "242467"
-      args:
-        nodeGroupByLabels:
-        - worker.gardener.cloud/pool
+          justification: "coredns is a system component and not a user pod."
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: diki-operator
+          namespaceLabelSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          justification: "diki-operator is a system component and not a user pod."
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: diki
+          namespaceLabelSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          justification: "diki scanner jobs are system components and not user pods."
+        - labelSelector:
+            matchLabels:
+              app: kindnet
+          namespaceLabelSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          justification: "kindnet is a system component and not a user pod."
+        - labelSelector:
+            matchLabels:
+              component: etcd
+          namespaceLabelSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          justification: "etcd is a system component and not a user pod."
   security-hardened-k8s-rules: |
     - ruleID: "2000"
       args:
         acceptedNamespaces:
         - labelSelector:
             matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          justification: "Gardener managed namespaces are accepted to allow traffic by default."
+              kubernetes.io/metadata.name: kube-system
+          justification: "kube-system namespace is accepted to allow traffic by default."
           acceptedTraffic:
             ingress: true
             egress: true
@@ -96,80 +60,40 @@ data:
         acceptedPods:
         - labelSelector:
             matchLabels:
-              resources.gardener.cloud/managed-by: gardener
+              component: etcd
           namespaceLabelSelector:
             matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          justification: "Gardener managed resources are accepted to allow privilege escalation."
-    - ruleID: "2003"
-      args:
-        acceptedPods:
+              kubernetes.io/metadata.name: kube-system
+          justification: "etcd is accepted to allow privilege escalation."
         - labelSelector:
             matchLabels:
-              resources.gardener.cloud/managed-by: gardener
+              app: kindnet
           namespaceLabelSelector:
             matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          justification: "Gardener managed resources are accepted to use a wider range of volume types."
-          volumeNames:
-          - "*"
-    - ruleID: "2004"
-      args:
-        acceptedServices:
-        - labelSelector:
-            matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          namespaceLabelSelector:
-            matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          justification: "Gardener managed services are accepted to be of type NodePort."
-    - ruleID: "2006"
-      args:
-        acceptedRoles:
-        - labelSelector:
-            matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          namespaceLabelSelector:
-            matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          justification: "Roles managed by Gardener are accepted to use wildcards in RBAC resources."
-        acceptedClusterRoles:
-        - labelSelector:
-            matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          justification: "ClusterRoles managed by Gardener are accepted to use wildcards in RBAC resources."
-        - labelSelector:
-            matchLabels:
-              kubernetes.io/bootstrapping: rbac-defaults
-          justification: "Kubernetes default ClusterRoles are accepted to use wildcards in RBAC resources."
-    - ruleID: "2007"
-      args:
-        acceptedRoles:
-        - labelSelector:
-            matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          namespaceLabelSelector:
-            matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          justification: "Roles managed by Gardener are accepted to use wildcards in RBAC verbs."
-        acceptedClusterRoles:
-        - labelSelector:
-            matchLabels:
-            resources.gardener.cloud/managed-by: gardener
-          justification: "ClusterRoles managed by Gardener are accepted to use wildcards in RBAC verbs."
-        - labelSelector:
-            matchLabels:
-              kubernetes.io/bootstrapping: rbac-defaults
-          justification: "Kubernetes default ClusterRoles are accepted to use wildcards in RBAC verbs."
+              kubernetes.io/metadata.name: kube-system
+          justification: "kindnet is accepted to allow privilege escalation."
     - ruleID: "2008"
       args:
         acceptedPods:
         - labelSelector:
             matchLabels:
-              resources.gardener.cloud/managed-by: gardener
+              component: etcd
           namespaceLabelSelector:
             matchLabels:
-              resources.gardener.cloud/managed-by: gardener
-          justification: "Gardener managed resources are accepted to use a wider range of volume types."
+              kubernetes.io/metadata.name: kube-system
+          justification: "etcd requires host path volumes for data and certificates."
           volumeNames:
-          - "*"
+          - "etcd-certs"
+          - "etcd-data"
+        - labelSelector:
+            matchLabels:
+              app: kindnet
+          namespaceLabelSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          justification: "kindnet requires host path volumes for CNI configuration and networking."
+          volumeNames:
+          - "cni-cfg"
+          - "xtables-lock"
+          - "lib-modules"
+          - "nri-plugin"
