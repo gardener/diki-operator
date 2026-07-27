@@ -11,6 +11,7 @@ import (
 	"fmt"
 
 	dikiconfig "github.com/gardener/diki/pkg/config"
+	"github.com/gardener/diki/pkg/config/merge"
 	"github.com/gardener/diki/pkg/provider/managedk8s"
 	"github.com/gardener/diki/pkg/provider/managedk8s/ruleset/disak8sstig"
 	"github.com/gardener/diki/pkg/provider/managedk8s/ruleset/securityhardenedk8s"
@@ -18,6 +19,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
@@ -25,6 +27,72 @@ import (
 )
 
 func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (*corev1.ConfigMap, error) {
+	dikiConfig, err := r.buildDikiConfig(ctx, complianceScan)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.Config.BaseOptions != nil {
+		baseConfig, err := r.getBaseDikiConfig(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to build base diki config: %w", err)
+		}
+
+		merged, err := merge.MergeConfigs(baseConfig, dikiConfig, r.MergeRegistry)
+		if err != nil {
+			return nil, fmt.Errorf("failed to merge diki configs: %w", err)
+		}
+		dikiConfig = merged
+	}
+
+	var buf bytes.Buffer
+	encoder := yaml.NewEncoder(&buf)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(dikiConfig); err != nil {
+		return nil, fmt.Errorf("failed to marshal diki config: %w", err)
+	}
+	dikiConfigYAML := buf.Bytes()
+
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            configMapName,
+			Namespace:       r.Config.DikiRunner.Namespace,
+			OwnerReferences: r.getOwnerReference(job),
+			Labels:          r.getLabels(complianceScan),
+		},
+		Data: map[string]string{
+			DikiConfigKey: string(dikiConfigYAML),
+		},
+	}
+
+	// Marshal to JSON first because the YAML library ignores json: struct tags
+	// and embedded upstream types (e.g. metav1.TypeMeta) only have json: tags.
+	exporterConfigJSON, err := json.Marshal(exporterConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal exporter config: %w", err)
+	}
+
+	var exporterConfigMap any
+	if err := json.Unmarshal(exporterConfigJSON, &exporterConfigMap); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal exporter config: %w", err)
+	}
+
+	var exporterBuf bytes.Buffer
+	exporterEncoder := yaml.NewEncoder(&exporterBuf)
+	exporterEncoder.SetIndent(2)
+	if err := exporterEncoder.Encode(exporterConfigMap); err != nil {
+		return nil, fmt.Errorf("failed to encode exporter config to yaml: %w", err)
+	}
+	configMap.Data[ExporterConfigKey] = exporterBuf.String()
+
+	if err := r.SourceClient.Create(ctx, configMap); err != nil {
+		return nil, fmt.Errorf("failed to create diki config configMap: %w", err)
+	}
+
+	return configMap, nil
+}
+
+func (r *Reconciler) buildDikiConfig(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) (*dikiconfig.DikiConfig, error) {
 	managedk8sProvider := dikiconfig.ProviderConfig{
 		ID:   managedk8s.ProviderID,
 		Name: managedk8s.ProviderName,
@@ -80,55 +148,33 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 		}
 	}
 
-	dikiConfig := dikiconfig.DikiConfig{
+	return &dikiconfig.DikiConfig{
 		Providers: []dikiconfig.ProviderConfig{managedk8sProvider},
+	}, nil
+}
+
+func (r *Reconciler) getBaseDikiConfig(ctx context.Context) (*dikiconfig.DikiConfig, error) {
+	baseRef := r.Config.BaseOptions.ConfigMapRef
+	baseConfigMap := &corev1.ConfigMap{}
+	if err := r.SourceClient.Get(ctx, client.ObjectKey{
+		Name:      baseRef.Name,
+		Namespace: r.Config.DikiRunner.Namespace,
+	}, baseConfigMap); err != nil {
+		return nil, fmt.Errorf("failed to get base options configMap %s/%s: %w", r.Config.DikiRunner.Namespace, baseRef.Name, err)
 	}
 
-	var buf bytes.Buffer
-	encoder := yaml.NewEncoder(&buf)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(dikiConfig); err != nil {
-		return nil, fmt.Errorf("failed to marshal diki config: %w", err)
-	}
-	dikiConfigYAML := buf.Bytes()
-
-	configMap := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:            configMapName,
-			Namespace:       r.Config.DikiRunner.Namespace,
-			OwnerReferences: r.getOwnerReference(job),
-			Labels:          r.getLabels(complianceScan),
-		},
-		Data: map[string]string{
-			DikiConfigKey: string(dikiConfigYAML),
-		},
+	key := ptr.Deref(baseRef.Key, DikiConfigKey)
+	configYAML, exists := baseConfigMap.Data[key]
+	if !exists {
+		return nil, fmt.Errorf("key '%s' does not exist in base options configMap %s/%s", key, r.Config.DikiRunner.Namespace, baseRef.Name)
 	}
 
-	// Marshal to JSON first because the YAML library ignores json: struct tags
-	// and embedded upstream types (e.g. metav1.TypeMeta) only have json: tags.
-	exporterConfigJSON, err := json.Marshal(exporterConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal exporter config: %w", err)
+	var baseConfig dikiconfig.DikiConfig
+	if err := yaml.Unmarshal([]byte(configYAML), &baseConfig); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal base diki config: %w", err)
 	}
 
-	var exporterConfigMap any
-	if err := json.Unmarshal(exporterConfigJSON, &exporterConfigMap); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal exporter config: %w", err)
-	}
-
-	var exporterBuf bytes.Buffer
-	exporterEncoder := yaml.NewEncoder(&exporterBuf)
-	exporterEncoder.SetIndent(2)
-	if err := exporterEncoder.Encode(exporterConfigMap); err != nil {
-		return nil, fmt.Errorf("failed to encode exporter config to yaml: %w", err)
-	}
-	configMap.Data[ExporterConfigKey] = exporterBuf.String()
-
-	if err := r.SourceClient.Create(ctx, configMap); err != nil {
-		return nil, fmt.Errorf("failed to create diki config configMap: %w", err)
-	}
-
-	return configMap, nil
+	return &baseConfig, nil
 }
 
 func (r *Reconciler) getRuleOptions(ctx context.Context, options *v1alpha1.RulesetOptions, rulesetID string) ([]dikiconfig.RuleOptionsConfig, error) {
@@ -168,10 +214,7 @@ func (r *Reconciler) getRulesetOptions(ctx context.Context, options *v1alpha1.Ru
 }
 
 func (r *Reconciler) getConfigMapKeyValue(ctx context.Context, configMapRef v1alpha1.OptionsConfigMapRef, defaultKey string) (string, error) {
-	key := defaultKey
-	if configMapRef.Key != nil {
-		key = *configMapRef.Key
-	}
+	key := ptr.Deref(configMapRef.Key, defaultKey)
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      configMapRef.Name,

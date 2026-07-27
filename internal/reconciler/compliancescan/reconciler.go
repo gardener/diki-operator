@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gardener/diki/pkg/config/merge"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -26,10 +27,11 @@ import (
 
 // Reconciler reconciles compliance scans.
 type Reconciler struct {
-	Client       client.Client
-	SourceClient client.Client
-	RESTConfig   *rest.Config
-	Config       configv1alpha1.ComplianceScanConfig
+	Client        client.Client
+	SourceClient  client.Client
+	RESTConfig    *rest.Config
+	Config        configv1alpha1.ComplianceScanConfig
+	MergeRegistry *merge.Registry
 }
 
 // Reconcile handles reconciliation requests for ComplianceScan resources.

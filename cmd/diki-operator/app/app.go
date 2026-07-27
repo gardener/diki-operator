@@ -12,6 +12,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gardener/diki/pkg/config/merge"
+	"github.com/gardener/diki/pkg/provider/managedk8s/ruleset/disak8sstig"
+	"github.com/gardener/diki/pkg/provider/managedk8s/ruleset/securityhardenedk8s"
 	"github.com/gardener/gardener/extensions/pkg/util"
 	gardenerhealthz "github.com/gardener/gardener/pkg/healthz"
 	"github.com/gardener/gardener/pkg/logger"
@@ -187,9 +190,14 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 	}
 
 	// Setup ComplianceScan controller
+	mergeRegistry := merge.NewRegistry()
+	disak8sstig.RegisterMergeFuncs(mergeRegistry)
+	securityhardenedk8s.RegisterMergeFuncs(mergeRegistry)
+
 	complianceScanReconciler := &compliancescan.Reconciler{
-		SourceClient: sourceClient,
-		Config:       cfg.Controllers.ComplianceScan,
+		SourceClient:  sourceClient,
+		Config:        cfg.Controllers.ComplianceScan,
+		MergeRegistry: mergeRegistry,
 	}
 
 	if err := complianceScanReconciler.SetupWithManager(mgr); err != nil {
