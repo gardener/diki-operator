@@ -17,3 +17,9 @@ rules:
   verbs:
   - create
   - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods/exec
+  verbs:
+  - create
