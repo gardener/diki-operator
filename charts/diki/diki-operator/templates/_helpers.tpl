@@ -54,6 +54,14 @@ log:
 controllers:
   complianceScan:
     syncPeriod: {{ .Values.config.controllers.complianceScan.syncPeriod }}
+    {{- if .Values.config.controllers.complianceScan.baseOptions }}
+    baseOptions:
+      configMapRef:
+        name: {{ .Values.config.controllers.complianceScan.baseOptions.configMapRef.name }}
+        {{- if .Values.config.controllers.complianceScan.baseOptions.configMapRef.key }}
+        key: {{ .Values.config.controllers.complianceScan.baseOptions.configMapRef.key }}
+        {{- end }}
+    {{- end }}
     dikiRunner:
       waitInterval: {{ .Values.config.controllers.complianceScan.dikiRunner.waitInterval }}
       podCompletionTimeout: {{ .Values.config.controllers.complianceScan.dikiRunner.podCompletionTimeout }}
