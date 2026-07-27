@@ -222,6 +222,48 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 		})
 	})
 
+	Describe("BaseOptions validation", func() {
+		It("should pass validation with valid baseOptions", func() {
+			conf.Controllers.ComplianceScan.BaseOptions = &v1alpha1.BaseOptionsConfig{
+				ConfigMapRef: v1alpha1.ConfigMapRef{
+					Name: "diki-base-options",
+				},
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(BeEmpty())
+		})
+
+		It("should fail validation when baseOptions configMapRef has empty name", func() {
+			conf.Controllers.ComplianceScan.BaseOptions = &v1alpha1.BaseOptionsConfig{
+				ConfigMapRef: v1alpha1.ConfigMapRef{
+					Name: "",
+				},
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeRequired),
+				"Field": Equal("controllers.complianceScan.baseOptions.configMapRef.name"),
+			}))))
+		})
+
+		It("should fail validation when baseOptions configMapRef key is explicitly empty", func() {
+			conf.Controllers.ComplianceScan.BaseOptions = &v1alpha1.BaseOptionsConfig{
+				ConfigMapRef: v1alpha1.ConfigMapRef{
+					Name: "diki-base-options",
+					Key:  ptr.To(""),
+				},
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeRequired),
+				"Field": Equal("controllers.complianceScan.baseOptions.configMapRef.key"),
+			}))))
+		})
+	})
+
 	Describe("ServerConfiguration", func() {
 		It("should forbid negative HealthProbes port", func() {
 			conf.Server.HealthProbes.Port = -1

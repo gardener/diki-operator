@@ -53,7 +53,19 @@ func validateLog(log *v1alpha1.Log, fldPath *field.Path) field.ErrorList {
 func validateControllers(controllers *v1alpha1.ControllerConfiguration, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
-	allErrs = append(allErrs, validateDikiRunner(controllers.ComplianceScan.DikiRunner, fldPath.Child("complianceScan", "dikiRunner"))...)
+	complianceScanPath := fldPath.Child("complianceScan")
+	allErrs = append(allErrs, validateDikiRunner(controllers.ComplianceScan.DikiRunner, complianceScanPath.Child("dikiRunner"))...)
+
+	if controllers.ComplianceScan.BaseOptions != nil {
+		baseOptionsPath := complianceScanPath.Child("baseOptions")
+		configMapRefPath := baseOptionsPath.Child("configMapRef")
+		if len(controllers.ComplianceScan.BaseOptions.ConfigMapRef.Name) == 0 {
+			allErrs = append(allErrs, field.Required(configMapRefPath.Child("name"), "configMap name is required"))
+		}
+		if controllers.ComplianceScan.BaseOptions.ConfigMapRef.Key != nil && len(*controllers.ComplianceScan.BaseOptions.ConfigMapRef.Key) == 0 {
+			allErrs = append(allErrs, field.Required(configMapRefPath.Child("key"), "key must not be empty when specified"))
+		}
+	}
 
 	return allErrs
 }

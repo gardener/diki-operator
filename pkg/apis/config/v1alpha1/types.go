@@ -65,6 +65,12 @@ type ComplianceScanConfig struct {
 	// DikiRunner is the configuration for the DikiRunner.
 	// +optional
 	DikiRunner DikiRunnerConfig `json:"dikiRunner,omitempty"`
+	// BaseOptions references a ConfigMap containing a pre-built base diki config
+	// that is merged with the user-provided config in every ComplianceScan.
+	// The ConfigMap is expected in the DikiRunner namespace and must contain a
+	// complete DikiConfig YAML under the specified key (defaults to "config.yaml").
+	// +optional
+	BaseOptions *BaseOptionsConfig `json:"baseOptions,omitempty"`
 }
 
 // DikiRunnerConfig contains configuration for the DikiRunner.
@@ -81,6 +87,21 @@ type DikiRunnerConfig struct {
 	// When set, the Job mounts a projected volume with the kubeconfig and optional token.
 	// +optional
 	TargetKubeconfig *KubeconfigConfig `json:"targetKubeconfig,omitempty"`
+}
+
+// BaseOptionsConfig references a ConfigMap containing base rule options.
+type BaseOptionsConfig struct {
+	// ConfigMapRef references the ConfigMap containing base options.
+	ConfigMapRef ConfigMapRef `json:"configMapRef"`
+}
+
+// ConfigMapRef is a reference to a ConfigMap that resides in the same namespace as the diki runner Job.
+type ConfigMapRef struct {
+	// Name is the name of the ConfigMap.
+	Name string `json:"name"`
+	// Key is the key within the ConfigMap to use.
+	// +optional
+	Key *string `json:"key,omitempty"`
 }
 
 // KubeconfigConfig holds references to Secrets for target cluster access.
