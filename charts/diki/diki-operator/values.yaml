@@ -67,3 +67,9 @@ config:
         #   tokenSecretRef:
         #     name: target-cluster-token
         #   mountPath: /var/run/secrets/target-cluster/kubeconfig
+
+# targetKubeconfig configures the operator to connect to a remote cluster
+# for watching CRDs. When set, the operator mounts the referenced Secret
+# and passes --kubeconfig to the manager.
+# targetKubeconfig:
+#   secretName: operator-target-kubeconfig

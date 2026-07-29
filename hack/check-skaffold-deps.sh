@@ -19,6 +19,7 @@ function run() {
 }
 
 run "skaffold.yaml" "diki-operator" "diki-operator"
+run "skaffold-remote.yaml" "diki-operator" "diki-operator-remote"
 
 if ! $success ; then
   exit 1
