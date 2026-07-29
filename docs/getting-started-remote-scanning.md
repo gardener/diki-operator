@@ -1,4 +1,4 @@
-# Getting Started Remotely
+# Getting Started with Remote Scanning
 
 ## Remote KinD Setup
 
