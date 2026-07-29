@@ -94,8 +94,7 @@ EOF
 echo "Waiting for operator token to be populated..."
 OPERATOR_TOKEN=""
 for i in $(seq 1 30); do
-  OPERATOR_TOKEN=$(kubectl get secret "diki-operator-token" -n "$RUNNER_NAMESPACE" -o jsonpath='{.data.token}' 2>/dev/null || true)
-  if [ -n "$OPERATOR_TOKEN" ]; then
+  if OPERATOR_TOKEN=$(kubectl get secret "diki-operator-token" -n "$RUNNER_NAMESPACE" -o jsonpath='{.data.token}' 2>/dev/null) && [ -n "$OPERATOR_TOKEN" ]; then
     break
   fi
   sleep 1
@@ -111,8 +110,7 @@ OPERATOR_TOKEN=$(echo "$OPERATOR_TOKEN" | base64 -d)
 echo "Waiting for runner token to be populated..."
 RUNNER_TOKEN=""
 for i in $(seq 1 30); do
-  RUNNER_TOKEN=$(kubectl get secret "${RUNNER_SA}-token" -n "$RUNNER_NAMESPACE" -o jsonpath='{.data.token}' 2>/dev/null || true)
-  if [ -n "$RUNNER_TOKEN" ]; then
+  if RUNNER_TOKEN=$(kubectl get secret "${RUNNER_SA}-token" -n "$RUNNER_NAMESPACE" -o jsonpath='{.data.token}' 2>/dev/null) && [ -n "$RUNNER_TOKEN" ]; then
     break
   fi
   sleep 1

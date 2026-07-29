@@ -123,9 +123,6 @@ operator-up remote-operator-up: export LD_FLAGS = $(shell bash $(GARDENER_HACK_D
 operator-up: $(SKAFFOLD) $(HELM) $(KUBECTL)
 	@bash $(HACK_DIR)/operator-up.sh
 
-remote-kind-up remote-kind-down: export KIND_KUBECONFIG = $(REMOTE_SOURCE_KUBECONFIG)
-remote-kind-up remote-kind-down remote-operator-up: export KUBECONFIG = $(REMOTE_SOURCE_KUBECONFIG)
-
 .PHONY: remote-kind-up
 remote-kind-up: $(KIND) $(KUBECTL) $(YQ)
 	@bash $(HACK_DIR)/remote-kind-up.sh
