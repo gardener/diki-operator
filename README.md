@@ -32,7 +32,7 @@ metadata:
 spec:
   rulesets:
     - id: disa-kubernetes-stig
-      version: v2r4
+      version: v2r6
       options:
         ruleset:
           configMapRef:
@@ -59,7 +59,7 @@ spec:
     spec:
       rulesets:
         - id: disa-kubernetes-stig
-          version: v2r4
+          version: v2r6
       outputs:
         - name: compliance-scan-report
 ```
