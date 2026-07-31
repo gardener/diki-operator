@@ -12,6 +12,9 @@ kind: DikiOperatorConfiguration
 # controllers:
 #   complianceScan:
 #     syncPeriod: 1h
+#     baseOptions:
+#       configMapRef:
+#         name: diki-base-options
 #     dikiRunner:
 #       podCompletionTimeout: 10m
 #       namespace: kube-system

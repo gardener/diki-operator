@@ -9,6 +9,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/gardener/diki/pkg/config/merge"
+	"github.com/gardener/diki/pkg/provider/managedk8s/ruleset/disak8sstig"
+	"github.com/gardener/diki/pkg/provider/managedk8s/ruleset/securityhardenedk8s"
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -67,6 +70,12 @@ var _ = Describe("Controller", func() {
 					PodCompletionTimeout: &metav1.Duration{Duration: time.Second * 5},
 				},
 			},
+			MergeRegistry: func() *merge.Registry {
+				r := merge.NewRegistry()
+				disak8sstig.RegisterMergeFuncs(r)
+				securityhardenedk8s.RegisterMergeFuncs(r)
+				return r
+			}(),
 		}
 
 		complianceScan = &dikiv1alpha1.ComplianceScan{
@@ -1015,6 +1024,291 @@ var _ = Describe("Controller", func() {
 
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
 			Expect(configMap.Data["config.yaml"]).To(Equal(configFor(disaConfig, secK8sConfig)))
+		})
+	})
+
+	Describe("diki config ConfigMap with base options", func() {
+		var (
+			configMapList        *corev1.ConfigMapList
+			baseOptionsConfigMap *corev1.ConfigMap
+
+			baseConfigYAML = `providers:
+  - id: managedk8s
+    name: Managed Kubernetes
+    rulesets:
+      - id: disa-kubernetes-stig
+        name: DISA Kubernetes STIG
+        version: v1
+        ruleOptions:
+          - ruleID: "1111"
+            args:
+              baseKey: baseValue
+          - ruleID: "3333"
+            args:
+              onlyInBase: true
+      - id: security-hardened-k8s
+        name: Security Hardened Kubernetes Cluster
+        version: v1
+        ruleOptions:
+          - ruleID: "4444"
+            args:
+              baseOnly: yes
+`
+		)
+
+		BeforeEach(func() {
+			configMapList = &corev1.ConfigMapList{}
+			baseOptionsConfigMap = &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "base-options",
+					Namespace: "kube-system",
+				},
+				Data: map[string]string{
+					"config.yaml": baseConfigYAML,
+				},
+			}
+			cr.Config.DikiRunner.Namespace = "kube-system"
+			cr.Config.BaseOptions = &configv1alpha1.BaseOptionsConfig{
+				ConfigMapRef: configv1alpha1.ConfigMapRef{
+					Name: "base-options",
+				},
+			}
+		})
+
+		It("should merge base options with the compliance scan config", func() {
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+				{
+					ID:      "disa-kubernetes-stig",
+					Version: "v1",
+				},
+			}
+			Expect(fakeClient.Create(ctx, baseOptionsConfigMap)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(configMapList.Items)).To(Equal(1))
+
+			configMap := configMapList.Items[0]
+			Expect(configMap.Data).To(HaveKey("config.yaml"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("disa-kubernetes-stig"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"1111\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"3333\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("onlyInBase: true"))
+		})
+
+		It("should merge base options with compliance scan config that has rule options", func() {
+			optionsCM := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "scan-options",
+					Namespace: "kube-system",
+				},
+				Data: map[string]string{
+					"disa-kubernetes-stig-rules": `- ruleID: "1111"
+  args:
+    currentKey: currentValue
+- ruleID: "2222"
+  args:
+    onlyInCurrent: true`,
+				},
+			}
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+				{
+					ID:      "disa-kubernetes-stig",
+					Version: "v1",
+					Options: &dikiv1alpha1.RulesetOptions{
+						Rules: &dikiv1alpha1.Options{
+							ConfigMapRef: &dikiv1alpha1.OptionsConfigMapRef{
+								Name:      "scan-options",
+								Namespace: "kube-system",
+							},
+						},
+					},
+				},
+			}
+			Expect(fakeClient.Create(ctx, optionsCM)).To(Succeed())
+			Expect(fakeClient.Create(ctx, baseOptionsConfigMap)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(configMapList.Items)).To(Equal(1))
+
+			configMap := configMapList.Items[0]
+			Expect(configMap.Data).To(HaveKey("config.yaml"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"1111\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("currentKey: currentValue"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"2222\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("onlyInCurrent: true"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"3333\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("onlyInBase: true"))
+		})
+
+		It("should use custom key from base options ConfigMapRef", func() {
+			customKey := "custom-config.yaml"
+			cr.Config.BaseOptions.ConfigMapRef.Key = &customKey
+			baseOptionsConfigMap.Data = map[string]string{
+				"custom-config.yaml": baseConfigYAML,
+			}
+
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+				{
+					ID:      "disa-kubernetes-stig",
+					Version: "v1",
+				},
+			}
+			Expect(fakeClient.Create(ctx, baseOptionsConfigMap)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(configMapList.Items)).To(Equal(1))
+
+			configMap := configMapList.Items[0]
+			Expect(configMap.Data).To(HaveKey("config.yaml"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"3333\""))
+		})
+
+		It("should fail when base options ConfigMap does not exist", func() {
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+				{
+					ID:      "disa-kubernetes-stig",
+					Version: "v1",
+				},
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+			Expect(complianceScan.Status.Conditions).To(ContainElement(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+					"Status":  Equal(dikiv1alpha1.ConditionTrue),
+					"Message": ContainSubstring("failed to build base diki config"),
+				}),
+			))
+		})
+
+		It("should fail when base options ConfigMap key does not exist", func() {
+			customKey := "nonexistent-key.yaml"
+			cr.Config.BaseOptions.ConfigMapRef.Key = &customKey
+
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+				{
+					ID:      "disa-kubernetes-stig",
+					Version: "v1",
+				},
+			}
+			Expect(fakeClient.Create(ctx, baseOptionsConfigMap)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+			Expect(complianceScan.Status.Conditions).To(ContainElement(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+					"Status":  Equal(dikiv1alpha1.ConditionTrue),
+					"Message": ContainSubstring("does not exist in base options configMap"),
+				}),
+			))
+		})
+
+		It("should fail when base options ConfigMap contains invalid YAML", func() {
+			baseOptionsConfigMap.Data["config.yaml"] = "invalid: yaml: [["
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+				{
+					ID:      "disa-kubernetes-stig",
+					Version: "v1",
+				},
+			}
+			Expect(fakeClient.Create(ctx, baseOptionsConfigMap)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{}))
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+			Expect(complianceScan.Status.Conditions).To(ContainElement(
+				MatchFields(IgnoreExtras, Fields{
+					"Type":    Equal(dikiv1alpha1.ConditionTypeFailed),
+					"Status":  Equal(dikiv1alpha1.ConditionTrue),
+					"Message": ContainSubstring("failed to build base diki config"),
+				}),
+			))
+		})
+
+		It("should not merge when base options is nil", func() {
+			cr.Config.BaseOptions = nil
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+				{
+					ID:      "disa-kubernetes-stig",
+					Version: "v1",
+				},
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(configMapList.Items)).To(Equal(1))
+
+			configMap := configMapList.Items[0]
+			Expect(configMap.Data).To(HaveKey("config.yaml"))
+			Expect(configMap.Data["config.yaml"]).NotTo(ContainSubstring("ruleID: \"3333\""))
+		})
+
+		It("should only merge matching rulesets by ID and version", func() {
+			complianceScan.Spec.Rulesets = []dikiv1alpha1.RulesetConfig{
+				{
+					ID:      "disa-kubernetes-stig",
+					Version: "v2",
+				},
+			}
+			Expect(fakeClient.Create(ctx, baseOptionsConfigMap)).To(Succeed())
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(configMapList.Items)).To(Equal(1))
+
+			configMap := configMapList.Items[0]
+			Expect(configMap.Data).To(HaveKey("config.yaml"))
+			Expect(configMap.Data["config.yaml"]).NotTo(ContainSubstring("ruleID: \"3333\""))
+			Expect(configMap.Data["config.yaml"]).NotTo(ContainSubstring("onlyInBase"))
 		})
 	})
 

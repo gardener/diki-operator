@@ -51,6 +51,12 @@ config:
   controllers:
     complianceScan:
       syncPeriod: 1h
+      # baseOptions references a ConfigMap containing base rule options
+      # (e.g., managed k8s exceptions) that are merged with user-provided options.
+      # The ConfigMap is expected in the dikiRunner namespace.
+      # baseOptions:
+      #   configMapRef:
+      #     name: diki-base-options
       dikiRunner:
         # namespace defaults to the release namespace.
         # namespace: kube-system
