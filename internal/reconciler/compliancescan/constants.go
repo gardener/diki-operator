@@ -11,7 +11,7 @@ const (
 	ReconciliationRequeueInterval = time.Second * 5
 
 	// DikiConfigSecretNamePrefix is the prefix for diki config Secret names.
-	DikiConfigSecretNamePrefix = "diki-config-"
+	DikiConfigSecretNamePrefix = "diki-config-" //nolint:gosec
 	// ServiceAccountNameDikiRun is the name for the diki-run Job related ServiceAccount.
 	ServiceAccountNameDikiRun = "diki-run"
 	// JobNamePrefix is the prefix for the diki-run Job names.
