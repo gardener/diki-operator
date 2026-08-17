@@ -27,7 +27,7 @@ import (
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-var _ = Describe("handler", func() {
+var _ = Describe("validating handler", func() {
 	var (
 		ctx = context.TODO()
 
@@ -69,7 +69,7 @@ var _ = Describe("handler", func() {
 		fakeClient = fake.NewClientBuilder().WithScheme(scheme).Build()
 		ctx = context.TODO()
 		decoder = admission.NewDecoder(scheme)
-		handler = &compliancescan.Handler{
+		handler = &compliancescan.ValidatingHandler{
 			Decoder: decoder,
 			Client:  fakeClient,
 		}
@@ -593,7 +593,7 @@ var _ = Describe("handler", func() {
 					},
 				}).Build()
 
-			handler = &compliancescan.Handler{
+			handler = &compliancescan.ValidatingHandler{
 				Decoder: decoder,
 				Client:  interceptedClient,
 			}

@@ -26,12 +26,12 @@ webhooks:
   clientConfig:
   # TODO (georgibaltiev): revisit this configuration once the diki-operator starts being invoked out-of-cluster
   {{- if .Values.config.server.webhooks.tls.hostname }}
-    url: {{ printf "https://%s:443/webhooks/compliancescan" (.Values.config.server.webhooks.tls.hostname) }}
+    url: {{ printf "https://%s:443/webhooks/compliancescan/validating" (.Values.config.server.webhooks.tls.hostname) }}
   {{- else }}
     service:
       name: {{ include "diki-operator.name" . }}
       namespace: {{ .Release.Namespace }}
-      path: /webhooks/compliancescan
+      path: /webhooks/compliancescan/validating
       port: 443
   {{- end }}
     caBundle: {{ required ".Values.config.server.webhooks.tls.caBundle is required" (b64enc .Values.config.server.webhooks.tls.caBundle) }}
@@ -52,12 +52,12 @@ webhooks:
   failurePolicy: Fail
   clientConfig:
   {{- if .Values.config.server.webhooks.tls.hostname }}
-    url: {{ printf "https://%s:443/webhooks/scheduledcompliancescan/validate" (.Values.config.server.webhooks.tls.hostname) }}
+    url: {{ printf "https://%s:443/webhooks/scheduledcompliancescan/validating" (.Values.config.server.webhooks.tls.hostname) }}
   {{- else }}
     service:
       name: {{ include "diki-operator.name" . }}
       namespace: {{ .Release.Namespace }}
-      path: /webhooks/scheduledcompliancescan/validate
+      path: /webhooks/scheduledcompliancescan/validating
       port: 443
   {{- end }}
     caBundle: {{ required ".Values.config.server.webhooks.tls.caBundle is required" (b64enc .Values.config.server.webhooks.tls.caBundle) }}

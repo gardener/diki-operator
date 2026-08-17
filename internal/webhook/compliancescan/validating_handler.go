@@ -22,18 +22,18 @@ import (
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
-// Handler is an admission webhook handler that restricts creation or updates to
+// ValidatingHandler is an admission webhook handler that restricts creation or updates to
 // certain ComplianceScan resources.
-type Handler struct {
+type ValidatingHandler struct {
 	Client  client.Client
 	Decoder admission.Decoder
 }
 
-var _ admission.Handler = &Handler{}
+var _ admission.Handler = &ValidatingHandler{}
 
 // Handle handles an admission request for a ComplianceScan resource and restricts updates
 // and creations if it contains references to invalid ConfigMaps.
-func (h *Handler) Handle(ctx context.Context, req admission.Request) admission.Response {
+func (h *ValidatingHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
 	complianceScan := &dikiv1alpha1.ComplianceScan{}
 	if err := h.Decoder.DecodeRaw(req.Object, complianceScan); err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
