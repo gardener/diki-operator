@@ -18,7 +18,7 @@ const (
 	JobNamePrefix = "diki-run-"
 	// DikiConfigVolumeName is the name of the volume mounted in the diki-run Job pods.
 	DikiConfigVolumeName = "diki-config"
-	// DikiConfigKey is the key used to store the YAML configuration in the ConfigMap data.
+	// DikiConfigKey is the key used to store the YAML configuration in the Secret data.
 	DikiConfigKey = "config.yaml"
 	// DikiConfigMountPath is the mount path for the configurations needed by the diki-run Job pod.
 	DikiConfigMountPath = "/config"
@@ -34,7 +34,7 @@ const (
 	// ReportFileName is the name of the report file written by the diki-scan container.
 	ReportFileName = "report.json"
 
-	// ExporterConfigKey is the key used to store the exporter configuration in the ConfigMap data.
+	// ExporterConfigKey is the key used to store the exporter configuration in the Secret data.
 	ExporterConfigKey = "exporter-config.yaml"
 
 	// KubeconfigVolumeName is the name of the projected volume for the kubeconfig and token secrets.
