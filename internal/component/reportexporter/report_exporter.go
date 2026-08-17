@@ -134,6 +134,13 @@ func (d *ReportExporter) createOutputs(complianceScan *dikiv1alpha1.ComplianceSc
 			}
 
 			outputs[output.Name] = dikioutputs.NewConfigMapExporter(d.Client, configMapOutput, complianceScan)
+		case v1alpha1.ExporterTypeWebhook:
+			var webhookConfig v1alpha1.WebhookOutputConfig
+			if err := json.Unmarshal(output.Config.Raw, &webhookConfig); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal WebhookOutput: %w", err)
+			}
+
+			outputs[output.Name] = dikioutputs.NewWebhookExporter(webhookConfig)
 		default:
 			return nil, fmt.Errorf("unsupported output type: %s", output.Type)
 		}
