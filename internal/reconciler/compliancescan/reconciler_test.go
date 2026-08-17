@@ -302,10 +302,8 @@ var _ = Describe("Controller", func() {
 								MatchFields(IgnoreExtras, Fields{
 									"Name": Equal("diki-config"),
 									"VolumeSource": MatchFields(IgnoreExtras, Fields{
-										"ConfigMap": PointTo(MatchFields(IgnoreExtras, Fields{
-											"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
-												"Name": Equal(compliancescan.ConfigMapNamePrefix + string(complianceScan.UID)),
-											}),
+										"Secret": PointTo(MatchFields(IgnoreExtras, Fields{
+											"SecretName":  Equal(compliancescan.DikiConfigSecretNamePrefix + string(complianceScan.UID)),
 											"DefaultMode": PointTo(Equal(int32(0440))),
 										})),
 									}),

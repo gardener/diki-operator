@@ -10,8 +10,8 @@ const (
 	// ReconciliationRequeueInterval is the time window between different reconciliations of a running ComplianceScan.
 	ReconciliationRequeueInterval = time.Second * 5
 
-	// ConfigMapNamePrefix is the prefix for diki config ConfigMap names.
-	ConfigMapNamePrefix = "diki-config-"
+	// DikiConfigSecretNamePrefix is the prefix for diki config Secret names.
+	DikiConfigSecretNamePrefix = "diki-config-"
 	// ServiceAccountNameDikiRun is the name for the diki-run Job related ServiceAccount.
 	ServiceAccountNameDikiRun = "diki-run"
 	// JobNamePrefix is the prefix for the diki-run Job names.
