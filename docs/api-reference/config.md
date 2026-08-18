@@ -464,6 +464,18 @@ Output describes a specific output of a compliance scan.
 <p>ConfigMap contains the configuration for exporting the report to a ConfigMap.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>webhook</code></br>
+<em>
+<a href="#outputwebhook">OutputWebhook</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Webhook contains the configuration for exporting the report via an HTTP webhook.</p>
+</td>
+</tr>
 
 </tbody>
 </table>
@@ -589,6 +601,67 @@ string
 <p>
 OutputStatusPhase is an alias for string representing the phase of an output after processing by the exporter.
 </p>
+
+
+<h3 id="outputwebhook">OutputWebhook
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#output">Output</a>)
+</p>
+
+<p>
+OutputWebhook contains the configuration for exporting the report via an HTTP webhook.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>url</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>URL is the destination endpoint to which the report will be POSTed.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>credentialsRef</code></br>
+<em>
+<a href="#secretreference">SecretReference</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>CredentialsRef is a reference to a Secret whose data at the given key contains a JSON object<br />where keys are HTTP header names and values are the corresponding header values<br />to include in the webhook request.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tls</code></br>
+<em>
+<a href="#tlsconfig">TLSConfig</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>TLS configures TLS settings for the webhook connection.<br />Only relevant when URL uses the HTTPS scheme.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
 
 
 <h3 id="reportoutput">ReportOutput
@@ -1349,6 +1422,115 @@ ScheduledComplianceScanTemplate is the template for the ComplianceScan that will
 </td>
 <td>
 <p>Spec is the spec of the ComplianceScan that will be created.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+<h3 id="secretreference">SecretReference
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#outputwebhook">OutputWebhook</a>, <a href="#tlsconfig">TLSConfig</a>)
+</p>
+
+<p>
+SecretReference is a reference to a specific key within a Secret.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the Secret.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the namespace of the Secret.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>key</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Key is the key within the Secret's data.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+<h3 id="tlsconfig">TLSConfig
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#outputwebhook">OutputWebhook</a>)
+</p>
+
+<p>
+TLSConfig configures TLS settings for output types that make outbound HTTPS connections.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>insecureSkipVerify</code></br>
+<em>
+boolean
+</em>
+</td>
+<td>
+<p>InsecureSkipVerify disables TLS certificate verification.<br />Use with caution; intended for development/testing environments.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>caSecretRef</code></br>
+<em>
+<a href="#secretreference">SecretReference</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>CASecretRef is a reference to a Secret containing a custom CA certificate bundle.<br />The referenced key should contain PEM-encoded CA certificate(s).<br />If not set, the system's root CA pool is used.</p>
 </td>
 </tr>
 

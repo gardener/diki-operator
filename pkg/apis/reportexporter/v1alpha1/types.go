@@ -47,4 +47,28 @@ type OutputType string
 const (
 	// ExporterTypeConfigMap is the type for exporting reports to a ConfigMap.
 	ExporterTypeConfigMap OutputType = "ConfigMap"
+	// ExporterTypeWebhook is the type for exporting reports via an HTTP webhook.
+	ExporterTypeWebhook OutputType = "Webhook"
 )
+
+// WebhookOutputConfig is the resolved configuration for a webhook output.
+// All secrets are resolved by the operator at reconciliation time.
+// The exporter receives plain values and does not need access to Secrets.
+type WebhookOutputConfig struct {
+	// URL is the destination endpoint to which the report will be POSTed.
+	URL string `json:"url"`
+	// Headers contains HTTP headers to include in the webhook request.
+	// +optional
+	Headers map[string]string `json:"headers,omitempty"`
+	// TLS contains resolved TLS settings for the webhook connection.
+	// +optional
+	TLS *WebhookTLSConfig `json:"tls,omitempty"`
+}
+
+// WebhookTLSConfig contains resolved TLS settings for the webhook exporter.
+type WebhookTLSConfig struct {
+	// InsecureSkipVerify disables TLS certificate verification.
+	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`
+	// CACert contains a PEM-encoded CA certificate bundle.
+	CACert string `json:"caCert,omitempty"`
+}
