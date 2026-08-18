@@ -14,9 +14,9 @@ const (
 	// HandlerName is the name of this admission webhook handler.
 	HandlerName = "scheduledcompliancescan"
 	// ValidatingWebhookPath is the HTTP handler path for the validating admission webhook.
-	ValidatingWebhookPath = "/webhooks/scheduledcompliancescan/validate"
+	ValidatingWebhookPath = "/webhooks/scheduledcompliancescan/validating"
 	// MutatingWebhookPath is the HTTP handler path for the mutating admission webhook.
-	MutatingWebhookPath = "/webhooks/scheduledcompliancescan/mutate"
+	MutatingWebhookPath = "/webhooks/scheduledcompliancescan/mutating"
 )
 
 // AddToManager registers the validating and mutating webhook handlers with the given manager.

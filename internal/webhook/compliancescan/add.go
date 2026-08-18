@@ -13,20 +13,20 @@ import (
 const (
 	// HandlerName is the name of this admission webhook handler.
 	HandlerName = "compliancescan"
-	// WebhookPath is the HTTP handler path for this admission webhook handler.
-	WebhookPath = "/webhooks/compliancescan"
+	// ValidatingWebhookPath is the HTTP handler path for the validating admission webhook.
+	ValidatingWebhookPath = "/webhooks/compliancescan/validating"
 )
 
-// AddToManager adds Handler to the given manager.
+// AddToManager adds the validating webhook handler to the given manager.
 func AddToManager(mgr manager.Manager) error {
 	webhook := &admission.Webhook{
-		Handler: &Handler{
+		Handler: &ValidatingHandler{
 			Client:  mgr.GetClient(),
 			Decoder: admission.NewDecoder(mgr.GetScheme()),
 		},
 		RecoverPanic: ptr.To(true),
 	}
 
-	mgr.GetWebhookServer().Register(WebhookPath, webhook)
+	mgr.GetWebhookServer().Register(ValidatingWebhookPath, webhook)
 	return nil
 }

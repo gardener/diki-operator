@@ -25,12 +25,12 @@ webhooks:
   failurePolicy: Fail
   clientConfig:
   {{- if .Values.config.server.webhooks.tls.hostname }}
-    url: {{ printf "https://%s:443/webhooks/scheduledcompliancescan/mutate" (.Values.config.server.webhooks.tls.hostname) }}
+    url: {{ printf "https://%s:443/webhooks/scheduledcompliancescan/mutating" (.Values.config.server.webhooks.tls.hostname) }}
   {{- else }}
     service:
       name: {{ include "diki-operator.name" . }}
       namespace: {{ .Release.Namespace }}
-      path: /webhooks/scheduledcompliancescan/mutate
+      path: /webhooks/scheduledcompliancescan/mutating
       port: 443
   {{- end }}
     caBundle: {{ required ".Values.config.server.webhooks.tls.caBundle is required" (b64enc .Values.config.server.webhooks.tls.caBundle) }}
