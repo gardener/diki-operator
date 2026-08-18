@@ -15,10 +15,10 @@ tool (
 )
 
 require (
-	github.com/gardener/diki v0.27.1
-	github.com/gardener/gardener v1.148.0
+	github.com/gardener/diki v0.28.0
+	github.com/gardener/gardener v1.148.3
 	github.com/go-logr/logr v1.4.4
-	github.com/onsi/ginkgo/v2 v2.32.0
+	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.42.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.10.2
@@ -92,8 +92,8 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/gardener/cert-management v0.23.0 // indirect
 	github.com/gardener/etcd-druid/api v0.37.1 // indirect
-	github.com/gardener/gardener/hack/tools v1.148.0 // indirect
-	github.com/gardener/gardener/pkg/apis v1.148.0 // indirect
+	github.com/gardener/gardener/hack/tools v1.148.3 // indirect
+	github.com/gardener/gardener/pkg/apis v1.148.3 // indirect
 	github.com/gardener/machine-controller-manager v0.62.1 // indirect
 	github.com/gardener/pvc-autoscaler v0.3.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
@@ -248,7 +248,7 @@ require (
 	k8s.io/gengo/v2 v2.0.0-20260408192533-25e2208e0dc3 // indirect
 	k8s.io/kube-aggregator v0.36.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20260603220949-865597e52e25 // indirect
-	k8s.io/kubectl v0.36.1 // indirect
+	k8s.io/kubectl v0.36.3 // indirect
 	k8s.io/kubelet v0.36.3 // indirect
 	k8s.io/metrics v0.36.3 // indirect
 	k8s.io/pod-security-admission v0.36.3 // indirect
