@@ -26,7 +26,7 @@ import (
 	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
-func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (*corev1.ConfigMap, error) {
+func (r *Reconciler) deployDikiConfigSecret(ctx context.Context, secretName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (*corev1.Secret, error) {
 	dikiConfig, err := r.buildDikiConfig(ctx, complianceScan)
 	if err != nil {
 		return nil, err
@@ -53,15 +53,15 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 	}
 	dikiConfigYAML := buf.Bytes()
 
-	configMap := &corev1.ConfigMap{
+	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            configMapName,
+			Name:            secretName,
 			Namespace:       r.Config.DikiRunner.Namespace,
 			OwnerReferences: r.getOwnerReference(job),
 			Labels:          r.getLabels(complianceScan),
 		},
-		Data: map[string]string{
-			DikiConfigKey: string(dikiConfigYAML),
+		Data: map[string][]byte{
+			DikiConfigKey: dikiConfigYAML,
 		},
 	}
 
@@ -83,13 +83,13 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 	if err := exporterEncoder.Encode(exporterConfigMap); err != nil {
 		return nil, fmt.Errorf("failed to encode exporter config to yaml: %w", err)
 	}
-	configMap.Data[ExporterConfigKey] = exporterBuf.String()
+	secret.Data[ExporterConfigKey] = exporterBuf.Bytes()
 
-	if err := r.SourceClient.Create(ctx, configMap); err != nil {
-		return nil, fmt.Errorf("failed to create diki config configMap: %w", err)
+	if err := r.SourceClient.Create(ctx, secret); err != nil {
+		return nil, fmt.Errorf("failed to create diki config secret: %w", err)
 	}
 
-	return configMap, nil
+	return secret, nil
 }
 
 func (r *Reconciler) buildDikiConfig(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) (*dikiconfig.DikiConfig, error) {

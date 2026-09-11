@@ -20,7 +20,7 @@ import (
 
 // deployDikiRunJob creates a Kubernetes Job that runs the diki compliance scan
 // and exports the report to the configured outputs.
-func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, dikiConfigMapName string) (*batchv1.Job, error) {
+func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, dikiConfigSecretName string) (*batchv1.Job, error) {
 	dikiImage, err := imagevector.ImageVector().FindImage("diki")
 	if err != nil {
 		return nil, err
@@ -109,10 +109,8 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 						{
 							Name: DikiConfigVolumeName,
 							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: dikiConfigMapName,
-									},
+								Secret: &corev1.SecretVolumeSource{
+									SecretName:  dikiConfigSecretName,
 									DefaultMode: ptr.To(int32(0440)),
 								},
 							},

@@ -99,24 +99,24 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 }
 
 func (r *Reconciler) deployResources(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, log logr.Logger) error {
-	configMapName := ConfigMapNamePrefix + string(complianceScan.UID)
+	secretName := DikiConfigSecretNamePrefix + string(complianceScan.UID)
 
 	exporterConfig, err := r.buildExporterConfig(ctx, complianceScan)
 	if err != nil {
 		return fmt.Errorf("failed to build exporter config: %w", err)
 	}
 
-	job, err := r.deployDikiRunJob(ctx, complianceScan, configMapName)
+	job, err := r.deployDikiRunJob(ctx, complianceScan, secretName)
 	if err != nil {
 		return err
 	}
 	log.Info("Created Job successfully", "job", job.Name, "namespace", job.Namespace)
 
-	configMap, err := r.deployDikiConfigMap(ctx, configMapName, complianceScan, job, exporterConfig)
+	secret, err := r.deployDikiConfigSecret(ctx, secretName, complianceScan, job, exporterConfig)
 	if err != nil {
 		return err
 	}
-	log.Info("Created ConfigMap successfully", "configMap", configMap.Name, "namespace", configMap.Namespace)
+	log.Info("Created diki config successfully", "secret", secret.Name, "namespace", secret.Namespace)
 
 	if err := r.startDikiRunJob(ctx, job); err != nil {
 		return fmt.Errorf("failed to start diki runner job: %w", err)
