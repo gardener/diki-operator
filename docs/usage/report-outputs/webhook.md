@@ -1,6 +1,6 @@
 # Webhook Output
 
-The Webhook output sends the compliance scan report as a JSON payload via a configurable HTTP method (POST, PUT, or PATCH) to a configured endpoint.
+The Webhook output sends the compliance scan report as a JSON payload via a configurable HTTP method (POST, PUT) to a configured endpoint.
 
 ## Configuration
 
@@ -28,7 +28,7 @@ spec:
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `url` | string | **Yes** | - | The destination endpoint URL. The scheme (`http://` or `https://`) determines whether TLS is used. |
-| `method` | string | No | `POST` | The HTTP method used to send the report. Allowed values: `POST`, `PUT`, `PATCH`. |
+| `method` | string | No | `POST` | The HTTP method used to send the report. Allowed values: `POST`, `PUT`. |
 | `credentialsRef` | [SecretReference](#secretreference) | No | - | Reference to a Secret containing HTTP headers to include in the request. |
 | `tls` | [TLSConfig](#tlsconfig) | No | - | TLS settings for HTTPS connections. Only relevant when the URL uses the `https` scheme. |
 

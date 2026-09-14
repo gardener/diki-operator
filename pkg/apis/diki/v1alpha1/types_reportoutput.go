@@ -70,7 +70,7 @@ type OutputWebhook struct {
 	// Defaults to "POST".
 	// +optional
 	// +kubebuilder:default="POST"
-	// +kubebuilder:validation:Enum={"POST","PUT","PATCH"}
+	// +kubebuilder:validation:Enum={"POST","PUT"}
 	Method string `json:"method,omitempty"`
 	// CredentialsRef is a reference to a Secret whose data at the given key contains a JSON object
 	// where keys are HTTP header names and values are the corresponding header values

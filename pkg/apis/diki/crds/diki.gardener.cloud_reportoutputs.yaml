@@ -94,7 +94,6 @@ spec:
                         enum:
                         - POST
                         - PUT
-                        - PATCH
                         type: string
                       tls:
                         description: |-

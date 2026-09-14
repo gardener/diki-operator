@@ -27,7 +27,7 @@ Each referenced `ReportOutput` defines a single output type with its configurati
 | Type | Description | Documentation |
 |------|-------------|---------------|
 | [ConfigMap](configmap.md) | Stores the report as a gzipped JSON in a Kubernetes ConfigMap | [configmap.md](configmap.md) |
-| [Webhook](webhook.md) | Sends the report as JSON to an HTTP(S) endpoint via a configurable method (POST, PUT, PATCH) | [webhook.md](webhook.md) |
+| [Webhook](webhook.md) | Sends the report as JSON to an HTTP(S) endpoint via a configurable method (POST, PUT) | [webhook.md](webhook.md) |
 
 ## Output Status
 
