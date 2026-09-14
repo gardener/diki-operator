@@ -10,8 +10,10 @@ const (
 	// ReconciliationRequeueInterval is the time window between different reconciliations of a running ComplianceScan.
 	ReconciliationRequeueInterval = time.Second * 5
 
-	// DikiConfigSecretNamePrefix is the prefix for diki config Secret names.
-	DikiConfigSecretNamePrefix = "diki-config-" // #nosec G101
+	// DikiConfigConfigMapNamePrefix is the prefix for diki config ConfigMap names.
+	DikiConfigConfigMapNamePrefix = "diki-config-"
+	// ExporterConfigSecretNamePrefix is the prefix for report exporter config Secret names.
+	ExporterConfigSecretNamePrefix = "exporter-config-" // #nosec G101
 	// ServiceAccountNameDikiRun is the name for the diki-run Job related ServiceAccount.
 	ServiceAccountNameDikiRun = "diki-run"
 	// JobNamePrefix is the prefix for the diki-run Job names.
@@ -36,6 +38,10 @@ const (
 
 	// ExporterConfigKey is the key used to store the exporter configuration in the Secret data.
 	ExporterConfigKey = "exporter-config.yaml"
+	// ExporterConfigVolumeName is the name of the volume for the exporter config Secret mounted in the diki-run Job pods.
+	ExporterConfigVolumeName = "exporter-config"
+	// ExporterConfigMountPath is the mount path for the exporter configuration needed by the report-exporter container.
+	ExporterConfigMountPath = "/exporter-config"
 
 	// KubeconfigVolumeName is the name of the projected volume for the kubeconfig and token secrets.
 	KubeconfigVolumeName = "kubeconfig"

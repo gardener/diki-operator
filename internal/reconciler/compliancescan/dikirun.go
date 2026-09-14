@@ -20,7 +20,7 @@ import (
 
 // deployDikiRunJob creates a Kubernetes Job that runs the diki compliance scan
 // and exports the report to the configured outputs.
-func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, dikiConfigSecretName string) (*batchv1.Job, error) {
+func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, dikiConfigMapName, exporterConfigSecretName string) (*batchv1.Job, error) {
 	dikiImage, err := imagevector.ImageVector().FindImage("diki")
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 							Name:  ReportExporterContainerName,
 							Image: reportExporterImage.String(),
 							Args: []string{
-								fmt.Sprintf("--config=%s/%s", DikiConfigMountPath, ExporterConfigKey),
+								fmt.Sprintf("--config=%s/%s", ExporterConfigMountPath, ExporterConfigKey),
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
@@ -90,8 +90,8 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 									ReadOnly:  true,
 								},
 								{
-									Name:      DikiConfigVolumeName,
-									MountPath: DikiConfigMountPath,
+									Name:      ExporterConfigVolumeName,
+									MountPath: ExporterConfigMountPath,
 									ReadOnly:  true,
 								},
 							},
@@ -109,8 +109,19 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 						{
 							Name: DikiConfigVolumeName,
 							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: dikiConfigMapName,
+									},
+									DefaultMode: ptr.To(int32(0440)),
+								},
+							},
+						},
+						{
+							Name: ExporterConfigVolumeName,
+							VolumeSource: corev1.VolumeSource{
 								Secret: &corev1.SecretVolumeSource{
-									SecretName:  dikiConfigSecretName,
+									SecretName:  exporterConfigSecretName,
 									DefaultMode: ptr.To(int32(0440)),
 								},
 							},

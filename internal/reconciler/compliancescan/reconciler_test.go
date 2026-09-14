@@ -274,7 +274,7 @@ var _ = Describe("Controller", func() {
 								MatchFields(IgnoreExtras, Fields{
 									"Name": Equal("report-exporter"),
 									"Args": Equal([]string{
-										"--config=/config/exporter-config.yaml",
+										"--config=/exporter-config/exporter-config.yaml",
 									}),
 									"VolumeMounts": ConsistOf(
 										MatchFields(IgnoreExtras, Fields{
@@ -283,8 +283,8 @@ var _ = Describe("Controller", func() {
 											"ReadOnly":  BeTrue(),
 										}),
 										MatchFields(IgnoreExtras, Fields{
-											"Name":      Equal("diki-config"),
-											"MountPath": Equal("/config"),
+											"Name":      Equal("exporter-config"),
+											"MountPath": Equal("/exporter-config"),
 											"ReadOnly":  BeTrue(),
 										}),
 									),
@@ -302,8 +302,19 @@ var _ = Describe("Controller", func() {
 								MatchFields(IgnoreExtras, Fields{
 									"Name": Equal("diki-config"),
 									"VolumeSource": MatchFields(IgnoreExtras, Fields{
+										"ConfigMap": PointTo(MatchFields(IgnoreExtras, Fields{
+											"LocalObjectReference": MatchFields(IgnoreExtras, Fields{
+												"Name": Equal(compliancescan.DikiConfigConfigMapNamePrefix + string(complianceScan.UID)),
+											}),
+											"DefaultMode": PointTo(Equal(int32(0440))),
+										})),
+									}),
+								}),
+								MatchFields(IgnoreExtras, Fields{
+									"Name": Equal("exporter-config"),
+									"VolumeSource": MatchFields(IgnoreExtras, Fields{
 										"Secret": PointTo(MatchFields(IgnoreExtras, Fields{
-											"SecretName":  Equal(compliancescan.DikiConfigSecretNamePrefix + string(complianceScan.UID)),
+											"SecretName":  Equal(compliancescan.ExporterConfigSecretNamePrefix + string(complianceScan.UID)),
 											"DefaultMode": PointTo(Equal(int32(0440))),
 										})),
 									}),
@@ -760,7 +771,7 @@ var _ = Describe("Controller", func() {
             args:
               foo: bar`
 			optionsConfigMap *corev1.ConfigMap
-			secretList       *corev1.SecretList
+			configMapList    *corev1.ConfigMapList
 
 			disaConfigWith = func(version, rulesetOptions, ruleOptions string) string {
 				result := `
@@ -849,7 +860,7 @@ var _ = Describe("Controller", func() {
 				},
 			}
 			Expect(fakeClient.Create(ctx, optionsConfigMap)).To(Succeed())
-			secretList = &corev1.SecretList{}
+			configMapList = &corev1.ConfigMapList{}
 		})
 
 		It("should create a diki config ConfigMap", func() {
@@ -862,16 +873,16 @@ var _ = Describe("Controller", func() {
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": "1"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
+			configMap := configMapList.Items[0]
 
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).To(Equal(configFor()))
+			Expect(configMap.Data["config.yaml"]).To(Equal(configFor()))
 		})
 
 		It("should create a diki config ConfigMap with kubeconfigPath when kubeconfig is set", func() {
@@ -887,15 +898,15 @@ var _ = Describe("Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": "1"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
+			configMap := configMapList.Items[0]
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).To(Equal(configForWithKubeconfig(configv1alpha1.DefaultKubeconfigMountPath)))
+			Expect(configMap.Data["config.yaml"]).To(Equal(configForWithKubeconfig(configv1alpha1.DefaultKubeconfigMountPath)))
 		})
 
 		It("should create a diki config ConfigMap with custom kubeconfigPath when non-default mount path is set", func() {
@@ -911,15 +922,15 @@ var _ = Describe("Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": "1"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
+			configMap := configMapList.Items[0]
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).To(Equal(configForWithKubeconfig("/custom/mount/path")))
+			Expect(configMap.Data["config.yaml"]).To(Equal(configForWithKubeconfig("/custom/mount/path")))
 		})
 
 		It("should create a diki config for all rulesets without options", func() {
@@ -942,20 +953,20 @@ var _ = Describe("Controller", func() {
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": "1"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
 			var (
-				configMap    = secretList.Items[0]
+				configMap    = configMapList.Items[0]
 				disaConfig   = disaConfigWith("v1", "", "")
 				secK8sConfig = secK8sConfigWith("v1", "", "")
 			)
 
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).To(Equal(configFor(disaConfig, secK8sConfig)))
+			Expect(configMap.Data["config.yaml"]).To(Equal(configFor(disaConfig, secK8sConfig)))
 		})
 
 		It("should create a diki config for all rulesets with options", func() {
@@ -1008,26 +1019,26 @@ var _ = Describe("Controller", func() {
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: complianceScan.Name}, complianceScan)).To(Succeed())
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanRunning))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/uid": "1"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
 			var (
-				configMap    = secretList.Items[0]
+				configMap    = configMapList.Items[0]
 				disaConfig   = disaConfigWith("v1", defaultRulesetOptions, defaultRuleOptions)
 				secK8sConfig = secK8sConfigWith("v1", setRulesetOptions, setRuleOptions)
 			)
 
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).To(Equal(configFor(disaConfig, secK8sConfig)))
+			Expect(configMap.Data["config.yaml"]).To(Equal(configFor(disaConfig, secK8sConfig)))
 		})
 	})
 
 	Describe("diki config ConfigMap with base options", func() {
 		var (
-			secretList           *corev1.SecretList
+			configMapList        *corev1.ConfigMapList
 			baseOptionsConfigMap *corev1.ConfigMap
 
 			baseConfigYAML = `providers:
@@ -1055,7 +1066,7 @@ var _ = Describe("Controller", func() {
 		)
 
 		BeforeEach(func() {
-			secretList = &corev1.SecretList{}
+			configMapList = &corev1.ConfigMapList{}
 			baseOptionsConfigMap = &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "base-options",
@@ -1087,17 +1098,17 @@ var _ = Describe("Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
+			configMap := configMapList.Items[0]
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("disa-kubernetes-stig"))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("ruleID: \"1111\""))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("ruleID: \"3333\""))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("onlyInBase: true"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("disa-kubernetes-stig"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"1111\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"3333\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("onlyInBase: true"))
 		})
 
 		It("should merge base options with compliance scan config that has rule options", func() {
@@ -1137,19 +1148,19 @@ var _ = Describe("Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
+			configMap := configMapList.Items[0]
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("ruleID: \"1111\""))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("currentKey: currentValue"))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("ruleID: \"2222\""))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("onlyInCurrent: true"))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("ruleID: \"3333\""))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("onlyInBase: true"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"1111\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("currentKey: currentValue"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"2222\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("onlyInCurrent: true"))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"3333\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("onlyInBase: true"))
 		})
 
 		It("should use custom key from base options ConfigMapRef", func() {
@@ -1172,14 +1183,14 @@ var _ = Describe("Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
+			configMap := configMapList.Items[0]
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).To(ContainSubstring("ruleID: \"3333\""))
+			Expect(configMap.Data["config.yaml"]).To(ContainSubstring("ruleID: \"3333\""))
 		})
 
 		It("should fail when base options ConfigMap does not exist", func() {
@@ -1274,14 +1285,14 @@ var _ = Describe("Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
+			configMap := configMapList.Items[0]
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).NotTo(ContainSubstring("ruleID: \"3333\""))
+			Expect(configMap.Data["config.yaml"]).NotTo(ContainSubstring("ruleID: \"3333\""))
 		})
 
 		It("should only merge matching rulesets by ID and version", func() {
@@ -1298,19 +1309,19 @@ var _ = Describe("Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(len(secretList.Items)).To(Equal(1))
+			Expect(len(configMapList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
+			configMap := configMapList.Items[0]
 			Expect(configMap.Data).To(HaveKey("config.yaml"))
-			Expect(string(configMap.Data["config.yaml"])).NotTo(ContainSubstring("ruleID: \"3333\""))
-			Expect(string(configMap.Data["config.yaml"])).NotTo(ContainSubstring("onlyInBase"))
+			Expect(configMap.Data["config.yaml"]).NotTo(ContainSubstring("ruleID: \"3333\""))
+			Expect(configMap.Data["config.yaml"]).NotTo(ContainSubstring("onlyInBase"))
 		})
 	})
 
-	Describe("exporter config in ConfigMap", func() {
+	Describe("exporter config in Secret", func() {
 		var secretList *corev1.SecretList
 
 		BeforeEach(func() {
@@ -1329,9 +1340,9 @@ var _ = Describe("Controller", func() {
 			)).To(Succeed())
 			Expect(len(secretList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
-			Expect(configMap.Data).To(HaveKey("exporter-config.yaml"))
-			Expect(string(configMap.Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+			secret := secretList.Items[0]
+			Expect(secret.Data).To(HaveKey("exporter-config.yaml"))
+			Expect(string(secret.Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
 complianceScanName: compliancescan
 kind: ReportExporterConfiguration
 outputs: null
@@ -1370,9 +1381,9 @@ waitForReport: true
 			)).To(Succeed())
 			Expect(len(secretList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
-			Expect(configMap.Data).To(HaveKey("exporter-config.yaml"))
-			Expect(string(configMap.Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+			secret := secretList.Items[0]
+			Expect(secret.Data).To(HaveKey("exporter-config.yaml"))
+			Expect(string(secret.Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
 complianceScanName: compliancescan
 kind: ReportExporterConfiguration
 outputs:
@@ -1430,9 +1441,9 @@ waitForReport: true
 			)).To(Succeed())
 			Expect(len(secretList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
-			Expect(configMap.Data).To(HaveKey("exporter-config.yaml"))
-			exporterConfig := string(configMap.Data["exporter-config.yaml"])
+			secret := secretList.Items[0]
+			Expect(secret.Data).To(HaveKey("exporter-config.yaml"))
+			exporterConfig := string(secret.Data["exporter-config.yaml"])
 			Expect(exporterConfig).To(ContainSubstring("type: Webhook"))
 			Expect(exporterConfig).To(ContainSubstring("name: my-webhook-output"))
 			Expect(exporterConfig).To(ContainSubstring("url: http://example.com/reports"))
@@ -1487,9 +1498,9 @@ waitForReport: true
 			)).To(Succeed())
 			Expect(len(secretList.Items)).To(Equal(1))
 
-			configMap := secretList.Items[0]
-			Expect(configMap.Data).To(HaveKey("exporter-config.yaml"))
-			exporterConfig := string(configMap.Data["exporter-config.yaml"])
+			secret := secretList.Items[0]
+			Expect(secret.Data).To(HaveKey("exporter-config.yaml"))
+			exporterConfig := string(secret.Data["exporter-config.yaml"])
 			Expect(exporterConfig).To(ContainSubstring("type: Webhook"))
 			Expect(exporterConfig).To(ContainSubstring("url: https://secure.example.com/reports"))
 			Expect(exporterConfig).To(ContainSubstring("insecureSkipVerify: true"))

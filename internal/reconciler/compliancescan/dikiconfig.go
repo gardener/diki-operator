@@ -26,7 +26,7 @@ import (
 	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
-func (r *Reconciler) deployDikiConfigSecret(ctx context.Context, secretName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (*corev1.Secret, error) {
+func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job) (*corev1.ConfigMap, error) {
 	dikiConfig, err := r.buildDikiConfig(ctx, complianceScan)
 	if err != nil {
 		return nil, err
@@ -51,20 +51,27 @@ func (r *Reconciler) deployDikiConfigSecret(ctx context.Context, secretName stri
 	if err := encoder.Encode(dikiConfig); err != nil {
 		return nil, fmt.Errorf("failed to marshal diki config: %w", err)
 	}
-	dikiConfigYAML := buf.Bytes()
 
-	secret := &corev1.Secret{
+	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            secretName,
+			Name:            configMapName,
 			Namespace:       r.Config.DikiRunner.Namespace,
 			OwnerReferences: r.getOwnerReference(job),
 			Labels:          r.getLabels(complianceScan),
 		},
-		Data: map[string][]byte{
-			DikiConfigKey: dikiConfigYAML,
+		Data: map[string]string{
+			DikiConfigKey: buf.String(),
 		},
 	}
 
+	if err := r.SourceClient.Create(ctx, configMap); err != nil {
+		return nil, fmt.Errorf("failed to create diki config configMap: %w", err)
+	}
+
+	return configMap, nil
+}
+
+func (r *Reconciler) deployExporterConfigSecret(ctx context.Context, secretName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (*corev1.Secret, error) {
 	// Marshal to JSON first because the YAML library ignores json: struct tags
 	// and embedded upstream types (e.g. metav1.TypeMeta) only have json: tags.
 	exporterConfigJSON, err := json.Marshal(exporterConfig)
@@ -83,10 +90,21 @@ func (r *Reconciler) deployDikiConfigSecret(ctx context.Context, secretName stri
 	if err := exporterEncoder.Encode(exporterConfigMap); err != nil {
 		return nil, fmt.Errorf("failed to encode exporter config to yaml: %w", err)
 	}
-	secret.Data[ExporterConfigKey] = exporterBuf.Bytes()
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            secretName,
+			Namespace:       r.Config.DikiRunner.Namespace,
+			OwnerReferences: r.getOwnerReference(job),
+			Labels:          r.getLabels(complianceScan),
+		},
+		Data: map[string][]byte{
+			ExporterConfigKey: exporterBuf.Bytes(),
+		},
+	}
 
 	if err := r.SourceClient.Create(ctx, secret); err != nil {
-		return nil, fmt.Errorf("failed to create diki config secret: %w", err)
+		return nil, fmt.Errorf("failed to create exporter config secret: %w", err)
 	}
 
 	return secret, nil
