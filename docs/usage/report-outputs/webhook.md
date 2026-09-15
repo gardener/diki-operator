@@ -96,7 +96,7 @@ This supports any authentication scheme (Bearer tokens, Basic Auth, API keys, et
 
 ## Output Details
 
-On success, the output status reports the URL and HTTP status code:
+On success, the output status reports the URL, HTTP status code, and response body (truncated to 1024 bytes):
 
 ```yaml
 outputs:
@@ -105,6 +105,7 @@ outputs:
     details:
       url: "https://compliance-api.corp.example.com/v1/reports"
       statusCode: 200
+      responseBody: '{"id":"report-abc123","status":"accepted"}'
 ```
 
 On failure:

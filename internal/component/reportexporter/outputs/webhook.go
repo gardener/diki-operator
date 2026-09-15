@@ -29,8 +29,9 @@ var _ Output = &WebhookExporter{}
 
 // WebhookDetails contains the details of the webhook export.
 type WebhookDetails struct {
-	URL        string `json:"url"`
-	StatusCode int    `json:"statusCode"`
+	URL          string `json:"url"`
+	StatusCode   int    `json:"statusCode"`
+	ResponseBody string `json:"responseBody,omitempty"`
 }
 
 // NewWebhookExporter creates a new instance of WebhookExporter.
@@ -86,10 +87,16 @@ func (w *WebhookExporter) Export(ctx context.Context, report dikireport.Report) 
 		return nil, fmt.Errorf("webhook request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
-	return &WebhookDetails{
+	details := &WebhookDetails{
 		URL:        w.Config.URL,
 		StatusCode: resp.StatusCode,
-	}, nil
+	}
+
+	if body, err := io.ReadAll(io.LimitReader(resp.Body, 1024)); err == nil && len(body) > 0 {
+		details.ResponseBody = string(body)
+	}
+
+	return details, nil
 }
 
 func (w *WebhookExporter) buildHTTPClient() (*http.Client, error) {

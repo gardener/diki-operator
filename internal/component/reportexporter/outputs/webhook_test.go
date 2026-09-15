@@ -61,6 +61,7 @@ var _ = Describe("WebhookExporter", func() {
 			receivedBody, err = io.ReadAll(r.Body)
 			Expect(err).ToNot(HaveOccurred())
 			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"id":"report-123"}`))
 		}))
 		defer server.Close()
 
@@ -77,10 +78,30 @@ var _ = Describe("WebhookExporter", func() {
 		Expect(ok).To(BeTrue(), "details should be of type *WebhookDetails")
 		Expect(webhookDetails.URL).To(Equal(server.URL))
 		Expect(webhookDetails.StatusCode).To(Equal(http.StatusOK))
+		Expect(webhookDetails.ResponseBody).To(Equal(`{"id":"report-123"}`))
 
 		var receivedReport dikireport.Report
 		Expect(json.Unmarshal(receivedBody, &receivedReport)).To(Succeed())
 		Expect(receivedReport).To(Equal(*dikiReport))
+	})
+
+	It("should omit responseBody when the server returns an empty body", func() {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		}))
+		defer server.Close()
+
+		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: server.URL,
+		})
+
+		details, err := exporter.Export(ctx, *dikiReport)
+		Expect(err).ToNot(HaveOccurred())
+
+		webhookDetails, ok := details.(*outputs.WebhookDetails)
+		Expect(ok).To(BeTrue())
+		Expect(webhookDetails.StatusCode).To(Equal(http.StatusNoContent))
+		Expect(webhookDetails.ResponseBody).To(BeEmpty())
 	})
 
 	It("should default to POST when method is not set", func() {
