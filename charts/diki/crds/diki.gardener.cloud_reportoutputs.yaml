@@ -71,14 +71,16 @@ spec:
                           where keys are HTTP header names and values are the corresponding header values
                           to include in the webhook request.
                         properties:
-                          key:
-                            description: Key is the key within the Secret's data.
+                          headersKey:
+                            description: |-
+                              HeadersKey is the key within the Secret's data that contains the JSON-encoded headers.
+                              Defaults to `headers`.
                             type: string
                           name:
-                            description: Name is the name of the Secret.
+                            description: Name is the name of the resource.
                             type: string
                           namespace:
-                            description: Namespace is the namespace of the Secret.
+                            description: Namespace is the namespace of the resource.
                             type: string
                         required:
                         - name
@@ -100,20 +102,21 @@ spec:
                           TLS configures TLS settings for the webhook connection.
                           Only relevant when URL uses the HTTPS scheme.
                         properties:
-                          caSecretRef:
+                          caConfigMapRef:
                             description: |-
-                              CASecretRef is a reference to a Secret containing a custom CA certificate bundle.
-                              The referenced key should contain PEM-encoded CA certificate(s).
+                              CAConfigMapRef is a reference to a ConfigMap containing a custom CA certificate bundle.
                               If not set, the system's root CA pool is used.
                             properties:
                               key:
-                                description: Key is the key within the Secret's data.
+                                description: |-
+                                  Key is the key within the ConfigMap's data that contains the CA certificate(s).
+                                  Defaults to `ca.crt`.
                                 type: string
                               name:
-                                description: Name is the name of the Secret.
+                                description: Name is the name of the resource.
                                 type: string
                               namespace:
-                                description: Namespace is the namespace of the Secret.
+                                description: Namespace is the namespace of the resource.
                                 type: string
                             required:
                             - name
@@ -124,6 +127,31 @@ spec:
                               InsecureSkipVerify disables TLS certificate verification.
                               Use with caution; intended for development/testing environments.
                             type: boolean
+                          mtlsSecretRef:
+                            description: |-
+                              MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+                              and key for mutual TLS (mTLS) authentication.
+                            properties:
+                              certKey:
+                                description: |-
+                                  CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.
+                                  Defaults to `tls.crt`.
+                                type: string
+                              name:
+                                description: Name is the name of the resource.
+                                type: string
+                              namespace:
+                                description: Namespace is the namespace of the resource.
+                                type: string
+                              privateKey:
+                                description: |-
+                                  PrivateKey is the key within the Secret's data that contains the PEM-encoded client private key.
+                                  Defaults to `tls.key`.
+                                type: string
+                            required:
+                            - name
+                            - namespace
+                            type: object
                         type: object
                       url:
                         description: URL is the destination endpoint to which the

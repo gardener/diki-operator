@@ -22,6 +22,66 @@ Resource Types:
 </li>
 </ul>
 
+<h3 id="caconfigmapref">CAConfigMapRef
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#tlsconfig">TLSConfig</a>)
+</p>
+
+<p>
+CAConfigMapRef is a reference to a ConfigMap containing a PEM-encoded CA certificate bundle.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the namespace of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>key</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Key is the key within the ConfigMap's data that contains the CA certificate(s).<br />Defaults to `ca.crt`.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
 <h3 id="compliancescan">ComplianceScan
 </h3>
 
@@ -331,6 +391,139 @@ ConditionStatus is an alias for string representing the status of a condition.
 <p>
 ConditionType is an alias for string representing the type of a condition.
 </p>
+
+
+<h3 id="credentialssecretref">CredentialsSecretRef
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#outputwebhook">OutputWebhook</a>)
+</p>
+
+<p>
+CredentialsSecretRef is a reference to a Secret containing HTTP headers for webhook authentication.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the namespace of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>headersKey</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>HeadersKey is the key within the Secret's data that contains the JSON-encoded headers.<br />Defaults to `headers`.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+<h3 id="mtlssecretref">MTLSSecretRef
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#tlsconfig">TLSConfig</a>)
+</p>
+
+<p>
+MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+and key for mutual TLS (mTLS) authentication.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the namespace of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>certKey</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.<br />Defaults to `tls.crt`.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>privateKey</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>PrivateKey is the key within the Secret's data that contains the PEM-encoded client private key.<br />Defaults to `tls.key`.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
 
 
 <h3 id="options">Options
@@ -651,7 +844,7 @@ string
 <td>
 <code>credentialsRef</code></br>
 <em>
-<a href="#secretreference">SecretReference</a>
+<a href="#credentialssecretref">CredentialsSecretRef</a>
 </em>
 </td>
 <td>
@@ -787,6 +980,54 @@ ReportOutputSpec is the specification of a ReportOutput.
 </td>
 <td>
 <p>Output describes a specific output of a compliance scan.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
+<h3 id="resourcereference">ResourceReference
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#caconfigmapref">CAConfigMapRef</a>, <a href="#credentialssecretref">CredentialsSecretRef</a>, <a href="#mtlssecretref">MTLSSecretRef</a>)
+</p>
+
+<p>
+ResourceReference is a reference to a namespaced Kubernetes resource.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the namespace of the resource.</p>
 </td>
 </tr>
 
@@ -1441,66 +1682,6 @@ ScheduledComplianceScanTemplate is the template for the ComplianceScan that will
 </table>
 
 
-<h3 id="secretreference">SecretReference
-</h3>
-
-
-<p>
-(<em>Appears on:</em><a href="#outputwebhook">OutputWebhook</a>, <a href="#tlsconfig">TLSConfig</a>)
-</p>
-
-<p>
-SecretReference is a reference to a specific key within a Secret.
-</p>
-
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-
-<tr>
-<td>
-<code>name</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Name is the name of the Secret.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>namespace</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Namespace is the namespace of the Secret.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>key</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Key is the key within the Secret's data.</p>
-</td>
-</tr>
-
-</tbody>
-</table>
-
-
 <h3 id="tlsconfig">TLSConfig
 </h3>
 
@@ -1536,14 +1717,26 @@ boolean
 </tr>
 <tr>
 <td>
-<code>caSecretRef</code></br>
+<code>caConfigMapRef</code></br>
 <em>
-<a href="#secretreference">SecretReference</a>
+<a href="#caconfigmapref">CAConfigMapRef</a>
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>CASecretRef is a reference to a Secret containing a custom CA certificate bundle.<br />The referenced key should contain PEM-encoded CA certificate(s).<br />If not set, the system's root CA pool is used.</p>
+<p>CAConfigMapRef is a reference to a ConfigMap containing a custom CA certificate bundle.<br />If not set, the system's root CA pool is used.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>mtlsSecretRef</code></br>
+<em>
+<a href="#mtlssecretref">MTLSSecretRef</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate<br />and key for mutual TLS (mTLS) authentication.</p>
 </td>
 </tr>
 
