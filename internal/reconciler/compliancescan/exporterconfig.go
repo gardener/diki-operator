@@ -22,8 +22,12 @@ import (
 const (
 	// defaultHeadersKey is the default key used in a credentials Secret when Key is not specified.
 	defaultHeadersKey = "headers"
-	// defaultCAKey is the default key used in a CA Secret when Key is not specified.
+	// defaultCAKey is the default key used in a CA ConfigMap when Key is not specified.
 	defaultCAKey = "ca.crt"
+	// defaultClientCertKey is the default key used in a client TLS Secret for the certificate.
+	defaultClientCertKey = "tls.crt"
+	// defaultClientKeyKey is the default key used in a client TLS Secret for the private key.
+	defaultClientKeyKey = "tls.key"
 )
 
 func (r *Reconciler) buildExporterConfig(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) (*reportexporterv1alpha1.ReportExporterConfiguration, error) {
@@ -125,28 +129,47 @@ func (r *Reconciler) resolveTLSConfig(ctx context.Context, tls *v1alpha1.TLSConf
 		InsecureSkipVerify: tls.InsecureSkipVerify,
 	}
 
-	if tls.CASecretRef != nil {
-		secret, err := r.getSecret(ctx, tls.CASecretRef)
+	if tls.CAConfigMapRef != nil {
+		configMap, err := r.getConfigMap(ctx, &tls.CAConfigMapRef.ResourceReference)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve CA certificate: %w", err)
 		}
-		caCert, err := readSecretKey(secret, tls.CASecretRef, defaultCAKey)
+		caCert, err := readConfigMapKey(configMap, ptr.Deref(tls.CAConfigMapRef.Key, defaultCAKey))
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve CA certificate: %w", err)
 		}
-		tlsConfig.CACert = string(caCert)
+		tlsConfig.CACert = caCert
+	}
+
+	if tls.MTLSSecretRef != nil {
+		secret, err := r.getSecret(ctx, &tls.MTLSSecretRef.ResourceReference)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve mTLS secret: %w", err)
+		}
+
+		clientCert, err := readSecretKey(secret, ptr.Deref(tls.MTLSSecretRef.CertKey, defaultClientCertKey))
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve client certificate: %w", err)
+		}
+		tlsConfig.ClientCert = string(clientCert)
+
+		clientKey, err := readSecretKey(secret, ptr.Deref(tls.MTLSSecretRef.PrivateKey, defaultClientKeyKey))
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve client key: %w", err)
+		}
+		tlsConfig.ClientKey = string(clientKey)
 	}
 
 	return tlsConfig, nil
 }
 
-func (r *Reconciler) resolveHeadersFromSecret(ctx context.Context, ref *v1alpha1.SecretReference) (map[string]string, error) {
-	secret, err := r.getSecret(ctx, ref)
+func (r *Reconciler) resolveHeadersFromSecret(ctx context.Context, ref *v1alpha1.CredentialsSecretRef) (map[string]string, error) {
+	secret, err := r.getSecret(ctx, &ref.ResourceReference)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := readSecretKey(secret, ref, defaultHeadersKey)
+	data, err := readSecretKey(secret, ptr.Deref(ref.HeadersKey, defaultHeadersKey))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +182,7 @@ func (r *Reconciler) resolveHeadersFromSecret(ctx context.Context, ref *v1alpha1
 	return headers, nil
 }
 
-func (r *Reconciler) getSecret(ctx context.Context, ref *v1alpha1.SecretReference) (*corev1.Secret, error) {
+func (r *Reconciler) getSecret(ctx context.Context, ref *v1alpha1.ResourceReference) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
 	if err := r.Client.Get(ctx, client.ObjectKey{Name: ref.Name, Namespace: ref.Namespace}, secret); err != nil {
 		return nil, fmt.Errorf("failed to get Secret %s/%s: %w", ref.Namespace, ref.Name, err)
@@ -168,12 +191,28 @@ func (r *Reconciler) getSecret(ctx context.Context, ref *v1alpha1.SecretReferenc
 	return secret, nil
 }
 
-func readSecretKey(secret *corev1.Secret, ref *v1alpha1.SecretReference, defaultKey string) ([]byte, error) {
-	key := ptr.Deref(ref.Key, defaultKey)
+func (r *Reconciler) getConfigMap(ctx context.Context, ref *v1alpha1.ResourceReference) (*corev1.ConfigMap, error) {
+	configMap := &corev1.ConfigMap{}
+	if err := r.Client.Get(ctx, client.ObjectKey{Name: ref.Name, Namespace: ref.Namespace}, configMap); err != nil {
+		return nil, fmt.Errorf("failed to get ConfigMap %s/%s: %w", ref.Namespace, ref.Name, err)
+	}
 
+	return configMap, nil
+}
+
+func readSecretKey(secret *corev1.Secret, key string) ([]byte, error) {
 	data, ok := secret.Data[key]
 	if !ok {
 		return nil, fmt.Errorf("key %q not found in Secret %s/%s", key, secret.Namespace, secret.Name)
+	}
+
+	return data, nil
+}
+
+func readConfigMapKey(configMap *corev1.ConfigMap, key string) (string, error) {
+	data, ok := configMap.Data[key]
+	if !ok {
+		return "", fmt.Errorf("key %q not found in ConfigMap %s/%s", key, configMap.Namespace, configMap.Name)
 	}
 
 	return data, nil

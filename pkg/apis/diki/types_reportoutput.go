@@ -67,20 +67,49 @@ type OutputWebhook struct {
 	// CredentialsRef is a reference to a Secret whose data at the given key contains a JSON object
 	// where keys are HTTP header names and values are the corresponding header values
 	// to include in the webhook request.
-	CredentialsRef *SecretReference
+	CredentialsRef *CredentialsSecretRef
 	// TLS configures TLS settings for the webhook connection.
 	// Only relevant when URL uses the HTTPS scheme.
 	TLS *TLSConfig
 }
 
-// SecretReference is a reference to a specific key within a Secret.
-type SecretReference struct {
-	// Name is the name of the Secret.
+// CredentialsSecretRef is a reference to a Secret containing HTTP headers for webhook authentication.
+type CredentialsSecretRef struct {
+	ResourceReference
+
+	// HeadersKey is the key within the Secret's data that contains the JSON-encoded headers.
+	// Defaults to `headers`.
+	HeadersKey *string
+}
+
+// ResourceReference is a reference to a namespaced Kubernetes resource.
+type ResourceReference struct {
+	// Name is the name of the resource.
 	Name string
-	// Namespace is the namespace of the Secret.
+	// Namespace is the namespace of the resource.
 	Namespace string
-	// Key is the key within the Secret's data.
+}
+
+// CAConfigMapRef is a reference to a ConfigMap containing a PEM-encoded CA certificate bundle.
+type CAConfigMapRef struct {
+	ResourceReference
+
+	// Key is the key within the ConfigMap's data that contains the CA certificate(s).
+	// Defaults to `ca.crt`.
 	Key *string
+}
+
+// MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+// and key for mutual TLS (mTLS) authentication.
+type MTLSSecretRef struct {
+	ResourceReference
+
+	// CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.
+	// Defaults to `tls.crt`.
+	CertKey *string
+	// PrivateKey is the key within the Secret's data that contains the PEM-encoded client private key.
+	// Defaults to `tls.key`.
+	PrivateKey *string
 }
 
 // TLSConfig configures TLS settings for output types that make outbound HTTPS connections.
@@ -88,8 +117,10 @@ type TLSConfig struct {
 	// InsecureSkipVerify disables TLS certificate verification.
 	// Use with caution; intended for development/testing environments.
 	InsecureSkipVerify bool
-	// CASecretRef is a reference to a Secret containing a custom CA certificate bundle.
-	// The referenced key should contain PEM-encoded CA certificate(s).
+	// CAConfigMapRef is a reference to a ConfigMap containing a custom CA certificate bundle.
 	// If not set, the system's root CA pool is used.
-	CASecretRef *SecretReference
+	CAConfigMapRef *CAConfigMapRef
+	// MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+	// and key for mutual TLS (mTLS) authentication.
+	MTLSSecretRef *MTLSSecretRef
 }

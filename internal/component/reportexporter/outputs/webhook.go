@@ -111,6 +111,14 @@ func (w *WebhookExporter) buildHTTPClient() (*http.Client, error) {
 			tlsConfig.RootCAs = caCertPool
 		}
 
+		if len(w.Config.TLS.ClientCert) != 0 && len(w.Config.TLS.ClientKey) != 0 {
+			cert, err := tls.X509KeyPair([]byte(w.Config.TLS.ClientCert), []byte(w.Config.TLS.ClientKey))
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse client certificate: %w", err)
+			}
+			tlsConfig.Certificates = []tls.Certificate{cert}
+		}
+
 		transport.TLSClientConfig = tlsConfig
 	}
 

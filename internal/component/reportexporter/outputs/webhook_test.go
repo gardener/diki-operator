@@ -285,4 +285,212 @@ var _ = Describe("WebhookExporter", func() {
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(ContainSubstring("failed to parse CA certificate"))
 	})
+
+	It("should use a client certificate for mTLS", func() {
+		// Generate a self-signed CA certificate
+		caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		Expect(err).ToNot(HaveOccurred())
+
+		caTemplate := &x509.Certificate{
+			SerialNumber: big.NewInt(1),
+			Subject: pkix.Name{
+				CommonName: "Test CA",
+			},
+			NotBefore:             time.Now(),
+			NotAfter:              time.Now().Add(time.Hour),
+			IsCA:                  true,
+			BasicConstraintsValid: true,
+			KeyUsage:              x509.KeyUsageCertSign,
+		}
+
+		caCertDER, err := x509.CreateCertificate(rand.Reader, caTemplate, caTemplate, &caKey.PublicKey, caKey)
+		Expect(err).ToNot(HaveOccurred())
+
+		caCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caCertDER})
+
+		caCert, err := x509.ParseCertificate(caCertDER)
+		Expect(err).ToNot(HaveOccurred())
+
+		// Generate a server certificate signed by the CA
+		serverKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		Expect(err).ToNot(HaveOccurred())
+
+		serverTemplate := &x509.Certificate{
+			SerialNumber: big.NewInt(2),
+			Subject: pkix.Name{
+				CommonName: "localhost",
+			},
+			DNSNames:    []string{"localhost"},
+			IPAddresses: []net.IP{net.IPv4(127, 0, 0, 1)},
+			NotBefore:   time.Now(),
+			NotAfter:    time.Now().Add(time.Hour),
+			KeyUsage:    x509.KeyUsageDigitalSignature,
+			ExtKeyUsage: []x509.ExtKeyUsage{
+				x509.ExtKeyUsageServerAuth,
+			},
+		}
+
+		serverCertDER, err := x509.CreateCertificate(rand.Reader, serverTemplate, caCert, &serverKey.PublicKey, caKey)
+		Expect(err).ToNot(HaveOccurred())
+
+		serverCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: serverCertDER})
+		serverKeyDER, err := x509.MarshalECPrivateKey(serverKey)
+		Expect(err).ToNot(HaveOccurred())
+		serverKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: serverKeyDER})
+
+		serverTLSCert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
+		Expect(err).ToNot(HaveOccurred())
+
+		// Generate a client certificate signed by the CA
+		clientKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		Expect(err).ToNot(HaveOccurred())
+
+		clientTemplate := &x509.Certificate{
+			SerialNumber: big.NewInt(3),
+			Subject: pkix.Name{
+				CommonName: "Test Client",
+			},
+			NotBefore: time.Now(),
+			NotAfter:  time.Now().Add(time.Hour),
+			KeyUsage:  x509.KeyUsageDigitalSignature,
+			ExtKeyUsage: []x509.ExtKeyUsage{
+				x509.ExtKeyUsageClientAuth,
+			},
+		}
+
+		clientCertDER, err := x509.CreateCertificate(rand.Reader, clientTemplate, caCert, &clientKey.PublicKey, caKey)
+		Expect(err).ToNot(HaveOccurred())
+
+		clientCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: clientCertDER})
+		clientKeyDER, err := x509.MarshalECPrivateKey(clientKey)
+		Expect(err).ToNot(HaveOccurred())
+		clientKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: clientKeyDER})
+
+		// Create a server that requires client certificates
+		caPool := x509.NewCertPool()
+		caPool.AddCert(caCert)
+
+		server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		server.TLS = &tls.Config{
+			Certificates: []tls.Certificate{serverTLSCert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			ClientCAs:    caPool,
+		}
+		server.StartTLS()
+		defer server.Close()
+
+		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: server.URL,
+			TLS: &reportexporterv1alpha1.TLSConfig{
+				CACert:     string(caCertPEM),
+				ClientCert: string(clientCertPEM),
+				ClientKey:  string(clientKeyPEM),
+			},
+		})
+
+		details, err := exporter.Export(ctx, *dikiReport)
+		Expect(err).ToNot(HaveOccurred())
+
+		webhookDetails, ok := details.(*outputs.WebhookDetails)
+		Expect(ok).To(BeTrue())
+		Expect(webhookDetails.StatusCode).To(Equal(http.StatusOK))
+	})
+
+	It("should fail mTLS when server requires client cert but none is provided", func() {
+		// Generate a self-signed CA certificate
+		caKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		Expect(err).ToNot(HaveOccurred())
+
+		caTemplate := &x509.Certificate{
+			SerialNumber: big.NewInt(1),
+			Subject: pkix.Name{
+				CommonName: "Test CA",
+			},
+			NotBefore:             time.Now(),
+			NotAfter:              time.Now().Add(time.Hour),
+			IsCA:                  true,
+			BasicConstraintsValid: true,
+			KeyUsage:              x509.KeyUsageCertSign,
+		}
+
+		caCertDER, err := x509.CreateCertificate(rand.Reader, caTemplate, caTemplate, &caKey.PublicKey, caKey)
+		Expect(err).ToNot(HaveOccurred())
+
+		caCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: caCertDER})
+
+		caCert, err := x509.ParseCertificate(caCertDER)
+		Expect(err).ToNot(HaveOccurred())
+
+		// Generate a server certificate signed by the CA
+		serverKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		Expect(err).ToNot(HaveOccurred())
+
+		serverTemplate := &x509.Certificate{
+			SerialNumber: big.NewInt(2),
+			Subject: pkix.Name{
+				CommonName: "localhost",
+			},
+			DNSNames:    []string{"localhost"},
+			IPAddresses: []net.IP{net.IPv4(127, 0, 0, 1)},
+			NotBefore:   time.Now(),
+			NotAfter:    time.Now().Add(time.Hour),
+			KeyUsage:    x509.KeyUsageDigitalSignature,
+			ExtKeyUsage: []x509.ExtKeyUsage{
+				x509.ExtKeyUsageServerAuth,
+			},
+		}
+
+		serverCertDER, err := x509.CreateCertificate(rand.Reader, serverTemplate, caCert, &serverKey.PublicKey, caKey)
+		Expect(err).ToNot(HaveOccurred())
+
+		serverCertPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: serverCertDER})
+		serverKeyDER, err := x509.MarshalECPrivateKey(serverKey)
+		Expect(err).ToNot(HaveOccurred())
+		serverKeyPEM := pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: serverKeyDER})
+
+		serverTLSCert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
+		Expect(err).ToNot(HaveOccurred())
+
+		caPool := x509.NewCertPool()
+		caPool.AddCert(caCert)
+
+		server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		server.TLS = &tls.Config{
+			Certificates: []tls.Certificate{serverTLSCert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			ClientCAs:    caPool,
+		}
+		server.StartTLS()
+		defer server.Close()
+
+		// Connect with CA cert but without client cert
+		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: server.URL,
+			TLS: &reportexporterv1alpha1.TLSConfig{
+				CACert: string(caCertPEM),
+			},
+		})
+
+		_, err = exporter.Export(ctx, *dikiReport)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("failed to send webhook request"))
+	})
+
+	It("should return an error when the client certificate is invalid", func() {
+		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: "https://localhost:12345",
+			TLS: &reportexporterv1alpha1.TLSConfig{
+				ClientCert: "not a valid cert",
+				ClientKey:  "not a valid key",
+			},
+		})
+
+		_, err := exporter.Export(ctx, *dikiReport)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("failed to parse client certificate"))
+	})
 })

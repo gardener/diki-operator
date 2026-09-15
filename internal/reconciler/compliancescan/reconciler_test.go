@@ -1417,9 +1417,8 @@ waitForReport: true
 					Output: dikiv1alpha1.Output{
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "http://example.com/reports",
-							CredentialsRef: &dikiv1alpha1.SecretReference{
-								Name:      "webhook-creds",
-								Namespace: "kube-system",
+							CredentialsRef: &dikiv1alpha1.CredentialsSecretRef{
+								ResourceReference: dikiv1alpha1.ResourceReference{Name: "webhook-creds", Namespace: "kube-system"},
 							},
 						},
 					},
@@ -1452,16 +1451,16 @@ waitForReport: true
 		})
 
 		It("should create exporter config with resolved webhook TLS config", func() {
-			caSecret := &corev1.Secret{
+			caConfigMap := &corev1.ConfigMap{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "my-ca",
 					Namespace: "kube-system",
 				},
-				Data: map[string][]byte{
-					"ca.crt": []byte("-----BEGIN CERTIFICATE-----\nFAKECERT\n-----END CERTIFICATE-----"),
+				Data: map[string]string{
+					"ca.crt": "-----BEGIN CERTIFICATE-----\nFAKECERT\n-----END CERTIFICATE-----",
 				},
 			}
-			Expect(fakeClient.Create(ctx, caSecret)).To(Succeed())
+			Expect(fakeClient.Create(ctx, caConfigMap)).To(Succeed())
 
 			reportOutput := &dikiv1alpha1.ReportOutput{
 				ObjectMeta: metav1.ObjectMeta{
@@ -1473,9 +1472,11 @@ waitForReport: true
 							URL: "https://secure.example.com/reports",
 							TLS: &dikiv1alpha1.TLSConfig{
 								InsecureSkipVerify: true,
-								CASecretRef: &dikiv1alpha1.SecretReference{
-									Name:      "my-ca",
-									Namespace: "kube-system",
+								CAConfigMapRef: &dikiv1alpha1.CAConfigMapRef{
+									ResourceReference: dikiv1alpha1.ResourceReference{
+										Name:      "my-ca",
+										Namespace: "kube-system",
+									},
 								},
 							},
 						},
@@ -1516,9 +1517,8 @@ waitForReport: true
 					Output: dikiv1alpha1.Output{
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "http://example.com/reports",
-							CredentialsRef: &dikiv1alpha1.SecretReference{
-								Name:      "nonexistent",
-								Namespace: "kube-system",
+							CredentialsRef: &dikiv1alpha1.CredentialsSecretRef{
+								ResourceReference: dikiv1alpha1.ResourceReference{Name: "nonexistent", Namespace: "kube-system"},
 							},
 						},
 					},
@@ -1536,6 +1536,178 @@ waitForReport: true
 
 			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan)).To(Succeed())
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+		})
+
+		It("should create exporter config with resolved webhook mTLS config", func() {
+			caConfigMap := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-ca",
+					Namespace: "kube-system",
+				},
+				Data: map[string]string{
+					"ca.crt": "-----BEGIN CERTIFICATE-----\nFAKECACERT\n-----END CERTIFICATE-----",
+				},
+			}
+			Expect(fakeClient.Create(ctx, caConfigMap)).To(Succeed())
+
+			clientTLSSecret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-client-tls",
+					Namespace: "kube-system",
+				},
+				Data: map[string][]byte{
+					"tls.crt": []byte("-----BEGIN CERTIFICATE-----\nFAKECLIENTCERT\n-----END CERTIFICATE-----"),
+					"tls.key": []byte("-----BEGIN EC PRIVATE KEY-----\nFAKECLIENTKEY\n-----END EC PRIVATE KEY-----"),
+				},
+			}
+			Expect(fakeClient.Create(ctx, clientTLSSecret)).To(Succeed())
+
+			reportOutput := &dikiv1alpha1.ReportOutput{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "my-mtls-webhook",
+				},
+				Spec: dikiv1alpha1.ReportOutputSpec{
+					Output: dikiv1alpha1.Output{
+						Webhook: &dikiv1alpha1.OutputWebhook{
+							URL: "https://secure.example.com/reports",
+							TLS: &dikiv1alpha1.TLSConfig{
+								CAConfigMapRef: &dikiv1alpha1.CAConfigMapRef{
+									ResourceReference: dikiv1alpha1.ResourceReference{
+										Name:      "my-ca",
+										Namespace: "kube-system",
+									},
+								},
+								MTLSSecretRef: &dikiv1alpha1.MTLSSecretRef{
+									ResourceReference: dikiv1alpha1.ResourceReference{
+										Name:      "my-client-tls",
+										Namespace: "kube-system",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			Expect(fakeClient.Create(ctx, reportOutput)).To(Succeed())
+
+			complianceScan.Spec.Outputs = []dikiv1alpha1.ReportOutputRef{
+				{Name: "my-mtls-webhook"},
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, secretList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(secretList.Items)).To(Equal(1))
+
+			secret := secretList.Items[0]
+			Expect(secret.Data).To(HaveKey("exporter-config.yaml"))
+			exporterConfig := string(secret.Data["exporter-config.yaml"])
+			Expect(exporterConfig).To(ContainSubstring("type: Webhook"))
+			Expect(exporterConfig).To(ContainSubstring("url: https://secure.example.com/reports"))
+			Expect(exporterConfig).To(ContainSubstring("FAKECACERT"))
+			Expect(exporterConfig).To(ContainSubstring("FAKECLIENTCERT"))
+			Expect(exporterConfig).To(ContainSubstring("FAKECLIENTKEY"))
+		})
+
+		It("should fail when client TLS secret does not exist", func() {
+			reportOutput := &dikiv1alpha1.ReportOutput{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "missing-mtls-webhook",
+				},
+				Spec: dikiv1alpha1.ReportOutputSpec{
+					Output: dikiv1alpha1.Output{
+						Webhook: &dikiv1alpha1.OutputWebhook{
+							URL: "https://secure.example.com/reports",
+							TLS: &dikiv1alpha1.TLSConfig{
+								MTLSSecretRef: &dikiv1alpha1.MTLSSecretRef{
+									ResourceReference: dikiv1alpha1.ResourceReference{
+										Name:      "nonexistent-tls",
+										Namespace: "kube-system",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			Expect(fakeClient.Create(ctx, reportOutput)).To(Succeed())
+
+			complianceScan.Spec.Outputs = []dikiv1alpha1.ReportOutputRef{
+				{Name: "missing-mtls-webhook"},
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+		})
+
+		It("should resolve mTLS with custom certKey and privateKey overrides", func() {
+			clientTLSSecret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-custom-tls",
+					Namespace: "kube-system",
+				},
+				Data: map[string][]byte{
+					"client.crt": []byte("-----BEGIN CERTIFICATE-----\nCUSTOMCLIENTCERT\n-----END CERTIFICATE-----"),
+					"client.key": []byte("-----BEGIN EC PRIVATE KEY-----\nCUSTOMCLIENTKEY\n-----END EC PRIVATE KEY-----"),
+				},
+			}
+			Expect(fakeClient.Create(ctx, clientTLSSecret)).To(Succeed())
+
+			certKey := "client.crt"
+			privateKey := "client.key"
+			reportOutput := &dikiv1alpha1.ReportOutput{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "my-custom-mtls-webhook",
+				},
+				Spec: dikiv1alpha1.ReportOutputSpec{
+					Output: dikiv1alpha1.Output{
+						Webhook: &dikiv1alpha1.OutputWebhook{
+							URL: "https://secure.example.com/reports",
+							TLS: &dikiv1alpha1.TLSConfig{
+								MTLSSecretRef: &dikiv1alpha1.MTLSSecretRef{
+									ResourceReference: dikiv1alpha1.ResourceReference{
+										Name:      "my-custom-tls",
+										Namespace: "kube-system",
+									},
+									CertKey:    &certKey,
+									PrivateKey: &privateKey,
+								},
+							},
+						},
+					},
+				},
+			}
+			Expect(fakeClient.Create(ctx, reportOutput)).To(Succeed())
+
+			complianceScan.Spec.Outputs = []dikiv1alpha1.ReportOutputRef{
+				{Name: "my-custom-mtls-webhook"},
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, secretList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(secretList.Items)).To(Equal(1))
+
+			secret := secretList.Items[0]
+			Expect(secret.Data).To(HaveKey("exporter-config.yaml"))
+			exporterConfig := string(secret.Data["exporter-config.yaml"])
+			Expect(exporterConfig).To(ContainSubstring("type: Webhook"))
+			Expect(exporterConfig).To(ContainSubstring("CUSTOMCLIENTCERT"))
+			Expect(exporterConfig).To(ContainSubstring("CUSTOMCLIENTKEY"))
 		})
 	})
 

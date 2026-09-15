@@ -75,4 +75,8 @@ type TLSConfig struct {
 	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`
 	// CACert contains a PEM-encoded CA certificate bundle.
 	CACert string `json:"caCert,omitempty"`
+	// ClientCert contains a PEM-encoded client certificate for mTLS.
+	ClientCert string `json:"clientCert,omitempty"`
+	// ClientKey contains a PEM-encoded client private key for mTLS.
+	ClientKey string `json:"clientKey,omitempty"`
 }
