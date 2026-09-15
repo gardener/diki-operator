@@ -15,6 +15,8 @@ spec:
       url: "https://compliance-api.corp.example.com/v1/reports"
       method: "POST"
       credentialsRef:
+        apiVersion: v1
+        kind: Secret
         name: webhook-headers
         namespace: kube-system
       tls:
@@ -29,16 +31,18 @@ spec:
 |-------|------|----------|---------|-------------|
 | `url` | string | **Yes** | - | The destination endpoint URL. Must use the `https://` scheme. |
 | `method` | string | No | `POST` | The HTTP method used to send the report. Allowed values: `POST`, `PUT`. |
-| `credentialsRef` | [CredentialsSecretRef](#credentialssecretref) | No | - | Reference to a Secret containing HTTP headers to include in the request. |
-| `tls` | [TLSConfig](#tlsconfig) | No | - | TLS settings for HTTPS connections. Only relevant when the URL uses the `https` scheme. |
+| `credentialsRef` | [CredentialsRef](#credentialsref) | No | - | Reference to a resource containing HTTP headers to include in the request. |
+| `tls` | [TLSConfig](#tlsconfig) | No | - | TLS settings for HTTPS connections. |
 
-### CredentialsSecretRef
+### CredentialsRef
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `name` | string | **Yes** | - | Name of the Secret. |
-| `namespace` | string | **Yes** | - | Namespace of the Secret. |
-| `headersKey` | string | No | `headers` | The key within the Secret's data that contains the JSON-encoded headers. |
+| `apiVersion` | string | **Yes** | - | API version of the referenced resource (e.g. `v1`). |
+| `kind` | string | **Yes** | - | Kind of the referenced resource (e.g. `Secret`). |
+| `name` | string | **Yes** | - | Name of the resource. |
+| `namespace` | string | **Yes** | - | Namespace of the resource. |
+| `headersKey` | string | No | `headers` | The key within the resource's data that contains the JSON-encoded headers. |
 
 ### TLSConfig
 

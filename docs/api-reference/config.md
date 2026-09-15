@@ -393,7 +393,7 @@ ConditionType is an alias for string representing the type of a condition.
 </p>
 
 
-<h3 id="credentialssecretref">CredentialsSecretRef
+<h3 id="credentialsref">CredentialsRef
 </h3>
 
 
@@ -402,7 +402,7 @@ ConditionType is an alias for string representing the type of a condition.
 </p>
 
 <p>
-CredentialsSecretRef is a reference to a Secret containing HTTP headers for webhook authentication.
+CredentialsRef is a reference to a resource containing HTTP headers for webhook authentication.
 </p>
 
 <table>
@@ -445,7 +445,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>HeadersKey is the key within the Secret's data that contains the JSON-encoded headers.<br />Defaults to `headers`.</p>
+<p>HeadersKey is the key within the resource's data that contains the JSON-encoded headers.<br />Defaults to `headers`.</p>
 </td>
 </tr>
 
@@ -844,7 +844,7 @@ string
 <td>
 <code>credentialsRef</code></br>
 <em>
-<a href="#credentialssecretref">CredentialsSecretRef</a>
+<a href="#credentialsref">CredentialsRef</a>
 </em>
 </td>
 <td>
@@ -992,7 +992,7 @@ ReportOutputSpec is the specification of a ReportOutput.
 
 
 <p>
-(<em>Appears on:</em><a href="#caconfigmapref">CAConfigMapRef</a>, <a href="#credentialssecretref">CredentialsSecretRef</a>, <a href="#mtlssecretref">MTLSSecretRef</a>)
+(<em>Appears on:</em><a href="#caconfigmapref">CAConfigMapRef</a>, <a href="#credentialsref">CredentialsRef</a>, <a href="#mtlssecretref">MTLSSecretRef</a>)
 </p>
 
 <p>

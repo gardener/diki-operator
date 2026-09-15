@@ -78,18 +78,19 @@ type OutputWebhook struct {
 	// where keys are HTTP header names and values are the corresponding header values
 	// to include in the webhook request.
 	// +optional
-	CredentialsRef *CredentialsSecretRef `json:"credentialsRef,omitempty"`
+	CredentialsRef *CredentialsRef `json:"credentialsRef,omitempty"`
 	// TLS configures TLS settings for the webhook connection.
 	// Only relevant when URL uses the HTTPS scheme.
 	// +optional
 	TLS *TLSConfig `json:"tls,omitempty"`
 }
 
-// CredentialsSecretRef is a reference to a Secret containing HTTP headers for webhook authentication.
-type CredentialsSecretRef struct {
+// CredentialsRef is a reference to a resource containing HTTP headers for webhook authentication.
+type CredentialsRef struct {
+	metav1.TypeMeta   `json:",inline"`
 	ResourceReference `json:",inline"`
 
-	// HeadersKey is the key within the Secret's data that contains the JSON-encoded headers.
+	// HeadersKey is the key within the resource's data that contains the JSON-encoded headers.
 	// Defaults to `headers`.
 	// +optional
 	HeadersKey *string `json:"headersKey,omitempty"`

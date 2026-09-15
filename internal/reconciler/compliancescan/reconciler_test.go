@@ -1417,7 +1417,8 @@ waitForReport: true
 					Output: dikiv1alpha1.Output{
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "https://example.com/reports",
-							CredentialsRef: &dikiv1alpha1.CredentialsSecretRef{
+							CredentialsRef: &dikiv1alpha1.CredentialsRef{
+								TypeMeta:          metav1.TypeMeta{APIVersion: "v1", Kind: "Secret"},
 								ResourceReference: dikiv1alpha1.ResourceReference{Name: "webhook-creds", Namespace: "kube-system"},
 							},
 						},
@@ -1515,7 +1516,8 @@ waitForReport: true
 					Output: dikiv1alpha1.Output{
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "https://example.com/reports",
-							CredentialsRef: &dikiv1alpha1.CredentialsSecretRef{
+							CredentialsRef: &dikiv1alpha1.CredentialsRef{
+								TypeMeta:          metav1.TypeMeta{APIVersion: "v1", Kind: "Secret"},
 								ResourceReference: dikiv1alpha1.ResourceReference{Name: "nonexistent", Namespace: "kube-system"},
 							},
 						},
@@ -1534,6 +1536,86 @@ waitForReport: true
 
 			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan)).To(Succeed())
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+		})
+
+		It("should fail when webhook credentialsRef kind is not Secret", func() {
+			reportOutput := &dikiv1alpha1.ReportOutput{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "unsupported-kind-webhook",
+				},
+				Spec: dikiv1alpha1.ReportOutputSpec{
+					Output: dikiv1alpha1.Output{
+						Webhook: &dikiv1alpha1.OutputWebhook{
+							URL: "https://example.com/reports",
+							CredentialsRef: &dikiv1alpha1.CredentialsRef{
+								TypeMeta:          metav1.TypeMeta{APIVersion: "v1", Kind: "ConfigMap"},
+								ResourceReference: dikiv1alpha1.ResourceReference{Name: "my-config", Namespace: "kube-system"},
+							},
+						},
+					},
+				},
+			}
+			Expect(fakeClient.Create(ctx, reportOutput)).To(Succeed())
+
+			complianceScan.Spec.Outputs = []dikiv1alpha1.ReportOutputRef{
+				{Name: "unsupported-kind-webhook"},
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+		})
+
+		It("should default credentialsRef kind to Secret when not specified", func() {
+			credentialsSecret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "webhook-creds-default",
+					Namespace: "kube-system",
+				},
+				Data: map[string][]byte{
+					"headers": []byte(`{"Authorization":"Bearer default-token"}`),
+				},
+			}
+			Expect(fakeClient.Create(ctx, credentialsSecret)).To(Succeed())
+
+			reportOutput := &dikiv1alpha1.ReportOutput{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default-kind-webhook",
+				},
+				Spec: dikiv1alpha1.ReportOutputSpec{
+					Output: dikiv1alpha1.Output{
+						Webhook: &dikiv1alpha1.OutputWebhook{
+							URL: "https://example.com/reports",
+							CredentialsRef: &dikiv1alpha1.CredentialsRef{
+								ResourceReference: dikiv1alpha1.ResourceReference{Name: "webhook-creds-default", Namespace: "kube-system"},
+							},
+						},
+					},
+				},
+			}
+			Expect(fakeClient.Create(ctx, reportOutput)).To(Succeed())
+
+			complianceScan.Spec.Outputs = []dikiv1alpha1.ReportOutputRef{
+				{Name: "default-kind-webhook"},
+			}
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res).To(Equal(reconcile.Result{RequeueAfter: compliancescan.ReconciliationRequeueInterval}))
+
+			Expect(fakeClient.List(ctx, secretList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(len(secretList.Items)).To(Equal(1))
+
+			secret := secretList.Items[0]
+			Expect(secret.Data).To(HaveKey("exporter-config.yaml"))
+			exporterConfig := string(secret.Data["exporter-config.yaml"])
+			Expect(exporterConfig).To(ContainSubstring(`Authorization: Bearer default-token`))
 		})
 
 		It("should create exporter config with resolved webhook mTLS config", func() {

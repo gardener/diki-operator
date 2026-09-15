@@ -103,13 +103,18 @@ func (r *Reconciler) resolveWebhookConfig(ctx context.Context, webhook *v1alpha1
 		Method: webhook.Method,
 	}
 
-	// Resolve headers from CredentialsRef secret.
+	// Resolve headers from CredentialsRef.
 	if webhook.CredentialsRef != nil {
-		headers, err := r.resolveHeadersFromSecret(ctx, webhook.CredentialsRef)
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve credentials: %w", err)
+		switch webhook.CredentialsRef.Kind {
+		case "Secret", "":
+			headers, err := r.resolveHeadersFromSecret(ctx, webhook.CredentialsRef)
+			if err != nil {
+				return nil, fmt.Errorf("failed to resolve credentials: %w", err)
+			}
+			config.Headers = headers
+		default:
+			return nil, fmt.Errorf("unsupported credentialsRef kind %q, only Secret is supported for webhook output", webhook.CredentialsRef.Kind)
 		}
-		config.Headers = headers
 	}
 
 	// Resolve TLS config.
@@ -161,7 +166,7 @@ func (r *Reconciler) resolveTLSConfig(ctx context.Context, tls *v1alpha1.TLSConf
 	return tlsConfig, nil
 }
 
-func (r *Reconciler) resolveHeadersFromSecret(ctx context.Context, ref *v1alpha1.CredentialsSecretRef) (map[string]string, error) {
+func (r *Reconciler) resolveHeadersFromSecret(ctx context.Context, ref *v1alpha1.CredentialsRef) (map[string]string, error) {
 	secret, err := r.getSecret(ctx, &ref.ResourceReference)
 	if err != nil {
 		return nil, err
