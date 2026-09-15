@@ -1122,7 +1122,6 @@ func Convert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledComplianc
 }
 
 func autoConvert_v1alpha1_TLSConfig_To_diki_TLSConfig(in *TLSConfig, out *diki.TLSConfig, s conversion.Scope) error {
-	out.InsecureSkipVerify = in.InsecureSkipVerify
 	out.CAConfigMapRef = (*diki.CAConfigMapRef)(unsafe.Pointer(in.CAConfigMapRef))
 	out.MTLSSecretRef = (*diki.MTLSSecretRef)(unsafe.Pointer(in.MTLSSecretRef))
 	return nil
@@ -1134,7 +1133,6 @@ func Convert_v1alpha1_TLSConfig_To_diki_TLSConfig(in *TLSConfig, out *diki.TLSCo
 }
 
 func autoConvert_diki_TLSConfig_To_v1alpha1_TLSConfig(in *diki.TLSConfig, out *TLSConfig, s conversion.Scope) error {
-	out.InsecureSkipVerify = in.InsecureSkipVerify
 	out.CAConfigMapRef = (*CAConfigMapRef)(unsafe.Pointer(in.CAConfigMapRef))
 	out.MTLSSecretRef = (*MTLSSecretRef)(unsafe.Pointer(in.MTLSSecretRef))
 	return nil

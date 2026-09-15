@@ -71,8 +71,6 @@ type WebhookOutputConfig struct {
 
 // TLSConfig contains resolved TLS settings for the webhook exporter.
 type TLSConfig struct {
-	// InsecureSkipVerify disables TLS certificate verification.
-	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`
 	// CACert contains a PEM-encoded CA certificate bundle.
 	CACert string `json:"caCert,omitempty"`
 	// ClientCert contains a PEM-encoded client certificate for mTLS.

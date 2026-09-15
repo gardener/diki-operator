@@ -114,9 +114,6 @@ type MTLSSecretRef struct {
 
 // TLSConfig configures TLS settings for output types that make outbound HTTPS connections.
 type TLSConfig struct {
-	// InsecureSkipVerify disables TLS certificate verification.
-	// Use with caution; intended for development/testing environments.
-	InsecureSkipVerify bool
 	// CAConfigMapRef is a reference to a ConfigMap containing a custom CA certificate bundle.
 	// If not set, the system's root CA pool is used.
 	CAConfigMapRef *CAConfigMapRef

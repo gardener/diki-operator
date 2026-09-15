@@ -96,11 +96,7 @@ func (w *WebhookExporter) buildHTTPClient() (*http.Client, error) {
 	transport := &http.Transport{}
 
 	if w.Config.TLS != nil {
-		tlsConfig := &tls.Config{} //nolint:gosec
-
-		if w.Config.TLS.InsecureSkipVerify {
-			tlsConfig.InsecureSkipVerify = true
-		}
+		tlsConfig := &tls.Config{}
 
 		if len(w.Config.TLS.CACert) != 0 {
 			caCertPool := x509.NewCertPool()

@@ -27,7 +27,7 @@ spec:
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `url` | string | **Yes** | - | The destination endpoint URL. The scheme (`http://` or `https://`) determines whether TLS is used. |
+| `url` | string | **Yes** | - | The destination endpoint URL. Must use the `https://` scheme. |
 | `method` | string | No | `POST` | The HTTP method used to send the report. Allowed values: `POST`, `PUT`. |
 | `credentialsRef` | [CredentialsSecretRef](#credentialssecretref) | No | - | Reference to a Secret containing HTTP headers to include in the request. |
 | `tls` | [TLSConfig](#tlsconfig) | No | - | TLS settings for HTTPS connections. Only relevant when the URL uses the `https` scheme. |
@@ -44,7 +44,6 @@ spec:
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `insecureSkipVerify` | bool | No | `false` | Disables TLS certificate verification. Use with caution. |
 | `caConfigMapRef` | [CAConfigMapRef](#caconfigmapref) | No | - | Reference to a ConfigMap containing a PEM-encoded CA certificate bundle. If not set, the system root CA pool is used. |
 | `mtlsSecretRef` | [MTLSSecretRef](#mtlssecretref) | No | - | Reference to a Kubernetes TLS Secret containing a client certificate and key for mutual TLS (mTLS) authentication. |
 
@@ -116,7 +115,7 @@ outputs:
 
 ## Examples
 
-### Plain HTTP (no auth, no TLS)
+### Minimal HTTPS
 
 ```yaml
 apiVersion: diki.gardener.cloud/v1alpha1
@@ -126,7 +125,7 @@ metadata:
 spec:
   output:
     webhook:
-      url: "http://report-collector.monitoring.svc.cluster.local:8080/reports"
+      url: "https://report-collector.monitoring.svc.cluster.local:8443/reports"
 ```
 
 ### HTTPS with Custom CA

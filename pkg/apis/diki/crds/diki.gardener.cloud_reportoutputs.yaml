@@ -122,11 +122,6 @@ spec:
                             - name
                             - namespace
                             type: object
-                          insecureSkipVerify:
-                            description: |-
-                              InsecureSkipVerify disables TLS certificate verification.
-                              Use with caution; intended for development/testing environments.
-                            type: boolean
                           mtlsSecretRef:
                             description: |-
                               MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
@@ -154,8 +149,10 @@ spec:
                             type: object
                         type: object
                       url:
-                        description: URL is the destination endpoint to which the
-                          report will be sent.
+                        description: |-
+                          URL is the destination endpoint to which the report will be sent.
+                          Must use the HTTPS scheme.
+                        pattern: ^https://
                         type: string
                     required:
                     - url

@@ -825,7 +825,7 @@ string
 </em>
 </td>
 <td>
-<p>URL is the destination endpoint to which the report will be sent.</p>
+<p>URL is the destination endpoint to which the report will be sent.<br />Must use the HTTPS scheme.</p>
 </td>
 </tr>
 <tr>
@@ -1703,18 +1703,6 @@ TLSConfig configures TLS settings for output types that make outbound HTTPS conn
 </thead>
 <tbody>
 
-<tr>
-<td>
-<code>insecureSkipVerify</code></br>
-<em>
-boolean
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>InsecureSkipVerify disables TLS certificate verification.<br />Use with caution; intended for development/testing environments.</p>
-</td>
-</tr>
 <tr>
 <td>
 <code>caConfigMapRef</code></br>

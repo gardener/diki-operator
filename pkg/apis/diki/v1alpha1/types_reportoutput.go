@@ -63,6 +63,8 @@ type OutputConfigMap struct {
 // OutputWebhook contains the configuration for exporting the report via an HTTP webhook.
 type OutputWebhook struct {
 	// URL is the destination endpoint to which the report will be sent.
+	// Must use the HTTPS scheme.
+	// +kubebuilder:validation:Pattern=`^https://`
 	URL string `json:"url"`
 	// Method is the HTTP method used to send the report.
 	// The report payload is always sent as the full JSON body regardless of the method.
@@ -128,10 +130,6 @@ type MTLSSecretRef struct {
 
 // TLSConfig configures TLS settings for output types that make outbound HTTPS connections.
 type TLSConfig struct {
-	// InsecureSkipVerify disables TLS certificate verification.
-	// Use with caution; intended for development/testing environments.
-	// +optional
-	InsecureSkipVerify bool `json:"insecureSkipVerify,omitempty"`
 	// CAConfigMapRef is a reference to a ConfigMap containing a custom CA certificate bundle.
 	// If not set, the system's root CA pool is used.
 	// +optional

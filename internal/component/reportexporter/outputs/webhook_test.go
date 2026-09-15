@@ -153,28 +153,7 @@ var _ = Describe("WebhookExporter", func() {
 		Expect(err.Error()).To(ContainSubstring("internal server error"))
 	})
 
-	It("should use insecureSkipVerify when configured", func() {
-		server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
-		defer server.Close()
-
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
-			URL: server.URL,
-			TLS: &reportexporterv1alpha1.TLSConfig{
-				InsecureSkipVerify: true,
-			},
-		})
-
-		details, err := exporter.Export(ctx, *dikiReport)
-		Expect(err).ToNot(HaveOccurred())
-
-		webhookDetails, ok := details.(*outputs.WebhookDetails)
-		Expect(ok).To(BeTrue())
-		Expect(webhookDetails.StatusCode).To(Equal(http.StatusOK))
-	})
-
-	It("should fail TLS verification without insecureSkipVerify for self-signed certs", func() {
+	It("should fail TLS verification for self-signed certs without a custom CA", func() {
 		server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))

@@ -1416,7 +1416,7 @@ waitForReport: true
 				Spec: dikiv1alpha1.ReportOutputSpec{
 					Output: dikiv1alpha1.Output{
 						Webhook: &dikiv1alpha1.OutputWebhook{
-							URL: "http://example.com/reports",
+							URL: "https://example.com/reports",
 							CredentialsRef: &dikiv1alpha1.CredentialsSecretRef{
 								ResourceReference: dikiv1alpha1.ResourceReference{Name: "webhook-creds", Namespace: "kube-system"},
 							},
@@ -1445,7 +1445,7 @@ waitForReport: true
 			exporterConfig := string(secret.Data["exporter-config.yaml"])
 			Expect(exporterConfig).To(ContainSubstring("type: Webhook"))
 			Expect(exporterConfig).To(ContainSubstring("name: my-webhook-output"))
-			Expect(exporterConfig).To(ContainSubstring("url: http://example.com/reports"))
+			Expect(exporterConfig).To(ContainSubstring("url: https://example.com/reports"))
 			Expect(exporterConfig).To(ContainSubstring("Authorization: Bearer token-123"))
 			Expect(exporterConfig).To(ContainSubstring("X-Custom: value"))
 		})
@@ -1471,7 +1471,6 @@ waitForReport: true
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "https://secure.example.com/reports",
 							TLS: &dikiv1alpha1.TLSConfig{
-								InsecureSkipVerify: true,
 								CAConfigMapRef: &dikiv1alpha1.CAConfigMapRef{
 									ResourceReference: dikiv1alpha1.ResourceReference{
 										Name:      "my-ca",
@@ -1504,7 +1503,6 @@ waitForReport: true
 			exporterConfig := string(secret.Data["exporter-config.yaml"])
 			Expect(exporterConfig).To(ContainSubstring("type: Webhook"))
 			Expect(exporterConfig).To(ContainSubstring("url: https://secure.example.com/reports"))
-			Expect(exporterConfig).To(ContainSubstring("insecureSkipVerify: true"))
 			Expect(exporterConfig).To(ContainSubstring("FAKECERT"))
 		})
 
@@ -1516,7 +1514,7 @@ waitForReport: true
 				Spec: dikiv1alpha1.ReportOutputSpec{
 					Output: dikiv1alpha1.Output{
 						Webhook: &dikiv1alpha1.OutputWebhook{
-							URL: "http://example.com/reports",
+							URL: "https://example.com/reports",
 							CredentialsRef: &dikiv1alpha1.CredentialsSecretRef{
 								ResourceReference: dikiv1alpha1.ResourceReference{Name: "nonexistent", Namespace: "kube-system"},
 							},
