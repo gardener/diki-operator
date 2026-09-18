@@ -41,6 +41,8 @@ type ReportOutputSpec struct {
 type Output struct {
 	// ConfigMap contains the configuration for exporting the report to a ConfigMap.
 	ConfigMap *OutputConfigMap
+	// Webhook contains the configuration for exporting the report via an HTTP webhook.
+	Webhook *OutputWebhook
 }
 
 // OutputConfigMap contains the configuration for exporting the report to a ConfigMap.
@@ -51,4 +53,72 @@ type OutputConfigMap struct {
 	// NamePrefix is the prefix for the generated ConfigMap name.
 	// Defaults to "compliance-scan-report-".
 	NamePrefix string
+}
+
+// OutputWebhook contains the configuration for exporting the report via an HTTP webhook.
+type OutputWebhook struct {
+	// URL is the destination endpoint to which the report will be sent.
+	URL string
+	// Method is the HTTP method used to send the report.
+	// The report payload is always sent as the full JSON body regardless of the method.
+	// This is useful when the receiving endpoint expects a specific method (e.g. PUT for upsert semantics).
+	// Defaults to "POST".
+	Method string
+	// CredentialsRef is a reference to a Secret whose data at the given key contains a JSON object
+	// where keys are HTTP header names and values are the corresponding header values
+	// to include in the webhook request.
+	CredentialsRef *CredentialsRef
+	// TLS configures TLS settings for the webhook connection.
+	// Only relevant when URL uses the HTTPS scheme.
+	TLS *TLSConfig
+}
+
+// CredentialsRef is a reference to a resource containing HTTP headers for webhook authentication.
+type CredentialsRef struct {
+	metav1.TypeMeta
+	ResourceReference
+
+	// HeadersKey is the key within the resource's data that contains the JSON-encoded headers.
+	// Defaults to `headers`.
+	HeadersKey *string
+}
+
+// ResourceReference is a reference to a namespaced Kubernetes resource.
+type ResourceReference struct {
+	// Name is the name of the resource.
+	Name string
+	// Namespace is the namespace of the resource.
+	Namespace string
+}
+
+// CAConfigMapRef is a reference to a ConfigMap containing a PEM-encoded CA certificate bundle.
+type CAConfigMapRef struct {
+	ResourceReference
+
+	// Key is the key within the ConfigMap's data that contains the CA certificate(s).
+	// Defaults to `ca.crt`.
+	Key *string
+}
+
+// MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+// and key for mutual TLS (mTLS) authentication.
+type MTLSSecretRef struct {
+	ResourceReference
+
+	// CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.
+	// Defaults to `tls.crt`.
+	CertKey *string
+	// PrivateKey is the key within the Secret's data that contains the PEM-encoded client private key.
+	// Defaults to `tls.key`.
+	PrivateKey *string
+}
+
+// TLSConfig configures TLS settings for output types that make outbound HTTPS connections.
+type TLSConfig struct {
+	// CAConfigMapRef is a reference to a ConfigMap containing a custom CA certificate bundle.
+	// If not set, the system's root CA pool is used.
+	CAConfigMapRef *CAConfigMapRef
+	// MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+	// and key for mutual TLS (mTLS) authentication.
+	MTLSSecretRef *MTLSSecretRef
 }

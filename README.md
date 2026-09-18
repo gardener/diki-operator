@@ -80,6 +80,8 @@ spec:
       namePrefix: compliance-scan-report-
 ```
 
+For detailed documentation on all available output types, see the [Report Outputs](docs/usage/report-outputs/README.md) guide.
+
 ## Development
 
 For local setup instructions, see the [Getting Started Locally](docs/getting-started-locally.md) guide.

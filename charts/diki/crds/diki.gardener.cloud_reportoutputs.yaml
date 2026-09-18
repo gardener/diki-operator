@@ -61,6 +61,117 @@ spec:
                           Defaults to `kube-system`.
                         type: string
                     type: object
+                  webhook:
+                    description: Webhook contains the configuration for exporting
+                      the report via an HTTP webhook.
+                    properties:
+                      credentialsRef:
+                        description: |-
+                          CredentialsRef is a reference to a Secret whose data at the given key contains a JSON object
+                          where keys are HTTP header names and values are the corresponding header values
+                          to include in the webhook request.
+                        properties:
+                          apiVersion:
+                            description: |-
+                              APIVersion defines the versioned schema of this representation of an object.
+                              Servers should convert recognized schemas to the latest internal value, and
+                              may reject unrecognized values.
+                              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+                            type: string
+                          headersKey:
+                            description: |-
+                              HeadersKey is the key within the resource's data that contains the JSON-encoded headers.
+                              Defaults to `headers`.
+                            type: string
+                          kind:
+                            description: |-
+                              Kind is a string value representing the REST resource this object represents.
+                              Servers may infer this from the endpoint the client submits requests to.
+                              Cannot be updated.
+                              In CamelCase.
+                              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+                            type: string
+                          name:
+                            description: Name is the name of the resource.
+                            type: string
+                          namespace:
+                            description: Namespace is the namespace of the resource.
+                            type: string
+                        required:
+                        - name
+                        - namespace
+                        type: object
+                      method:
+                        default: POST
+                        description: |-
+                          Method is the HTTP method used to send the report.
+                          The report payload is always sent as the full JSON body regardless of the method.
+                          This is useful when the receiving endpoint expects a specific method (e.g. PUT for upsert semantics).
+                          Defaults to "POST".
+                        enum:
+                        - POST
+                        - PUT
+                        type: string
+                      tls:
+                        description: |-
+                          TLS configures TLS settings for the webhook connection.
+                          Only relevant when URL uses the HTTPS scheme.
+                        properties:
+                          caConfigMapRef:
+                            description: |-
+                              CAConfigMapRef is a reference to a ConfigMap containing a custom CA certificate bundle.
+                              If not set, the system's root CA pool is used.
+                            properties:
+                              key:
+                                description: |-
+                                  Key is the key within the ConfigMap's data that contains the CA certificate(s).
+                                  Defaults to `ca.crt`.
+                                type: string
+                              name:
+                                description: Name is the name of the resource.
+                                type: string
+                              namespace:
+                                description: Namespace is the namespace of the resource.
+                                type: string
+                            required:
+                            - name
+                            - namespace
+                            type: object
+                          mtlsSecretRef:
+                            description: |-
+                              MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+                              and key for mutual TLS (mTLS) authentication.
+                            properties:
+                              certKey:
+                                description: |-
+                                  CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.
+                                  Defaults to `tls.crt`.
+                                type: string
+                              name:
+                                description: Name is the name of the resource.
+                                type: string
+                              namespace:
+                                description: Namespace is the namespace of the resource.
+                                type: string
+                              privateKey:
+                                description: |-
+                                  PrivateKey is the key within the Secret's data that contains the PEM-encoded client private key.
+                                  Defaults to `tls.key`.
+                                type: string
+                            required:
+                            - name
+                            - namespace
+                            type: object
+                        type: object
+                      url:
+                        description: |-
+                          URL is the destination endpoint to which the report will be sent.
+                          Must use the HTTPS scheme.
+                        pattern: ^https://
+                        type: string
+                    required:
+                    - url
+                    type: object
                 type: object
             required:
             - output

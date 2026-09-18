@@ -26,6 +26,16 @@ func init() {
 // RegisterConversions adds conversion functions to the given scheme.
 // Public to allow building arbitrary schemes.
 func RegisterConversions(s *runtime.Scheme) error {
+	if err := s.AddGeneratedConversionFunc((*CAConfigMapRef)(nil), (*diki.CAConfigMapRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_CAConfigMapRef_To_diki_CAConfigMapRef(a.(*CAConfigMapRef), b.(*diki.CAConfigMapRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.CAConfigMapRef)(nil), (*CAConfigMapRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_CAConfigMapRef_To_v1alpha1_CAConfigMapRef(a.(*diki.CAConfigMapRef), b.(*CAConfigMapRef), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*ComplianceScan)(nil), (*diki.ComplianceScan)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_ComplianceScan_To_diki_ComplianceScan(a.(*ComplianceScan), b.(*diki.ComplianceScan), scope)
 	}); err != nil {
@@ -73,6 +83,26 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*diki.Condition)(nil), (*Condition)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_diki_Condition_To_v1alpha1_Condition(a.(*diki.Condition), b.(*Condition), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*CredentialsRef)(nil), (*diki.CredentialsRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_CredentialsRef_To_diki_CredentialsRef(a.(*CredentialsRef), b.(*diki.CredentialsRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.CredentialsRef)(nil), (*CredentialsRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_CredentialsRef_To_v1alpha1_CredentialsRef(a.(*diki.CredentialsRef), b.(*CredentialsRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*MTLSSecretRef)(nil), (*diki.MTLSSecretRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_MTLSSecretRef_To_diki_MTLSSecretRef(a.(*MTLSSecretRef), b.(*diki.MTLSSecretRef), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.MTLSSecretRef)(nil), (*MTLSSecretRef)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_MTLSSecretRef_To_v1alpha1_MTLSSecretRef(a.(*diki.MTLSSecretRef), b.(*MTLSSecretRef), scope)
 	}); err != nil {
 		return err
 	}
@@ -126,6 +156,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*OutputWebhook)(nil), (*diki.OutputWebhook)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_OutputWebhook_To_diki_OutputWebhook(a.(*OutputWebhook), b.(*diki.OutputWebhook), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.OutputWebhook)(nil), (*OutputWebhook)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_OutputWebhook_To_v1alpha1_OutputWebhook(a.(*diki.OutputWebhook), b.(*OutputWebhook), scope)
+	}); err != nil {
+		return err
+	}
 	if err := s.AddGeneratedConversionFunc((*ReportOutput)(nil), (*diki.ReportOutput)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_ReportOutput_To_diki_ReportOutput(a.(*ReportOutput), b.(*diki.ReportOutput), scope)
 	}); err != nil {
@@ -163,6 +203,16 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*diki.ReportOutputSpec)(nil), (*ReportOutputSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(a.(*diki.ReportOutputSpec), b.(*ReportOutputSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*ResourceReference)(nil), (*diki.ResourceReference)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_ResourceReference_To_diki_ResourceReference(a.(*ResourceReference), b.(*diki.ResourceReference), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.ResourceReference)(nil), (*ResourceReference)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_ResourceReference_To_v1alpha1_ResourceReference(a.(*diki.ResourceReference), b.(*ResourceReference), scope)
 	}); err != nil {
 		return err
 	}
@@ -286,7 +336,43 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*TLSConfig)(nil), (*diki.TLSConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_TLSConfig_To_diki_TLSConfig(a.(*TLSConfig), b.(*diki.TLSConfig), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*diki.TLSConfig)(nil), (*TLSConfig)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_diki_TLSConfig_To_v1alpha1_TLSConfig(a.(*diki.TLSConfig), b.(*TLSConfig), scope)
+	}); err != nil {
+		return err
+	}
 	return nil
+}
+
+func autoConvert_v1alpha1_CAConfigMapRef_To_diki_CAConfigMapRef(in *CAConfigMapRef, out *diki.CAConfigMapRef, s conversion.Scope) error {
+	if err := Convert_v1alpha1_ResourceReference_To_diki_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
+		return err
+	}
+	out.Key = (*string)(unsafe.Pointer(in.Key))
+	return nil
+}
+
+// Convert_v1alpha1_CAConfigMapRef_To_diki_CAConfigMapRef is an autogenerated conversion function.
+func Convert_v1alpha1_CAConfigMapRef_To_diki_CAConfigMapRef(in *CAConfigMapRef, out *diki.CAConfigMapRef, s conversion.Scope) error {
+	return autoConvert_v1alpha1_CAConfigMapRef_To_diki_CAConfigMapRef(in, out, s)
+}
+
+func autoConvert_diki_CAConfigMapRef_To_v1alpha1_CAConfigMapRef(in *diki.CAConfigMapRef, out *CAConfigMapRef, s conversion.Scope) error {
+	if err := Convert_diki_ResourceReference_To_v1alpha1_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
+		return err
+	}
+	out.Key = (*string)(unsafe.Pointer(in.Key))
+	return nil
+}
+
+// Convert_diki_CAConfigMapRef_To_v1alpha1_CAConfigMapRef is an autogenerated conversion function.
+func Convert_diki_CAConfigMapRef_To_v1alpha1_CAConfigMapRef(in *diki.CAConfigMapRef, out *CAConfigMapRef, s conversion.Scope) error {
+	return autoConvert_diki_CAConfigMapRef_To_v1alpha1_CAConfigMapRef(in, out, s)
 }
 
 func autoConvert_v1alpha1_ComplianceScan_To_diki_ComplianceScan(in *ComplianceScan, out *diki.ComplianceScan, s conversion.Scope) error {
@@ -421,6 +507,60 @@ func Convert_diki_Condition_To_v1alpha1_Condition(in *diki.Condition, out *Condi
 	return autoConvert_diki_Condition_To_v1alpha1_Condition(in, out, s)
 }
 
+func autoConvert_v1alpha1_CredentialsRef_To_diki_CredentialsRef(in *CredentialsRef, out *diki.CredentialsRef, s conversion.Scope) error {
+	if err := Convert_v1alpha1_ResourceReference_To_diki_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
+		return err
+	}
+	out.HeadersKey = (*string)(unsafe.Pointer(in.HeadersKey))
+	return nil
+}
+
+// Convert_v1alpha1_CredentialsRef_To_diki_CredentialsRef is an autogenerated conversion function.
+func Convert_v1alpha1_CredentialsRef_To_diki_CredentialsRef(in *CredentialsRef, out *diki.CredentialsRef, s conversion.Scope) error {
+	return autoConvert_v1alpha1_CredentialsRef_To_diki_CredentialsRef(in, out, s)
+}
+
+func autoConvert_diki_CredentialsRef_To_v1alpha1_CredentialsRef(in *diki.CredentialsRef, out *CredentialsRef, s conversion.Scope) error {
+	if err := Convert_diki_ResourceReference_To_v1alpha1_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
+		return err
+	}
+	out.HeadersKey = (*string)(unsafe.Pointer(in.HeadersKey))
+	return nil
+}
+
+// Convert_diki_CredentialsRef_To_v1alpha1_CredentialsRef is an autogenerated conversion function.
+func Convert_diki_CredentialsRef_To_v1alpha1_CredentialsRef(in *diki.CredentialsRef, out *CredentialsRef, s conversion.Scope) error {
+	return autoConvert_diki_CredentialsRef_To_v1alpha1_CredentialsRef(in, out, s)
+}
+
+func autoConvert_v1alpha1_MTLSSecretRef_To_diki_MTLSSecretRef(in *MTLSSecretRef, out *diki.MTLSSecretRef, s conversion.Scope) error {
+	if err := Convert_v1alpha1_ResourceReference_To_diki_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
+		return err
+	}
+	out.CertKey = (*string)(unsafe.Pointer(in.CertKey))
+	out.PrivateKey = (*string)(unsafe.Pointer(in.PrivateKey))
+	return nil
+}
+
+// Convert_v1alpha1_MTLSSecretRef_To_diki_MTLSSecretRef is an autogenerated conversion function.
+func Convert_v1alpha1_MTLSSecretRef_To_diki_MTLSSecretRef(in *MTLSSecretRef, out *diki.MTLSSecretRef, s conversion.Scope) error {
+	return autoConvert_v1alpha1_MTLSSecretRef_To_diki_MTLSSecretRef(in, out, s)
+}
+
+func autoConvert_diki_MTLSSecretRef_To_v1alpha1_MTLSSecretRef(in *diki.MTLSSecretRef, out *MTLSSecretRef, s conversion.Scope) error {
+	if err := Convert_diki_ResourceReference_To_v1alpha1_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
+		return err
+	}
+	out.CertKey = (*string)(unsafe.Pointer(in.CertKey))
+	out.PrivateKey = (*string)(unsafe.Pointer(in.PrivateKey))
+	return nil
+}
+
+// Convert_diki_MTLSSecretRef_To_v1alpha1_MTLSSecretRef is an autogenerated conversion function.
+func Convert_diki_MTLSSecretRef_To_v1alpha1_MTLSSecretRef(in *diki.MTLSSecretRef, out *MTLSSecretRef, s conversion.Scope) error {
+	return autoConvert_diki_MTLSSecretRef_To_v1alpha1_MTLSSecretRef(in, out, s)
+}
+
 func autoConvert_v1alpha1_Options_To_diki_Options(in *Options, out *diki.Options, s conversion.Scope) error {
 	out.ConfigMapRef = (*diki.OptionsConfigMapRef)(unsafe.Pointer(in.ConfigMapRef))
 	return nil
@@ -467,6 +607,7 @@ func Convert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in *diki.O
 
 func autoConvert_v1alpha1_Output_To_diki_Output(in *Output, out *diki.Output, s conversion.Scope) error {
 	out.ConfigMap = (*diki.OutputConfigMap)(unsafe.Pointer(in.ConfigMap))
+	out.Webhook = (*diki.OutputWebhook)(unsafe.Pointer(in.Webhook))
 	return nil
 }
 
@@ -477,6 +618,7 @@ func Convert_v1alpha1_Output_To_diki_Output(in *Output, out *diki.Output, s conv
 
 func autoConvert_diki_Output_To_v1alpha1_Output(in *diki.Output, out *Output, s conversion.Scope) error {
 	out.ConfigMap = (*OutputConfigMap)(unsafe.Pointer(in.ConfigMap))
+	out.Webhook = (*OutputWebhook)(unsafe.Pointer(in.Webhook))
 	return nil
 }
 
@@ -529,6 +671,32 @@ func autoConvert_diki_OutputStatus_To_v1alpha1_OutputStatus(in *diki.OutputStatu
 // Convert_diki_OutputStatus_To_v1alpha1_OutputStatus is an autogenerated conversion function.
 func Convert_diki_OutputStatus_To_v1alpha1_OutputStatus(in *diki.OutputStatus, out *OutputStatus, s conversion.Scope) error {
 	return autoConvert_diki_OutputStatus_To_v1alpha1_OutputStatus(in, out, s)
+}
+
+func autoConvert_v1alpha1_OutputWebhook_To_diki_OutputWebhook(in *OutputWebhook, out *diki.OutputWebhook, s conversion.Scope) error {
+	out.URL = in.URL
+	out.Method = in.Method
+	out.CredentialsRef = (*diki.CredentialsRef)(unsafe.Pointer(in.CredentialsRef))
+	out.TLS = (*diki.TLSConfig)(unsafe.Pointer(in.TLS))
+	return nil
+}
+
+// Convert_v1alpha1_OutputWebhook_To_diki_OutputWebhook is an autogenerated conversion function.
+func Convert_v1alpha1_OutputWebhook_To_diki_OutputWebhook(in *OutputWebhook, out *diki.OutputWebhook, s conversion.Scope) error {
+	return autoConvert_v1alpha1_OutputWebhook_To_diki_OutputWebhook(in, out, s)
+}
+
+func autoConvert_diki_OutputWebhook_To_v1alpha1_OutputWebhook(in *diki.OutputWebhook, out *OutputWebhook, s conversion.Scope) error {
+	out.URL = in.URL
+	out.Method = in.Method
+	out.CredentialsRef = (*CredentialsRef)(unsafe.Pointer(in.CredentialsRef))
+	out.TLS = (*TLSConfig)(unsafe.Pointer(in.TLS))
+	return nil
+}
+
+// Convert_diki_OutputWebhook_To_v1alpha1_OutputWebhook is an autogenerated conversion function.
+func Convert_diki_OutputWebhook_To_v1alpha1_OutputWebhook(in *diki.OutputWebhook, out *OutputWebhook, s conversion.Scope) error {
+	return autoConvert_diki_OutputWebhook_To_v1alpha1_OutputWebhook(in, out, s)
 }
 
 func autoConvert_v1alpha1_ReportOutput_To_diki_ReportOutput(in *ReportOutput, out *diki.ReportOutput, s conversion.Scope) error {
@@ -621,6 +789,28 @@ func autoConvert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(in *diki.Rep
 // Convert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec is an autogenerated conversion function.
 func Convert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(in *diki.ReportOutputSpec, out *ReportOutputSpec, s conversion.Scope) error {
 	return autoConvert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_ResourceReference_To_diki_ResourceReference(in *ResourceReference, out *diki.ResourceReference, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Namespace = in.Namespace
+	return nil
+}
+
+// Convert_v1alpha1_ResourceReference_To_diki_ResourceReference is an autogenerated conversion function.
+func Convert_v1alpha1_ResourceReference_To_diki_ResourceReference(in *ResourceReference, out *diki.ResourceReference, s conversion.Scope) error {
+	return autoConvert_v1alpha1_ResourceReference_To_diki_ResourceReference(in, out, s)
+}
+
+func autoConvert_diki_ResourceReference_To_v1alpha1_ResourceReference(in *diki.ResourceReference, out *ResourceReference, s conversion.Scope) error {
+	out.Name = in.Name
+	out.Namespace = in.Namespace
+	return nil
+}
+
+// Convert_diki_ResourceReference_To_v1alpha1_ResourceReference is an autogenerated conversion function.
+func Convert_diki_ResourceReference_To_v1alpha1_ResourceReference(in *diki.ResourceReference, out *ResourceReference, s conversion.Scope) error {
+	return autoConvert_diki_ResourceReference_To_v1alpha1_ResourceReference(in, out, s)
 }
 
 func autoConvert_v1alpha1_Rule_To_diki_Rule(in *Rule, out *diki.Rule, s conversion.Scope) error {
@@ -929,4 +1119,26 @@ func autoConvert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledCompl
 // Convert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledComplianceScanTemplate is an autogenerated conversion function.
 func Convert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledComplianceScanTemplate(in *diki.ScheduledComplianceScanTemplate, out *ScheduledComplianceScanTemplate, s conversion.Scope) error {
 	return autoConvert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledComplianceScanTemplate(in, out, s)
+}
+
+func autoConvert_v1alpha1_TLSConfig_To_diki_TLSConfig(in *TLSConfig, out *diki.TLSConfig, s conversion.Scope) error {
+	out.CAConfigMapRef = (*diki.CAConfigMapRef)(unsafe.Pointer(in.CAConfigMapRef))
+	out.MTLSSecretRef = (*diki.MTLSSecretRef)(unsafe.Pointer(in.MTLSSecretRef))
+	return nil
+}
+
+// Convert_v1alpha1_TLSConfig_To_diki_TLSConfig is an autogenerated conversion function.
+func Convert_v1alpha1_TLSConfig_To_diki_TLSConfig(in *TLSConfig, out *diki.TLSConfig, s conversion.Scope) error {
+	return autoConvert_v1alpha1_TLSConfig_To_diki_TLSConfig(in, out, s)
+}
+
+func autoConvert_diki_TLSConfig_To_v1alpha1_TLSConfig(in *diki.TLSConfig, out *TLSConfig, s conversion.Scope) error {
+	out.CAConfigMapRef = (*CAConfigMapRef)(unsafe.Pointer(in.CAConfigMapRef))
+	out.MTLSSecretRef = (*MTLSSecretRef)(unsafe.Pointer(in.MTLSSecretRef))
+	return nil
+}
+
+// Convert_diki_TLSConfig_To_v1alpha1_TLSConfig is an autogenerated conversion function.
+func Convert_diki_TLSConfig_To_v1alpha1_TLSConfig(in *diki.TLSConfig, out *TLSConfig, s conversion.Scope) error {
+	return autoConvert_diki_TLSConfig_To_v1alpha1_TLSConfig(in, out, s)
 }

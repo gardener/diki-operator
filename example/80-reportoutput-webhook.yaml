@@ -1,0 +1,24 @@
+apiVersion: diki.gardener.cloud/v1alpha1
+kind: ReportOutput
+metadata:
+  name: example-webhook-output
+spec:
+  output:
+    webhook:
+      url: "https://compliance-api.corp.example.com/v1/reports"
+      credentialsRef:
+        apiVersion: v1
+        kind: Secret
+        name: webhook-headers
+        namespace: kube-system
+        headersKey: credentials.json
+      tls:
+        caConfigMapRef:
+          name: webhook-ca
+          namespace: kube-system
+          key: ca.crt
+        mtlsSecretRef:
+          name: webhook-client-tls
+          namespace: kube-system
+          certKey: tls.crt
+          privateKey: tls.key
