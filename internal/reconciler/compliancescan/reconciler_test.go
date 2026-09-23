@@ -2136,6 +2136,35 @@ waitForReport: true
 			exporterConfig := string(secretList.Items[0].Data["exporter-config.yaml"])
 			Expect(strings.Index(exporterConfig, "output-a")).To(BeNumerically("<", strings.Index(exporterConfig, "output-b")))
 		})
+
+		It("should not inject defaultOutputs when DisableDefaultOutputs is set", func() {
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: reportexporterv1alpha1.ExporterTypeConfigMap,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"namespace":"kube-system","namePrefix":"compliance-scan-report-"}`),
+					},
+				},
+			}
+			complianceScan.Spec.DisableDefaultOutputs = true
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.List(ctx, secretList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(string(secretList.Items[0].Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+complianceScanName: compliancescan
+kind: ReportExporterConfiguration
+outputs: null
+reportPath: /report/report.json
+waitForReport: true
+`))
+		})
 	})
 
 })
