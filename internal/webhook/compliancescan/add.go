@@ -8,6 +8,8 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 const (
@@ -18,11 +20,12 @@ const (
 )
 
 // AddToManager adds the validating webhook handler to the given manager.
-func AddToManager(mgr manager.Manager) error {
+func AddToManager(mgr manager.Manager, defaultOutputs []reportexporterv1alpha1.Output) error {
 	webhook := &admission.Webhook{
 		Handler: &ValidatingHandler{
-			Client:  mgr.GetClient(),
-			Decoder: admission.NewDecoder(mgr.GetScheme()),
+			Client:         mgr.GetClient(),
+			Decoder:        admission.NewDecoder(mgr.GetScheme()),
+			DefaultOutputs: defaultOutputs,
 		},
 		RecoverPanic: ptr.To(true),
 	}

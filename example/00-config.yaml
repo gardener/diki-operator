@@ -24,6 +24,12 @@ kind: DikiOperatorConfiguration
 #         tokenSecretRef:
 #           name: target-cluster-token
 #         mountPath: /var/run/secrets/target-cluster/kubeconfig
+#     defaultOutputs:
+#     - name: central-reporting
+#       type: ConfigMap
+#       config:
+#         namespace: kube-system
+#         namePrefix: default-report-
 # server:
 #   healthProbes:
 #     port: 8081

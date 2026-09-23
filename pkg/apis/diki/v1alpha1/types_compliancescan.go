@@ -45,6 +45,10 @@ type ComplianceScanSpec struct {
 	// Outputs describe the outputs of the compliance scan.
 	// +optional
 	Outputs []ReportOutputRef `json:"outputs,omitempty"`
+	// DisableDefaultOutputs opts the compliance scan out of the operator's configured default outputs.
+	// If set to true, only the outputs referenced in Outputs are used.
+	// +optional
+	DisableDefaultOutputs bool `json:"disableDefaultOutputs,omitempty"`
 }
 
 // ReportOutputRef describes a reference to a report output.

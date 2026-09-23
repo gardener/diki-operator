@@ -432,6 +432,7 @@ func Convert_diki_ComplianceScanList_To_v1alpha1_ComplianceScanList(in *diki.Com
 func autoConvert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in *ComplianceScanSpec, out *diki.ComplianceScanSpec, s conversion.Scope) error {
 	out.Rulesets = *(*[]diki.RulesetConfig)(unsafe.Pointer(&in.Rulesets))
 	out.Outputs = *(*[]diki.ReportOutputRef)(unsafe.Pointer(&in.Outputs))
+	out.DisableDefaultOutputs = in.DisableDefaultOutputs
 	return nil
 }
 
@@ -443,6 +444,7 @@ func Convert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in *Complian
 func autoConvert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(in *diki.ComplianceScanSpec, out *ComplianceScanSpec, s conversion.Scope) error {
 	out.Rulesets = *(*[]RulesetConfig)(unsafe.Pointer(&in.Rulesets))
 	out.Outputs = *(*[]ReportOutputRef)(unsafe.Pointer(&in.Outputs))
+	out.DisableDefaultOutputs = in.DisableDefaultOutputs
 	return nil
 }
 
