@@ -9,6 +9,8 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	componentbaseconfigv1alpha1 "k8s.io/component-base/config/v1alpha1"
+
+	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 const (
@@ -71,6 +73,12 @@ type ComplianceScanConfig struct {
 	// complete DikiConfig YAML under the specified key (defaults to "config.yaml").
 	// +optional
 	BaseOptions *BaseOptionsConfig `json:"baseOptions,omitempty"`
+	// DefaultOutputs is a list of output configurations that are appended to the
+	// ReportOutput-derived outputs of every ComplianceScan. Each entry mirrors a
+	// report-exporter output (name, type, config) and its config is passed through
+	// to the exporter as-is, so any secret material must be provided inline.
+	// +optional
+	DefaultOutputs []reportexporterv1alpha1.Output `json:"defaultOutputs,omitempty"`
 }
 
 // DikiRunnerConfig contains configuration for the DikiRunner.
