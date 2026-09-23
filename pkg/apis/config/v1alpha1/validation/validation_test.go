@@ -17,6 +17,7 @@ import (
 
 	"github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	. "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1/validation"
+	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
@@ -260,6 +261,31 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
 				"Type":  Equal(field.ErrorTypeRequired),
 				"Field": Equal("controllers.complianceScan.baseOptions.configMapRef.key"),
+			}))))
+		})
+	})
+
+	Describe("DefaultOutputs validation", func() {
+		It("should pass validation with distinct defaultOutput names", func() {
+			conf.Controllers.ComplianceScan.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{Name: "output-a", Type: reportexporterv1alpha1.ExporterTypeConfigMap},
+				{Name: "output-b", Type: reportexporterv1alpha1.ExporterTypeConfigMap},
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(BeEmpty())
+		})
+
+		It("should fail validation when two defaultOutputs share the same name", func() {
+			conf.Controllers.ComplianceScan.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{Name: "duplicate", Type: reportexporterv1alpha1.ExporterTypeConfigMap},
+				{Name: "duplicate", Type: reportexporterv1alpha1.ExporterTypeWebhook},
+			}
+
+			errorList := ValidateDikiOperatorConfiguration(conf)
+			Expect(errorList).To(ConsistOf(PointTo(MatchFields(IgnoreExtras, Fields{
+				"Type":  Equal(field.ErrorTypeDuplicate),
+				"Field": Equal("controllers.complianceScan.defaultOutputs[1].name"),
 			}))))
 		})
 	})

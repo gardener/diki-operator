@@ -67,6 +67,16 @@ func validateControllers(controllers *v1alpha1.ControllerConfiguration, fldPath 
 		}
 	}
 
+	defaultOutputsPath := complianceScanPath.Child("defaultOutputs")
+	seenOutputNames := sets.New[string]()
+	for i, output := range controllers.ComplianceScan.DefaultOutputs {
+		if seenOutputNames.Has(output.Name) {
+			allErrs = append(allErrs, field.Duplicate(defaultOutputsPath.Index(i).Child("name"), output.Name))
+			continue
+		}
+		seenOutputNames.Insert(output.Name)
+	}
+
 	return allErrs
 }
 

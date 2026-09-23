@@ -25,6 +25,7 @@ import (
 
 	"github.com/gardener/diki-operator/internal/webhook/compliancescan"
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
+	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 var _ = Describe("validating handler", func() {
@@ -70,8 +71,9 @@ var _ = Describe("validating handler", func() {
 		ctx = context.TODO()
 		decoder = admission.NewDecoder(scheme)
 		handler = &compliancescan.ValidatingHandler{
-			Decoder: decoder,
-			Client:  fakeClient,
+			Decoder:        decoder,
+			Client:         fakeClient,
+			DefaultOutputs: []reportexporterv1alpha1.Output{{Name: "default-output"}},
 		}
 
 		encoder = &json.Serializer{}
@@ -580,6 +582,46 @@ var _ = Describe("validating handler", func() {
 
 				responseForbidden.Result.Message = "[spec.rulesets[0].options.ruleset.key: Not found: \"the referenced key within the configMap does not exist\", spec.rulesets[1].options.rules: Not found: \"the referenced configMap does not exist\"]"
 				Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+			})
+
+			Context("test output references against operator default outputs", func() {
+				It("should allow creating a ComplianceScan whose output names do not collide with default outputs", func() {
+					complianceScan.Spec.Outputs = []v1alpha1.ReportOutputRef{
+						{Name: "custom-output"},
+					}
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+				})
+
+				It("should forbid creating a ComplianceScan whose output name collides with a default output", func() {
+					complianceScan.Spec.Outputs = []v1alpha1.ReportOutputRef{
+						{Name: "default-output"},
+					}
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					responseForbidden.Result.Message = "spec.outputs[0].name: Invalid value: \"default-output\": output name conflicts with an operator-configured default output"
+					Expect(handler.Handle(ctx, request)).To(Equal(responseForbidden))
+				})
+
+				It("should allow a colliding output name when defaultOutputs are disabled", func() {
+					complianceScan.Spec.DisableDefaultOutputs = true
+					complianceScan.Spec.Outputs = []v1alpha1.ReportOutputRef{
+						{Name: "default-output"},
+					}
+
+					complianceScanObj, err := runtime.Encode(encoder, complianceScan)
+					Expect(err).ToNot(HaveOccurred())
+					request.Object.Raw = complianceScanObj
+
+					Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+				})
 			})
 		})
 
