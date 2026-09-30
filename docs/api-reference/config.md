@@ -445,7 +445,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>HeadersKey is the key within the resource's data that contains the JSON-encoded headers.<br />Defaults to `headers`.</p>
+<p>HeadersKey is the key within the Secret's data that contains the JSON-encoded headers map.<br />Defaults to `headers`.</p>
 </td>
 </tr>
 
