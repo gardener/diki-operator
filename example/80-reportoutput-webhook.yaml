@@ -7,11 +7,9 @@ spec:
     webhook:
       url: "https://compliance-api.corp.example.com/v1/reports"
       credentialsRef:
-        apiVersion: v1
-        kind: Secret
         name: webhook-headers
         namespace: kube-system
-        headersKey: credentials.json
+        headersKey: headers
       tls:
         caConfigMapRef:
           name: webhook-ca

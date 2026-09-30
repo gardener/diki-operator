@@ -53,7 +53,6 @@ const (
 
 // WebhookOutputConfig is the resolved configuration for a webhook output.
 // All secrets are resolved by the operator at reconciliation time.
-// The exporter receives plain values and does not need access to Secrets.
 type WebhookOutputConfig struct {
 	// URL is the destination endpoint to which the report will be sent.
 	URL string `json:"url"`
@@ -61,9 +60,10 @@ type WebhookOutputConfig struct {
 	// The report payload is always sent as the full JSON body regardless of the method.
 	// This is useful when the receiving endpoint expects a specific method (e.g. PUT for upsert semantics).
 	Method string `json:"method"`
-	// Headers contains HTTP headers to include in the webhook request.
+	// HeadersFile is the path to a file containing a JSON object where keys are HTTP header names
+	// and values are the corresponding header values to include in the webhook request.
 	// +optional
-	Headers map[string]string `json:"headers,omitempty"`
+	HeadersFile string `json:"headersFile,omitempty"`
 	// TLS contains resolved TLS settings for the webhook connection.
 	// +optional
 	TLS *TLSConfig `json:"tls,omitempty"`
@@ -71,10 +71,10 @@ type WebhookOutputConfig struct {
 
 // TLSConfig contains resolved TLS settings for the webhook exporter.
 type TLSConfig struct {
-	// CACert contains a PEM-encoded CA certificate bundle.
-	CACert string `json:"caCert,omitempty"`
-	// ClientCert contains a PEM-encoded client certificate for mTLS.
-	ClientCert string `json:"clientCert,omitempty"`
-	// ClientKey contains a PEM-encoded client private key for mTLS.
-	ClientKey string `json:"clientKey,omitempty"`
+	// CACertFile is the path to a file containing a PEM-encoded CA certificate bundle.
+	CACertFile string `json:"caCertFile,omitempty"`
+	// ClientCertFile is the path to a file containing a PEM-encoded client certificate for mTLS.
+	ClientCertFile string `json:"clientCertFile,omitempty"`
+	// ClientKeyFile is the path to a file containing a PEM-encoded client private key for mTLS.
+	ClientKeyFile string `json:"clientKeyFile,omitempty"`
 }
