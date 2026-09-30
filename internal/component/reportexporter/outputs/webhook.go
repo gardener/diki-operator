@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	dikireport "github.com/gardener/diki/pkg/report"
@@ -70,8 +71,18 @@ func (w *WebhookExporter) Export(ctx context.Context, report dikireport.Report) 
 
 	req.Header.Set("Content-Type", "application/json")
 
-	for key, value := range w.Config.Headers {
-		req.Header.Set(key, value)
+	if len(w.Config.HeadersFile) != 0 {
+		headersData, err := os.ReadFile(w.Config.HeadersFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read headers file: %w", err)
+		}
+		headers := make(map[string]string)
+		if err := json.Unmarshal(headersData, &headers); err != nil {
+			return nil, fmt.Errorf("failed to parse headers file as JSON map: %w", err)
+		}
+		for key, value := range headers {
+			req.Header.Set(key, value)
+		}
 	}
 
 	resp, err := httpClient.Do(req)
@@ -105,17 +116,21 @@ func (w *WebhookExporter) buildHTTPClient() (*http.Client, error) {
 	if w.Config.TLS != nil {
 		tlsConfig := &tls.Config{}
 
-		if len(w.Config.TLS.CACert) != 0 {
+		if len(w.Config.TLS.CACertFile) != 0 {
+			caCert, err := os.ReadFile(w.Config.TLS.CACertFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read CA certificate file: %w", err)
+			}
 			caCertPool := x509.NewCertPool()
-			if !caCertPool.AppendCertsFromPEM([]byte(w.Config.TLS.CACert)) {
+			if !caCertPool.AppendCertsFromPEM(caCert) {
 				return nil, fmt.Errorf("failed to parse CA certificate")
 			}
 
 			tlsConfig.RootCAs = caCertPool
 		}
 
-		if len(w.Config.TLS.ClientCert) != 0 && len(w.Config.TLS.ClientKey) != 0 {
-			cert, err := tls.X509KeyPair([]byte(w.Config.TLS.ClientCert), []byte(w.Config.TLS.ClientKey))
+		if len(w.Config.TLS.ClientCertFile) != 0 && len(w.Config.TLS.ClientKeyFile) != 0 {
+			cert, err := tls.LoadX509KeyPair(w.Config.TLS.ClientCertFile, w.Config.TLS.ClientKeyFile)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse client certificate: %w", err)
 			}
