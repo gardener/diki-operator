@@ -90,7 +90,7 @@ type CredentialsRef struct {
 	metav1.TypeMeta   `json:",inline"`
 	ResourceReference `json:",inline"`
 
-	// HeadersKey is the key within the resource's data that contains the JSON-encoded headers.
+	// HeadersKey is the key within the Secret's data that contains the JSON-encoded headers map.
 	// Defaults to `headers`.
 	// +optional
 	HeadersKey *string `json:"headersKey,omitempty"`
