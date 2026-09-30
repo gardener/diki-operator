@@ -26,7 +26,7 @@ import (
 	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
-func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job) (*corev1.ConfigMap, error) {
+func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (*corev1.ConfigMap, error) {
 	dikiConfig, err := r.buildDikiConfig(ctx, complianceScan)
 	if err != nil {
 		return nil, err
@@ -45,11 +45,16 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 		dikiConfig = merged
 	}
 
-	var buf bytes.Buffer
-	encoder := yaml.NewEncoder(&buf)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(dikiConfig); err != nil {
+	var dikiConfigBuf bytes.Buffer
+	dikiEncoder := yaml.NewEncoder(&dikiConfigBuf)
+	dikiEncoder.SetIndent(2)
+	if err := dikiEncoder.Encode(dikiConfig); err != nil {
 		return nil, fmt.Errorf("failed to marshal diki config: %w", err)
+	}
+
+	exporterConfigYAML, err := marshalExporterConfig(exporterConfig)
+	if err != nil {
+		return nil, err
 	}
 
 	configMap := &corev1.ConfigMap{
@@ -60,7 +65,8 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 			Labels:          r.getLabels(complianceScan),
 		},
 		Data: map[string]string{
-			DikiConfigKey: buf.String(),
+			DikiConfigKey:     dikiConfigBuf.String(),
+			ExporterConfigKey: exporterConfigYAML,
 		},
 	}
 
@@ -71,26 +77,7 @@ func (r *Reconciler) deployDikiConfigMap(ctx context.Context, configMapName stri
 	return configMap, nil
 }
 
-func (r *Reconciler) deployExporterConfigSecret(ctx context.Context, secretName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (*corev1.Secret, error) {
-	// Marshal to JSON first because the YAML library ignores json: struct tags
-	// and embedded upstream types (e.g. metav1.TypeMeta) only have json: tags.
-	exporterConfigJSON, err := json.Marshal(exporterConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal exporter config: %w", err)
-	}
-
-	var exporterConfigMap any
-	if err := json.Unmarshal(exporterConfigJSON, &exporterConfigMap); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal exporter config: %w", err)
-	}
-
-	var exporterBuf bytes.Buffer
-	exporterEncoder := yaml.NewEncoder(&exporterBuf)
-	exporterEncoder.SetIndent(2)
-	if err := exporterEncoder.Encode(exporterConfigMap); err != nil {
-		return nil, fmt.Errorf("failed to encode exporter config to yaml: %w", err)
-	}
-
+func (r *Reconciler) deployOutputsCredsSecret(ctx context.Context, secretName string, complianceScan *v1alpha1.ComplianceScan, job *batchv1.Job, outputsCreds map[string][]byte) (*corev1.Secret, error) {
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            secretName,
@@ -98,16 +85,37 @@ func (r *Reconciler) deployExporterConfigSecret(ctx context.Context, secretName 
 			OwnerReferences: r.getOwnerReference(job),
 			Labels:          r.getLabels(complianceScan),
 		},
-		Data: map[string][]byte{
-			ExporterConfigKey: exporterBuf.Bytes(),
-		},
+		Data: outputsCreds,
 	}
 
 	if err := r.SourceClient.Create(ctx, secret); err != nil {
-		return nil, fmt.Errorf("failed to create exporter config secret: %w", err)
+		return nil, fmt.Errorf("failed to create outputs credentials secret: %w", err)
 	}
 
 	return secret, nil
+}
+
+func marshalExporterConfig(exporterConfig *reportexporterv1alpha1.ReportExporterConfiguration) (string, error) {
+	// Marshal to JSON first because the YAML library ignores json: struct tags
+	// and embedded upstream types (e.g. metav1.TypeMeta) only have json: tags.
+	exporterConfigJSON, err := json.Marshal(exporterConfig)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal exporter config: %w", err)
+	}
+
+	var exporterConfigMap any
+	if err := json.Unmarshal(exporterConfigJSON, &exporterConfigMap); err != nil {
+		return "", fmt.Errorf("failed to unmarshal exporter config: %w", err)
+	}
+
+	var exporterBuf bytes.Buffer
+	exporterEncoder := yaml.NewEncoder(&exporterBuf)
+	exporterEncoder.SetIndent(2)
+	if err := exporterEncoder.Encode(exporterConfigMap); err != nil {
+		return "", fmt.Errorf("failed to encode exporter config to yaml: %w", err)
+	}
+
+	return exporterBuf.String(), nil
 }
 
 func (r *Reconciler) buildDikiConfig(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) (*dikiconfig.DikiConfig, error) {
