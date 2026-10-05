@@ -1,6 +1,6 @@
 module github.com/gardener/diki-operator
 
-go 1.26.4
+go 1.26.5
 
 tool (
 	github.com/elastic/crd-ref-docs
@@ -122,7 +122,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/btree v1.1.3 // indirect
-	github.com/google/cel-go v0.29.0 // indirect
+	github.com/google/cel-go v0.29.2 // indirect
 	github.com/google/gnostic-models v0.7.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260402051712-545e8a4df936 // indirect
@@ -144,8 +144,8 @@ require (
 	github.com/json-iterator/go v1.1.13-0.20220915233716-71ac16282d12 // indirect
 	github.com/klauspost/compress v1.19.0 // indirect
 	github.com/kubernetes-csi/external-snapshotter/client/v4 v4.2.0 // indirect
-	github.com/labstack/echo/v4 v4.15.1 // indirect
-	github.com/labstack/gommon v0.4.2 // indirect
+	github.com/labstack/echo/v4 v4.15.4 // indirect
+	github.com/labstack/gommon v0.5.0 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
@@ -168,9 +168,10 @@ require (
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/open-telemetry/opentelemetry-operator/apis v0.156.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/perses/common v0.30.2 // indirect
-	github.com/perses/perses v0.53.1 // indirect
+	github.com/perses/common v0.31.2 // indirect
+	github.com/perses/perses v0.54.0 // indirect
 	github.com/perses/perses-operator v0.4.0 // indirect
+	github.com/perses/spec v0.2.0-rc.0 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.26 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -200,7 +201,7 @@ require (
 	github.com/valyala/quicktemplate v1.8.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect
-	github.com/zitadel/oidc/v3 v3.45.4 // indirect
+	github.com/zitadel/oidc/v3 v3.48.1 // indirect
 	github.com/zitadel/schema v1.3.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.69.0 // indirect
