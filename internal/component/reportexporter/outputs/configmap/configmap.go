@@ -33,11 +33,11 @@ type Exporter struct {
 
 // ExportDetails contains the details of the created ConfigMap.
 type ExportDetails struct {
-	ConfigMapRef ConfigMapRef `json:"configMapRef"`
+	ConfigMapRef Ref `json:"configMapRef"`
 }
 
-// ConfigMapRef contains the reference to a ConfigMap.
-type ConfigMapRef struct {
+// Ref contains the reference to a ConfigMap.
+type Ref struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
 }
@@ -93,7 +93,7 @@ func (c *Exporter) Export(ctx context.Context, report dikireport.Report) (any, e
 	}
 
 	return &ExportDetails{
-		ConfigMapRef: ConfigMapRef{
+		ConfigMapRef: Ref{
 			Name:      configMap.Name,
 			Namespace: configMap.Namespace,
 		},

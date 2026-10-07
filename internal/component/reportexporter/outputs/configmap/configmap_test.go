@@ -32,9 +32,9 @@ var _ = Describe("Controller", func() {
 	var (
 		ctx = logf.IntoContext(context.Background(), logzap.New(logzap.WriteTo(GinkgoWriter)))
 
-		fakeClient  client.Client
-		dikiReport  *dikireport.Report
-		cmExporter  configmap.Exporter
+		fakeClient client.Client
+		dikiReport *dikireport.Report
+		cmExporter configmap.Exporter
 	)
 
 	BeforeEach(func() {
