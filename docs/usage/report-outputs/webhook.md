@@ -66,7 +66,7 @@ spec:
 | `name` | string | **Yes** | - | Name of the Secret. |
 | `namespace` | string | **Yes** | - | Namespace of the Secret. |
 | `certKey` | string | No | `tls.crt` | The key within the Secret's data that contains the PEM-encoded client certificate. |
-| `privateKey` | string | No | `tls.key` | The key within the Secret's data that contains the PEM-encoded client private key. |
+| `privateKeyKey` | string | No | `tls.key` | The key within the Secret's data that contains the PEM-encoded client private key. |
 
 ## Credentials Secret Format
 
@@ -193,5 +193,5 @@ tls:
     name: webhook-client-tls
     namespace: kube-system
     certKey: client.crt
-    privateKey: client.key
+    privateKeyKey: client.key
 ```

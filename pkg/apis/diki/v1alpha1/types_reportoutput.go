@@ -123,10 +123,10 @@ type MTLSSecretRef struct {
 	// Defaults to `tls.crt`.
 	// +optional
 	CertKey *string `json:"certKey,omitempty"`
-	// PrivateKey is the key within the Secret's data that contains the PEM-encoded client private key.
+	// PrivateKeyKey is the key within the Secret's data that contains the PEM-encoded client private key.
 	// Defaults to `tls.key`.
 	// +optional
-	PrivateKey *string `json:"privateKey,omitempty"`
+	PrivateKeyKey *string `json:"privateKeyKey,omitempty"`
 }
 
 // TLSConfig configures TLS settings for output types that make outbound HTTPS connections.

@@ -156,7 +156,7 @@ func (r *Reconciler) resolveTLSConfig(ctx context.Context, tls *v1alpha1.TLSConf
 		}
 		tlsConfig.ClientCert = string(clientCert)
 
-		clientKey, err := readSecretKey(secret, ptr.Deref(tls.MTLSSecretRef.PrivateKey, defaultClientKeyKey))
+		clientKey, err := readSecretKey(secret, ptr.Deref(tls.MTLSSecretRef.PrivateKeyKey, defaultClientKeyKey))
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve client key: %w", err)
 		}

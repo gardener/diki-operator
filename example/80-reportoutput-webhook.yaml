@@ -21,4 +21,4 @@ spec:
           name: webhook-client-tls
           namespace: kube-system
           certKey: tls.crt
-          privateKey: tls.key
+          privateKeyKey: tls.key
