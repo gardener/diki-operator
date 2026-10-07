@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package outputs_test
+package webhook_test
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestOutputs(t *testing.T) {
+func TestWebhook(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Outputs Test Suite")
+	RunSpecs(t, "Webhook Output Test Suite")
 }

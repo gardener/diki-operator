@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package outputs
+package webhook
 
 import (
 	"bytes"
@@ -17,37 +17,38 @@ import (
 
 	dikireport "github.com/gardener/diki/pkg/report"
 
+	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs"
 	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
-// WebhookExporter is responsible for exporting the Diki report via an HTTP webhook.
-type WebhookExporter struct {
+var _ outputs.Output = &Exporter{}
+
+// Exporter is responsible for exporting the Diki report via an HTTP webhook.
+type Exporter struct {
 	Config reportexporterv1alpha1.WebhookOutputConfig
 }
 
-var _ Output = &WebhookExporter{}
-
-// WebhookDetails contains the details of the webhook export.
-type WebhookDetails struct {
+// ExportDetails contains the details of the webhook export.
+type ExportDetails struct {
 	URL          string `json:"url"`
 	StatusCode   int    `json:"statusCode"`
 	ResponseBody string `json:"responseBody,omitempty"`
 }
 
-// NewWebhookExporter creates a new instance of WebhookExporter.
-func NewWebhookExporter(config reportexporterv1alpha1.WebhookOutputConfig) *WebhookExporter {
-	return &WebhookExporter{
+// NewExporter creates a new instance of Exporter.
+func NewExporter(config reportexporterv1alpha1.WebhookOutputConfig) *Exporter {
+	return &Exporter{
 		Config: config,
 	}
 }
 
 // Type returns the type of the exporter.
-func (w *WebhookExporter) Type() reportexporterv1alpha1.OutputType {
+func (w *Exporter) Type() reportexporterv1alpha1.OutputType {
 	return reportexporterv1alpha1.ExporterTypeWebhook
 }
 
 // Export exports the Diki report via an HTTP webhook.
-func (w *WebhookExporter) Export(ctx context.Context, report dikireport.Report) (any, error) {
+func (w *Exporter) Export(ctx context.Context, report dikireport.Report) (any, error) {
 	reportJSON, err := json.Marshal(report)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal report to JSON: %w", err)
@@ -87,7 +88,7 @@ func (w *WebhookExporter) Export(ctx context.Context, report dikireport.Report) 
 		return nil, fmt.Errorf("webhook request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
-	details := &WebhookDetails{
+	details := &ExportDetails{
 		URL:        w.Config.URL,
 		StatusCode: resp.StatusCode,
 	}
@@ -99,7 +100,7 @@ func (w *WebhookExporter) Export(ctx context.Context, report dikireport.Report) 
 	return details, nil
 }
 
-func (w *WebhookExporter) buildHTTPClient() (*http.Client, error) {
+func (w *Exporter) buildHTTPClient() (*http.Client, error) {
 	transport := &http.Transport{}
 
 	if w.Config.TLS != nil {

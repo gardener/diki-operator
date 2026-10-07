@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package outputs
+package configmap
 
 import (
 	"bytes"
@@ -16,22 +16,23 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs"
 	"github.com/gardener/diki-operator/internal/constants"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 	"github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
-// ConfigMapExporter is responsible for exporting the Diki report to a ConfigMap.
-type ConfigMapExporter struct {
+var _ outputs.Output = &Exporter{}
+
+// Exporter is responsible for exporting the Diki report to a ConfigMap.
+type Exporter struct {
 	Client         client.Client
 	Config         dikiv1alpha1.OutputConfigMap
 	ComplianceScan *dikiv1alpha1.ComplianceScan
 }
 
-var _ Output = &ConfigMapExporter{}
-
-// ConfigMapDetails contains the details of the created ConfigMap.
-type ConfigMapDetails struct {
+// ExportDetails contains the details of the created ConfigMap.
+type ExportDetails struct {
 	ConfigMapRef ConfigMapRef `json:"configMapRef"`
 }
 
@@ -41,9 +42,9 @@ type ConfigMapRef struct {
 	Namespace string `json:"namespace"`
 }
 
-// NewConfigMapExporter creates a new instance of ConfigMapExporter.
-func NewConfigMapExporter(client client.Client, config dikiv1alpha1.OutputConfigMap, complianceScan *dikiv1alpha1.ComplianceScan) *ConfigMapExporter {
-	return &ConfigMapExporter{
+// NewExporter creates a new instance of Exporter.
+func NewExporter(client client.Client, config dikiv1alpha1.OutputConfigMap, complianceScan *dikiv1alpha1.ComplianceScan) *Exporter {
+	return &Exporter{
 		Client:         client,
 		Config:         config,
 		ComplianceScan: complianceScan,
@@ -53,12 +54,12 @@ func NewConfigMapExporter(client client.Client, config dikiv1alpha1.OutputConfig
 const reportKey = "report.json.gz"
 
 // Type returns the type of the exporter.
-func (c *ConfigMapExporter) Type() v1alpha1.OutputType {
+func (c *Exporter) Type() v1alpha1.OutputType {
 	return v1alpha1.ExporterTypeConfigMap
 }
 
 // Export exports the Diki report to a ConfigMap.
-func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report) (any, error) {
+func (c *Exporter) Export(ctx context.Context, report dikireport.Report) (any, error) {
 	reportJSON, err := json.Marshal(report)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal report to JSON: %w", err)
@@ -91,7 +92,7 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 		return nil, fmt.Errorf("failed to create ConfigMap: %w", err)
 	}
 
-	return &ConfigMapDetails{
+	return &ExportDetails{
 		ConfigMapRef: ConfigMapRef{
 			Name:      configMap.Name,
 			Namespace: configMap.Namespace,
@@ -99,7 +100,7 @@ func (c *ConfigMapExporter) Export(ctx context.Context, report dikireport.Report
 	}, nil
 }
 
-func (c *ConfigMapExporter) getLabels() map[string]string {
+func (c *Exporter) getLabels() map[string]string {
 	return map[string]string{
 		constants.LabelAppName:            constants.LabelValueDiki,
 		constants.LabelAppManagedBy:       constants.LabelValueDikiOperator,

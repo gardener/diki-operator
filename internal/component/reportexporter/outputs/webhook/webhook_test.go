@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package outputs_test
+package webhook_test
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs"
+	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs/webhook"
 	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
@@ -65,7 +65,7 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL:    server.URL,
 			Method: http.MethodPost,
 		})
@@ -74,8 +74,8 @@ var _ = Describe("WebhookExporter", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(details).ToNot(BeNil())
 
-		webhookDetails, ok := details.(*outputs.WebhookDetails)
-		Expect(ok).To(BeTrue(), "details should be of type *WebhookDetails")
+		webhookDetails, ok := details.(*webhook.ExportDetails)
+		Expect(ok).To(BeTrue(), "details should be of type *ExportDetails")
 		Expect(webhookDetails.URL).To(Equal(server.URL))
 		Expect(webhookDetails.StatusCode).To(Equal(http.StatusOK))
 		Expect(webhookDetails.ResponseBody).To(Equal(`{"id":"report-123"}`))
@@ -91,14 +91,14 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 		})
 
 		details, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
 
-		webhookDetails, ok := details.(*outputs.WebhookDetails)
+		webhookDetails, ok := details.(*webhook.ExportDetails)
 		Expect(ok).To(BeTrue())
 		Expect(webhookDetails.StatusCode).To(Equal(http.StatusNoContent))
 		Expect(webhookDetails.ResponseBody).To(BeEmpty())
@@ -111,7 +111,7 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 		})
 
@@ -126,7 +126,7 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL:    server.URL,
 			Method: http.MethodPut,
 		})
@@ -143,7 +143,7 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 			Headers: map[string]string{
 				"Authorization":   "Bearer my-token",
@@ -164,7 +164,7 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 		})
 
@@ -180,7 +180,7 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 		})
 
@@ -253,7 +253,7 @@ var _ = Describe("WebhookExporter", func() {
 		server.StartTLS()
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				CACert: string(caCertPEM),
@@ -263,7 +263,7 @@ var _ = Describe("WebhookExporter", func() {
 		details, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
 
-		webhookDetails, ok := details.(*outputs.WebhookDetails)
+		webhookDetails, ok := details.(*webhook.ExportDetails)
 		Expect(ok).To(BeTrue())
 		Expect(webhookDetails.StatusCode).To(Equal(http.StatusOK))
 	})
@@ -274,7 +274,7 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				CACert: "not a valid certificate",
@@ -381,7 +381,7 @@ var _ = Describe("WebhookExporter", func() {
 		server.StartTLS()
 		defer server.Close()
 
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				CACert:     string(caCertPEM),
@@ -393,7 +393,7 @@ var _ = Describe("WebhookExporter", func() {
 		details, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
 
-		webhookDetails, ok := details.(*outputs.WebhookDetails)
+		webhookDetails, ok := details.(*webhook.ExportDetails)
 		Expect(ok).To(BeTrue())
 		Expect(webhookDetails.StatusCode).To(Equal(http.StatusOK))
 	})
@@ -468,7 +468,7 @@ var _ = Describe("WebhookExporter", func() {
 		defer server.Close()
 
 		// Connect with CA cert but without client cert
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				CACert: string(caCertPEM),
@@ -481,7 +481,7 @@ var _ = Describe("WebhookExporter", func() {
 	})
 
 	It("should return an error when the client certificate is invalid", func() {
-		exporter := outputs.NewWebhookExporter(reportexporterv1alpha1.WebhookOutputConfig{
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: "https://localhost:12345",
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				ClientCert: "not a valid cert",

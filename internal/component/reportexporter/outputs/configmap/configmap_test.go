@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package outputs_test
+package configmap_test
 
 import (
 	"bytes"
@@ -23,7 +23,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	logzap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs"
+	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs/configmap"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
@@ -32,9 +32,9 @@ var _ = Describe("Controller", func() {
 	var (
 		ctx = logf.IntoContext(context.Background(), logzap.New(logzap.WriteTo(GinkgoWriter)))
 
-		fakeClient client.Client
-		dikiReport *dikireport.Report
-		cmExporter outputs.ConfigMapExporter
+		fakeClient  client.Client
+		dikiReport  *dikireport.Report
+		cmExporter  configmap.Exporter
 	)
 
 	BeforeEach(func() {
@@ -59,7 +59,7 @@ var _ = Describe("Controller", func() {
 			},
 		}
 
-		cmExporter = outputs.ConfigMapExporter{
+		cmExporter = configmap.Exporter{
 			Client: fakeClient,
 			Config: dikiv1alpha1.OutputConfigMap{
 				Namespace:  "default",
@@ -79,8 +79,8 @@ var _ = Describe("Controller", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(details).ToNot(BeNil())
 
-		cmDetails, ok := details.(*outputs.ConfigMapDetails)
-		Expect(ok).To(BeTrue(), "details should be of type *ConfigMapDetails")
+		cmDetails, ok := details.(*configmap.ExportDetails)
+		Expect(ok).To(BeTrue(), "details should be of type *ExportDetails")
 		Expect(cmDetails.ConfigMapRef.Name).To(HavePrefix("diki-report-"))
 		Expect(cmDetails.ConfigMapRef.Namespace).To(Equal("default"))
 
@@ -119,8 +119,8 @@ var _ = Describe("Controller", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(details).ToNot(BeNil())
 
-		cmDetails, ok := details.(*outputs.ConfigMapDetails)
-		Expect(ok).To(BeTrue(), "details should be of type *ConfigMapDetails")
+		cmDetails, ok := details.(*configmap.ExportDetails)
+		Expect(ok).To(BeTrue(), "details should be of type *ExportDetails")
 		Expect(cmDetails.ConfigMapRef.Name).To(HavePrefix("custom-prefix-"))
 		Expect(cmDetails.ConfigMapRef.Namespace).To(Equal("custom-namespace"))
 
