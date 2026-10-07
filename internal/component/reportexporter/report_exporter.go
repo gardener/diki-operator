@@ -19,6 +19,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	dikioutputs "github.com/gardener/diki-operator/internal/component/reportexporter/outputs"
+	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs/configmap"
+	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs/webhook"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 	"github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
@@ -133,14 +135,14 @@ func (d *ReportExporter) createOutputs(complianceScan *dikiv1alpha1.ComplianceSc
 				return nil, fmt.Errorf("failed to unmarshal ConfigMapOutput: %w", err)
 			}
 
-			outputs[output.Name] = dikioutputs.NewConfigMapExporter(d.Client, configMapOutput, complianceScan)
+			outputs[output.Name] = configmap.NewExporter(d.Client, configMapOutput, complianceScan)
 		case v1alpha1.ExporterTypeWebhook:
 			var webhookConfig v1alpha1.WebhookOutputConfig
 			if err := json.Unmarshal(output.Config.Raw, &webhookConfig); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal WebhookOutput: %w", err)
 			}
 
-			outputs[output.Name] = dikioutputs.NewWebhookExporter(webhookConfig)
+			outputs[output.Name] = webhook.NewExporter(webhookConfig)
 		default:
 			return nil, fmt.Errorf("unsupported output type: %s", output.Type)
 		}
