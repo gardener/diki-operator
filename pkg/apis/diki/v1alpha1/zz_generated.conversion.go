@@ -538,7 +538,7 @@ func autoConvert_v1alpha1_MTLSSecretRef_To_diki_MTLSSecretRef(in *MTLSSecretRef,
 		return err
 	}
 	out.CertKey = (*string)(unsafe.Pointer(in.CertKey))
-	out.PrivateKey = (*string)(unsafe.Pointer(in.PrivateKey))
+	out.PrivateKeyKey = (*string)(unsafe.Pointer(in.PrivateKeyKey))
 	return nil
 }
 
@@ -552,7 +552,7 @@ func autoConvert_diki_MTLSSecretRef_To_v1alpha1_MTLSSecretRef(in *diki.MTLSSecre
 		return err
 	}
 	out.CertKey = (*string)(unsafe.Pointer(in.CertKey))
-	out.PrivateKey = (*string)(unsafe.Pointer(in.PrivateKey))
+	out.PrivateKeyKey = (*string)(unsafe.Pointer(in.PrivateKeyKey))
 	return nil
 }
 

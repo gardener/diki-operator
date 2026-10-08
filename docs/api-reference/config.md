@@ -511,14 +511,14 @@ string
 </tr>
 <tr>
 <td>
-<code>privateKey</code></br>
+<code>privateKeyKey</code></br>
 <em>
 string
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>PrivateKey is the key within the Secret's data that contains the PEM-encoded client private key.<br />Defaults to `tls.key`.</p>
+<p>PrivateKeyKey is the key within the Secret's data that contains the PEM-encoded client private key.<br />Defaults to `tls.key`.</p>
 </td>
 </tr>
 

@@ -212,8 +212,8 @@ func (in *MTLSSecretRef) DeepCopyInto(out *MTLSSecretRef) {
 		*out = new(string)
 		**out = **in
 	}
-	if in.PrivateKey != nil {
-		in, out := &in.PrivateKey, &out.PrivateKey
+	if in.PrivateKeyKey != nil {
+		in, out := &in.PrivateKeyKey, &out.PrivateKeyKey
 		*out = new(string)
 		**out = **in
 	}
