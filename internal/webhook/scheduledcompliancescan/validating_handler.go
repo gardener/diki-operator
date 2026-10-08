@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"net/http"
 
-	admissionv1 "k8s.io/api/admission/v1"
-	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
@@ -46,16 +44,6 @@ func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) adm
 	}
 	if scheduledScan.Spec.FailedScansHistoryLimit != nil && *scheduledScan.Spec.FailedScansHistoryLimit < 0 {
 		allErrs = append(allErrs, field.Invalid(specPath.Child("failedScansHistoryLimit"), *scheduledScan.Spec.FailedScansHistoryLimit, "must not be negative"))
-	}
-
-	if req.Operation == admissionv1.Update {
-		oldScheduledScan := &dikiv1alpha1.ScheduledComplianceScan{}
-		if err := h.Decoder.DecodeRaw(req.OldObject, oldScheduledScan); err != nil {
-			return admission.Errored(http.StatusBadRequest, err)
-		}
-		if !apiequality.Semantic.DeepEqual(oldScheduledScan.Spec.ScanTemplate, scheduledScan.Spec.ScanTemplate) {
-			allErrs = append(allErrs, field.Forbidden(specPath.Child("scanTemplate"), "updating the ScheduledComplianceScan scanTemplate is not permitted"))
-		}
 	}
 
 	if len(allErrs) > 0 {

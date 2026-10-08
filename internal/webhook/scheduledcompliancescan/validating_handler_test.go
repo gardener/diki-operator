@@ -150,7 +150,7 @@ var _ = Describe("handler", func() {
 		})
 
 		Context("test updating the ScheduledComplianceScan resource", func() {
-			It("should deny updating the scanTemplate", func() {
+			It("should allow updating the scanTemplate", func() {
 				oldScheduledScan := scheduledScan.DeepCopy()
 				oldScheduledScanObj, err := runtime.Encode(encoder, oldScheduledScan)
 				Expect(err).ToNot(HaveOccurred())
@@ -167,8 +167,7 @@ var _ = Describe("handler", func() {
 				request.Operation = admissionv1.Update
 
 				resp := handler.Handle(ctx, request)
-				Expect(resp.Allowed).To(BeFalse())
-				Expect(resp.Result.Message).To(ContainSubstring("spec.scanTemplate"))
+				Expect(resp.Allowed).To(BeTrue())
 			})
 
 			It("should deny updating with an invalid cron schedule", func() {
