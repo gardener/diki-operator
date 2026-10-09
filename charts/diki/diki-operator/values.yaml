@@ -57,6 +57,16 @@ config:
       # baseOptions:
       #   configMapRef:
       #     name: diki-base-options
+      # defaultOutputs is a list of output configurations appended to the
+      # ReportOutput-derived outputs of every ComplianceScan. Each entry mirrors a
+      # report-exporter output (name, type, config) and its config is passed through
+      # to the exporter as-is, so any secret material must be provided inline.
+      # defaultOutputs:
+      # - name: central-reporting
+      #   type: ConfigMap
+      #   config:
+      #     namespace: kube-system
+      #     namePrefix: default-report-
       dikiRunner:
         # namespace defaults to the release namespace.
         # namespace: kube-system

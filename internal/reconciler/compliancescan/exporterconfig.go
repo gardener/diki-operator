@@ -55,6 +55,12 @@ func (r *Reconciler) buildExporterConfig(ctx context.Context, complianceScan *v1
 		exporterConfig.Outputs = append(exporterConfig.Outputs, *output)
 	}
 
+	if !complianceScan.Spec.DisableDefaultOutputs {
+		for i := range r.Config.DefaultOutputs {
+			exporterConfig.Outputs = append(exporterConfig.Outputs, *r.Config.DefaultOutputs[i].DeepCopy())
+		}
+	}
+
 	return exporterConfig, nil
 }
 
