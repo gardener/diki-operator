@@ -117,14 +117,19 @@ func (r *Reconciler) resolveWebhookConfig(ctx context.Context, outputIndex int, 
 
 	// Resolve headers from CredentialsRef.
 	if webhook.CredentialsRef != nil {
-		headersJSON, err := r.resolveHeadersJSONFromSecret(ctx, webhook.CredentialsRef)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to resolve credentials: %w", err)
+		switch webhook.CredentialsRef.Kind {
+		case "Secret", "":
+			headersJSON, err := r.resolveHeadersJSONFromSecret(ctx, webhook.CredentialsRef)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to resolve credentials: %w", err)
+			}
+			fileName := fmt.Sprintf("%d-%s", outputIndex, WebhookHeadersFileName)
+			outputCreds = make(map[string][]byte)
+			outputCreds[fileName] = headersJSON
+			config.HeadersFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, fileName)
+		default:
+			return nil, nil, fmt.Errorf("unsupported credentialsRef kind %q, only Secret is supported for webhook output", webhook.CredentialsRef.Kind)
 		}
-		fileName := fmt.Sprintf("%d-%s", outputIndex, WebhookHeadersFileName)
-		outputCreds = make(map[string][]byte)
-		outputCreds[fileName] = headersJSON
-		config.HeadersFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, fileName)
 	}
 
 	// Resolve TLS config.
