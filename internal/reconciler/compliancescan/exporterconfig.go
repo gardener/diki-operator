@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,7 +21,7 @@ import (
 )
 
 const (
-	// defaultHeadersKey is the default key used in a credentials Secret when Key is not specified.
+	// defaultHeadersKey is the default key used in a credentials Secret when HeadersKey is not specified.
 	defaultHeadersKey = "headers"
 	// defaultCAKey is the default key used in a CA ConfigMap when Key is not specified.
 	defaultCAKey = "ca.crt"
@@ -30,7 +31,7 @@ const (
 	defaultClientKeyKey = "tls.key"
 )
 
-func (r *Reconciler) buildExporterConfig(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) (*reportexporterv1alpha1.ReportExporterConfiguration, error) {
+func (r *Reconciler) buildExporterConfig(ctx context.Context, complianceScan *v1alpha1.ComplianceScan) (*reportexporterv1alpha1.ReportExporterConfiguration, map[string][]byte, error) {
 	exporterConfig := &reportexporterv1alpha1.ReportExporterConfiguration{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "exporter.diki.gardener.cloud/v1alpha1",
@@ -41,28 +42,37 @@ func (r *Reconciler) buildExporterConfig(ctx context.Context, complianceScan *v1
 		WaitForReport:      true,
 	}
 
-	for _, outputRef := range complianceScan.Spec.Outputs {
+	var outputsCreds map[string][]byte
+
+	for i, outputRef := range complianceScan.Spec.Outputs {
 		reportOutput := &v1alpha1.ReportOutput{}
 		if err := r.Client.Get(ctx, client.ObjectKey{Name: outputRef.Name}, reportOutput); err != nil {
-			return nil, fmt.Errorf("failed to get ReportOutput %q: %w", outputRef.Name, err)
+			return nil, nil, fmt.Errorf("failed to get ReportOutput %q: %w", outputRef.Name, err)
 		}
 
-		output, err := r.convertReportOutput(ctx, reportOutput)
+		output, outputCreds, err := r.convertReportOutput(ctx, i, reportOutput)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert ReportOutput %q: %w", outputRef.Name, err)
+			return nil, nil, fmt.Errorf("failed to convert ReportOutput %q: %w", outputRef.Name, err)
 		}
 
 		exporterConfig.Outputs = append(exporterConfig.Outputs, *output)
+
+		if outputCreds != nil {
+			if outputsCreds == nil {
+				outputsCreds = make(map[string][]byte)
+			}
+			maps.Copy(outputsCreds, outputCreds)
+		}
 	}
 
-	return exporterConfig, nil
+	return exporterConfig, outputsCreds, nil
 }
 
-func (r *Reconciler) convertReportOutput(ctx context.Context, reportOutput *v1alpha1.ReportOutput) (*reportexporterv1alpha1.Output, error) {
+func (r *Reconciler) convertReportOutput(ctx context.Context, outputIndex int, reportOutput *v1alpha1.ReportOutput) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
 	if reportOutput.Spec.Output.ConfigMap != nil {
 		configBytes, err := json.Marshal(reportOutput.Spec.Output.ConfigMap)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal ConfigMap output config: %w", err)
+			return nil, nil, fmt.Errorf("failed to marshal ConfigMap output config: %w", err)
 		}
 
 		return &reportexporterv1alpha1.Output{
@@ -71,18 +81,18 @@ func (r *Reconciler) convertReportOutput(ctx context.Context, reportOutput *v1al
 			Config: runtime.RawExtension{
 				Raw: configBytes,
 			},
-		}, nil
+		}, nil, nil
 	}
 
 	if reportOutput.Spec.Output.Webhook != nil {
-		webhookConfig, err := r.resolveWebhookConfig(ctx, reportOutput.Spec.Output.Webhook)
+		webhookConfig, outputCreds, err := r.resolveWebhookConfig(ctx, outputIndex, reportOutput.Spec.Output.Webhook)
 		if err != nil {
-			return nil, fmt.Errorf("failed to resolve webhook config: %w", err)
+			return nil, nil, fmt.Errorf("failed to resolve webhook config: %w", err)
 		}
 
 		configBytes, err := json.Marshal(webhookConfig)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal Webhook output config: %w", err)
+			return nil, nil, fmt.Errorf("failed to marshal Webhook output config: %w", err)
 		}
 
 		return &reportexporterv1alpha1.Output{
@@ -91,45 +101,56 @@ func (r *Reconciler) convertReportOutput(ctx context.Context, reportOutput *v1al
 			Config: runtime.RawExtension{
 				Raw: configBytes,
 			},
-		}, nil
+		}, outputCreds, nil
 	}
 
-	return nil, fmt.Errorf("unsupported output type in ReportOutput %q", reportOutput.Name)
+	return nil, nil, fmt.Errorf("unsupported output type in ReportOutput %q", reportOutput.Name)
 }
 
-func (r *Reconciler) resolveWebhookConfig(ctx context.Context, webhook *v1alpha1.OutputWebhook) (*reportexporterv1alpha1.WebhookOutputConfig, error) {
+func (r *Reconciler) resolveWebhookConfig(ctx context.Context, outputIndex int, webhook *v1alpha1.OutputWebhook) (*reportexporterv1alpha1.WebhookOutputConfig, map[string][]byte, error) {
 	config := &reportexporterv1alpha1.WebhookOutputConfig{
 		URL:    webhook.URL,
 		Method: webhook.Method,
 	}
 
+	var outputCreds map[string][]byte
+
 	// Resolve headers from CredentialsRef.
 	if webhook.CredentialsRef != nil {
 		switch webhook.CredentialsRef.Kind {
 		case "Secret", "":
-			headers, err := r.resolveHeadersFromSecret(ctx, webhook.CredentialsRef)
+			headersJSON, err := r.resolveHeadersJSONFromSecret(ctx, webhook.CredentialsRef)
 			if err != nil {
-				return nil, fmt.Errorf("failed to resolve credentials: %w", err)
+				return nil, nil, fmt.Errorf("failed to resolve credentials: %w", err)
 			}
-			config.Headers = headers
+			fileName := fmt.Sprintf("%d-%s", outputIndex, WebhookHeadersFileName)
+			outputCreds = make(map[string][]byte)
+			outputCreds[fileName] = headersJSON
+			config.HeadersFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, fileName)
 		default:
-			return nil, fmt.Errorf("unsupported credentialsRef kind %q, only Secret is supported for webhook output", webhook.CredentialsRef.Kind)
+			return nil, nil, fmt.Errorf("unsupported credentialsRef kind %q, only Secret is supported for webhook output", webhook.CredentialsRef.Kind)
 		}
 	}
 
 	// Resolve TLS config.
 	if webhook.TLS != nil {
-		tlsConfig, err := r.resolveTLSConfig(ctx, webhook.TLS)
+		tlsCreds, err := r.resolveTLSConfig(ctx, outputIndex, webhook.TLS, config)
 		if err != nil {
-			return nil, fmt.Errorf("failed to resolve TLS config: %w", err)
+			return nil, nil, fmt.Errorf("failed to resolve TLS config: %w", err)
 		}
-		config.TLS = tlsConfig
+		if tlsCreds != nil {
+			if outputCreds == nil {
+				outputCreds = make(map[string][]byte)
+			}
+			maps.Copy(outputCreds, tlsCreds)
+		}
 	}
 
-	return config, nil
+	return config, outputCreds, nil
 }
 
-func (r *Reconciler) resolveTLSConfig(ctx context.Context, tls *v1alpha1.TLSConfig) (*reportexporterv1alpha1.TLSConfig, error) {
+func (r *Reconciler) resolveTLSConfig(ctx context.Context, outputIndex int, tls *v1alpha1.TLSConfig, config *reportexporterv1alpha1.WebhookOutputConfig) (map[string][]byte, error) {
+	tlsCreds := make(map[string][]byte)
 	tlsConfig := &reportexporterv1alpha1.TLSConfig{}
 
 	if tls.CAConfigMapRef != nil {
@@ -141,7 +162,9 @@ func (r *Reconciler) resolveTLSConfig(ctx context.Context, tls *v1alpha1.TLSConf
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve CA certificate: %w", err)
 		}
-		tlsConfig.CACert = caCert
+		fileName := fmt.Sprintf("%d-%s", outputIndex, TLSCACertFileName)
+		tlsCreds[fileName] = []byte(caCert)
+		tlsConfig.CACertFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, fileName)
 	}
 
 	if tls.MTLSSecretRef != nil {
@@ -154,19 +177,28 @@ func (r *Reconciler) resolveTLSConfig(ctx context.Context, tls *v1alpha1.TLSConf
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve client certificate: %w", err)
 		}
-		tlsConfig.ClientCert = string(clientCert)
+		certFileName := fmt.Sprintf("%d-%s", outputIndex, TLSClientCertFileName)
+		tlsCreds[certFileName] = clientCert
+		tlsConfig.ClientCertFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, certFileName)
 
 		clientKey, err := readSecretKey(secret, ptr.Deref(tls.MTLSSecretRef.PrivateKeyKey, defaultClientKeyKey))
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve client key: %w", err)
 		}
-		tlsConfig.ClientKey = string(clientKey)
+		keyFileName := fmt.Sprintf("%d-%s", outputIndex, TLSClientKeyFileName)
+		tlsCreds[keyFileName] = clientKey
+		tlsConfig.ClientKeyFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, keyFileName)
 	}
 
-	return tlsConfig, nil
+	config.TLS = tlsConfig
+
+	if len(tlsCreds) == 0 {
+		return nil, nil
+	}
+	return tlsCreds, nil
 }
 
-func (r *Reconciler) resolveHeadersFromSecret(ctx context.Context, ref *v1alpha1.CredentialsRef) (map[string]string, error) {
+func (r *Reconciler) resolveHeadersJSONFromSecret(ctx context.Context, ref *v1alpha1.CredentialsRef) ([]byte, error) {
 	secret, err := r.getSecret(ctx, &ref.ResourceReference)
 	if err != nil {
 		return nil, err
@@ -177,12 +209,13 @@ func (r *Reconciler) resolveHeadersFromSecret(ctx context.Context, ref *v1alpha1
 		return nil, err
 	}
 
+	// Validate that the value is a valid JSON object map before storing it.
 	headers := make(map[string]string)
 	if err := json.Unmarshal(data, &headers); err != nil {
 		return nil, fmt.Errorf("failed to parse credentials as JSON map: %w", err)
 	}
 
-	return headers, nil
+	return data, nil
 }
 
 func (r *Reconciler) getSecret(ctx context.Context, ref *v1alpha1.ResourceReference) (*corev1.Secret, error) {

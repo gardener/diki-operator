@@ -20,7 +20,7 @@ import (
 
 // deployDikiRunJob creates a Kubernetes Job that runs the diki compliance scan
 // and exports the report to the configured outputs.
-func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, dikiConfigMapName, exporterConfigSecretName string) (*batchv1.Job, error) {
+func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alpha1.ComplianceScan, dikiConfigMapName, outputsCredsSecretName string) (*batchv1.Job, error) {
 	dikiImage, err := imagevector.ImageVector().FindImage("diki")
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 							Name:  ReportExporterContainerName,
 							Image: reportExporterImage.String(),
 							Args: []string{
-								fmt.Sprintf("--config=%s/%s", ExporterConfigMountPath, ExporterConfigKey),
+								fmt.Sprintf("--config=%s/%s", DikiConfigMountPath, ExporterConfigKey),
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
@@ -90,8 +90,8 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 									ReadOnly:  true,
 								},
 								{
-									Name:      ExporterConfigVolumeName,
-									MountPath: ExporterConfigMountPath,
+									Name:      DikiConfigVolumeName,
+									MountPath: DikiConfigMountPath,
 									ReadOnly:  true,
 								},
 							},
@@ -113,15 +113,6 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 									LocalObjectReference: corev1.LocalObjectReference{
 										Name: dikiConfigMapName,
 									},
-									DefaultMode: ptr.To(int32(0440)),
-								},
-							},
-						},
-						{
-							Name: ExporterConfigVolumeName,
-							VolumeSource: corev1.VolumeSource{
-								Secret: &corev1.SecretVolumeSource{
-									SecretName:  exporterConfigSecretName,
 									DefaultMode: ptr.To(int32(0440)),
 								},
 							},
@@ -234,6 +225,26 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			corev1.EnvVar{
 				Name:  "KUBECONFIG",
 				Value: fmt.Sprintf("%s/%s", r.Config.DikiRunner.TargetKubeconfig.MountPath, KubeconfigSecretKey),
+			},
+		)
+	}
+
+	if len(outputsCredsSecretName) != 0 {
+		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, corev1.Volume{
+			Name: OutputsCredsVolumeName,
+			VolumeSource: corev1.VolumeSource{
+				Secret: &corev1.SecretVolumeSource{
+					SecretName:  outputsCredsSecretName,
+					DefaultMode: ptr.To(int32(0440)),
+				},
+			},
+		})
+		job.Spec.Template.Spec.Containers[1].VolumeMounts = append(
+			job.Spec.Template.Spec.Containers[1].VolumeMounts,
+			corev1.VolumeMount{
+				Name:      OutputsCredsVolumeName,
+				MountPath: OutputsCredsMountPath,
+				ReadOnly:  true,
 			},
 		)
 	}

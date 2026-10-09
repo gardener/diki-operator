@@ -11,7 +11,7 @@ spec:
         kind: Secret
         name: webhook-headers
         namespace: kube-system
-        headersKey: credentials.json
+        headersKey: headers
       tls:
         caConfigMapRef:
           name: webhook-ca

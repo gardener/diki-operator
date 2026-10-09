@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: Contributors to the Gardener project
-#
-# SPDX-License-Identifier: Apache-2.0
-
 apiVersion: exporter.diki.gardener.cloud/v1alpha1
 kind: ReportExporterConfiguration
 
@@ -16,3 +12,13 @@ outputs:
   config:
     namespace: kube-system
     namePrefix: compliance-scan-report-
+- type: Webhook
+  name: example-webhook-output
+  config:
+    url: "https://compliance-api.corp.example.com/v1/reports"
+    method: POST
+    headersFile: /creds/headers.json
+    tls:
+      caCertFile: /creds/ca.crt
+      clientCertFile: /creds/client.crt
+      clientKeyFile: /creds/client.key

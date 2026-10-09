@@ -12,8 +12,6 @@ const (
 
 	// DikiConfigConfigMapNamePrefix is the prefix for diki config ConfigMap names.
 	DikiConfigConfigMapNamePrefix = "diki-config-"
-	// ExporterConfigSecretNamePrefix is the prefix for report exporter config Secret names.
-	ExporterConfigSecretNamePrefix = "exporter-config-" // #nosec G101
 	// ServiceAccountNameDikiRun is the name for the diki-run Job related ServiceAccount.
 	ServiceAccountNameDikiRun = "diki-run"
 	// JobNamePrefix is the prefix for the diki-run Job names.
@@ -36,12 +34,8 @@ const (
 	// ReportFileName is the name of the report file written by the diki-scan container.
 	ReportFileName = "report.json"
 
-	// ExporterConfigKey is the key used to store the exporter configuration in the Secret data.
+	// ExporterConfigKey is the key used to store the exporter configuration in the diki-config ConfigMap.
 	ExporterConfigKey = "exporter-config.yaml"
-	// ExporterConfigVolumeName is the name of the volume for the exporter config Secret mounted in the diki-run Job pods.
-	ExporterConfigVolumeName = "exporter-config"
-	// ExporterConfigMountPath is the mount path for the exporter configuration needed by the report-exporter container.
-	ExporterConfigMountPath = "/exporter-config"
 
 	// KubeconfigVolumeName is the name of the projected volume for the kubeconfig and token secrets.
 	KubeconfigVolumeName = "kubeconfig"
@@ -50,6 +44,21 @@ const (
 
 	// TokenSecretKey is the key in the token Secret that holds the token data.
 	TokenSecretKey = "token"
+
+	// OutputsCredsSecretNamePrefix is the prefix for outputs credentials Secret names.
+	OutputsCredsSecretNamePrefix = "outputs-creds-" // #nosec G101
+	// OutputsCredsVolumeName is the name of the volume for the outputs credentials Secret mounted in the diki-run Job pods.
+	OutputsCredsVolumeName = "outputs-creds"
+	// OutputsCredsMountPath is the mount path for the outputs credentials in the report-exporter container.
+	OutputsCredsMountPath = "/outputs-creds" // #nosec G101
+	// TLSCACertFileName is the filename for the CA certificate in the outputs credentials volume.
+	TLSCACertFileName = "ca.crt"
+	// TLSClientCertFileName is the filename for the client certificate in the outputs credentials volume.
+	TLSClientCertFileName = "client.crt"
+	// TLSClientKeyFileName is the filename for the client key in the outputs credentials volume.
+	TLSClientKeyFileName = "client.key"
+	// WebhookHeadersFileName is the base filename suffix for the webhook auth headers JSON file in the outputs credentials volume.
+	WebhookHeadersFileName = "headers.json"
 
 	// RuleOptionsSuffix is the suffix appended to ruleset IDs when looking up rule options in ConfigMaps.
 	RuleOptionsSuffix = "-rules"
