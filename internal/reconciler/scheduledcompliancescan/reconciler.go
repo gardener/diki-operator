@@ -106,6 +106,20 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		}
 	}
 
+	on, ok := scheduledScan.Annotations[AnnotationScheduledComplianceScanTriggerNow]
+	if ok {
+		if !shouldCreate && on == "true" {
+			shouldCreate = true
+		}
+
+		patch := client.MergeFrom(scheduledScan.DeepCopy())
+		delete(scheduledScan.Annotations, AnnotationScheduledComplianceScanTriggerNow)
+
+		if err := r.Client.Patch(ctx, scheduledScan, patch); err != nil {
+			return reconcile.Result{}, fmt.Errorf("failed to trigger ComplianceScan: %w", err)
+		}
+	}
+
 	if shouldCreate {
 		childScan, err := r.deployComplianceScan(ctx, scheduledScan, now)
 		if err != nil {

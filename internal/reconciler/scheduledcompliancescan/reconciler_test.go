@@ -6,6 +6,7 @@ package reconciler_test
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	logzap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -299,6 +301,145 @@ var _ = Describe("Controller", func() {
 		// Next Sunday is 2026-03-29 00:00:00 UTC; Wednesday is 2026-03-25 12:00:00 UTC.
 		Expect(res.RequeueAfter).To(BeNumerically(">", 3*24*time.Hour))
 		Expect(res.RequeueAfter).To(BeNumerically("<", 4*24*time.Hour))
+	})
+
+	Context("trigger-now annotation", func() {
+		var wednesday = time.Date(2026, 3, 25, 12, 0, 0, 0, time.UTC)
+		var lastSunday = time.Date(2026, 3, 22, 0, 0, 0, 0, time.UTC)
+
+		It("should create a ComplianceScan immediately and remove the annotation when trigger-now=true and no active scan", func() {
+			scheduledScan.Annotations = map[string]string{
+				"scheduledcompliancescan.diki.gardener.cloud/trigger-now": "true",
+			}
+			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
+			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: lastSunday}
+			Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())
+			fakeClock = testclock.NewFakeClock(wednesday)
+			cr = &scheduledcompliancescan.Reconciler{Client: fakeClient, Clock: fakeClock}
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			childScans := &dikiv1alpha1.ComplianceScanList{}
+			Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
+				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+			})).To(Succeed())
+			Expect(childScans.Items).To(HaveLen(1))
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
+			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/trigger-now"))
+			Expect(scheduledScan.Status.Active).NotTo(BeNil())
+		})
+
+		It("should wait for the active scan to finish and then create a new ComplianceScan when trigger-now=true", func() {
+			scheduledScan.Annotations = map[string]string{
+				"scheduledcompliancescan.diki.gardener.cloud/trigger-now": "true",
+			}
+			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
+			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: lastSunday}
+			scheduledScan.Status.Active = &corev1.ObjectReference{Name: "test-scheduled-scan-running"}
+			Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())
+			fakeClock = testclock.NewFakeClock(wednesday)
+			cr = &scheduledcompliancescan.Reconciler{Client: fakeClient, Clock: fakeClock}
+
+			activeScan := &dikiv1alpha1.ComplianceScan{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-scheduled-scan-running",
+					Labels: map[string]string{
+						"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+						"scheduledcompliancescan.diki.gardener.cloud/uid":  string(scheduledScan.UID),
+					},
+				},
+				Status: dikiv1alpha1.ComplianceScanStatus{Phase: dikiv1alpha1.ComplianceScanRunning},
+			}
+			Expect(fakeClient.Create(ctx, activeScan)).To(Succeed())
+			Expect(fakeClient.Status().Update(ctx, activeScan)).To(Succeed())
+
+			// Cycle 1: active scan present, annotation must be preserved and no new scan created.
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.RequeueAfter).To(Equal(1 * time.Minute))
+
+			childScans := &dikiv1alpha1.ComplianceScanList{}
+			Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
+				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+			})).To(Succeed())
+			Expect(childScans.Items).To(HaveLen(1))
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
+			Expect(scheduledScan.Annotations).To(HaveKeyWithValue("scheduledcompliancescan.diki.gardener.cloud/trigger-now", "true"))
+
+			// Between cycles: mark the active scan as completed.
+			activeScan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
+			Expect(fakeClient.Status().Update(ctx, activeScan)).To(Succeed())
+
+			// Cycle 2: active scan gone, annotation consumed, new scan created.
+			_, err = cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
+				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+			})).To(Succeed())
+			Expect(childScans.Items).To(HaveLen(2))
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
+			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/trigger-now"))
+			Expect(scheduledScan.Status.Active).NotTo(BeNil())
+		})
+
+		It("should return an error when the annotation patch fails", func() {
+			scheduledScan.Annotations = map[string]string{
+				"scheduledcompliancescan.diki.gardener.cloud/trigger-now": "true",
+			}
+			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
+			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: lastSunday}
+			Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())
+			fakeClock = testclock.NewFakeClock(wednesday)
+
+			failingClient := fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithStatusSubresource(&dikiv1alpha1.ScheduledComplianceScan{}, &dikiv1alpha1.ComplianceScan{}).
+				WithObjects(scheduledScan).
+				WithInterceptorFuncs(interceptor.Funcs{
+					Patch: func(_ context.Context, _ client.WithWatch, _ client.Object, _ client.Patch, _ ...client.PatchOption) error {
+						return errors.New("patch-failed")
+					},
+				}).Build()
+			cr = &scheduledcompliancescan.Reconciler{Client: failingClient, Clock: fakeClock}
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).To(MatchError(ContainSubstring("failed to trigger ComplianceScan")))
+
+			childScans := &dikiv1alpha1.ComplianceScanList{}
+			Expect(failingClient.List(ctx, childScans, client.MatchingLabels{
+				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+			})).To(Succeed())
+			Expect(childScans.Items).To(BeEmpty())
+		})
+
+		It("should not create a ComplianceScan and remove the annotation when trigger-now is not true", func() {
+			scheduledScan.Annotations = map[string]string{
+				"scheduledcompliancescan.diki.gardener.cloud/trigger-now": "false",
+			}
+			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
+			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: lastSunday}
+			Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())
+			fakeClock = testclock.NewFakeClock(wednesday)
+			cr = &scheduledcompliancescan.Reconciler{Client: fakeClient, Clock: fakeClock}
+
+			res, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(res.RequeueAfter).To(BeNumerically(">", 0))
+
+			childScans := &dikiv1alpha1.ComplianceScanList{}
+			Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
+				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+			})).To(Succeed())
+			Expect(childScans.Items).To(BeEmpty())
+
+			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
+			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/trigger-now"))
+		})
 	})
 
 	Context("history cleanup", func() {
