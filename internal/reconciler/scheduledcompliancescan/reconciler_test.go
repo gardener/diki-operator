@@ -303,13 +303,13 @@ var _ = Describe("Controller", func() {
 		Expect(res.RequeueAfter).To(BeNumerically("<", 4*24*time.Hour))
 	})
 
-	Context("trigger-now annotation", func() {
+	Context("operation annotation", func() {
 		var wednesday = time.Date(2026, 3, 25, 12, 0, 0, 0, time.UTC)
 		var lastSunday = time.Date(2026, 3, 22, 0, 0, 0, 0, time.UTC)
 
-		It("should create a ComplianceScan immediately and remove the annotation when trigger-now=true and no active scan", func() {
+		It("should create a ComplianceScan immediately and remove the annotation when operation=trigger and no active scan", func() {
 			scheduledScan.Annotations = map[string]string{
-				"scheduledcompliancescan.diki.gardener.cloud/trigger-now": "true",
+				"scheduledcompliancescan.diki.gardener.cloud/operation": "trigger",
 			}
 			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
 			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: lastSunday}
@@ -327,13 +327,13 @@ var _ = Describe("Controller", func() {
 			Expect(childScans.Items).To(HaveLen(1))
 
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
-			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/trigger-now"))
+			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/operation"))
 			Expect(scheduledScan.Status.Active).NotTo(BeNil())
 		})
 
-		It("should wait for the active scan to finish and then create a new ComplianceScan when trigger-now=true", func() {
+		It("should wait for the active scan to finish and then create a new ComplianceScan when operation=trigger", func() {
 			scheduledScan.Annotations = map[string]string{
-				"scheduledcompliancescan.diki.gardener.cloud/trigger-now": "true",
+				"scheduledcompliancescan.diki.gardener.cloud/operation": "trigger",
 			}
 			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
 			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: lastSunday}
@@ -367,7 +367,7 @@ var _ = Describe("Controller", func() {
 			Expect(childScans.Items).To(HaveLen(1))
 
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
-			Expect(scheduledScan.Annotations).To(HaveKeyWithValue("scheduledcompliancescan.diki.gardener.cloud/trigger-now", "true"))
+			Expect(scheduledScan.Annotations).To(HaveKeyWithValue("scheduledcompliancescan.diki.gardener.cloud/operation", "trigger"))
 
 			// Between cycles: mark the active scan as completed.
 			activeScan.Status.Phase = dikiv1alpha1.ComplianceScanCompleted
@@ -383,13 +383,13 @@ var _ = Describe("Controller", func() {
 			Expect(childScans.Items).To(HaveLen(2))
 
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
-			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/trigger-now"))
+			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/operation"))
 			Expect(scheduledScan.Status.Active).NotTo(BeNil())
 		})
 
 		It("should return an error when the annotation patch fails", func() {
 			scheduledScan.Annotations = map[string]string{
-				"scheduledcompliancescan.diki.gardener.cloud/trigger-now": "true",
+				"scheduledcompliancescan.diki.gardener.cloud/operation": "trigger",
 			}
 			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
 			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: lastSunday}
@@ -417,9 +417,9 @@ var _ = Describe("Controller", func() {
 			Expect(childScans.Items).To(BeEmpty())
 		})
 
-		It("should not create a ComplianceScan and remove the annotation when trigger-now is not true", func() {
+		It("should not create a ComplianceScan and remove the annotation when operation is not trigger", func() {
 			scheduledScan.Annotations = map[string]string{
-				"scheduledcompliancescan.diki.gardener.cloud/trigger-now": "false",
+				"scheduledcompliancescan.diki.gardener.cloud/operation": "not-trigger",
 			}
 			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
 			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: lastSunday}
@@ -438,7 +438,7 @@ var _ = Describe("Controller", func() {
 			Expect(childScans.Items).To(BeEmpty())
 
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
-			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/trigger-now"))
+			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/operation"))
 		})
 	})
 

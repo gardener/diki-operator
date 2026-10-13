@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
+	dikiconstants "github.com/gardener/diki-operator/internal/constants"
 	scheduledcompliancescan "github.com/gardener/diki-operator/internal/reconciler/scheduledcompliancescan"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
@@ -44,6 +45,16 @@ func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) adm
 	}
 	if scheduledScan.Spec.FailedScansHistoryLimit != nil && *scheduledScan.Spec.FailedScansHistoryLimit < 0 {
 		allErrs = append(allErrs, field.Invalid(specPath.Child("failedScansHistoryLimit"), *scheduledScan.Spec.FailedScansHistoryLimit, "must not be negative"))
+	}
+
+	annotationsPath := field.NewPath("metadata").Child("annotations")
+	if op, ok := scheduledScan.Annotations[scheduledcompliancescan.AnnotationScheduledComplianceScanOperation]; ok && op != dikiconstants.AnnotationOperationValueTrigger {
+		allErrs = append(allErrs,
+			field.Invalid(annotationsPath.Key(scheduledcompliancescan.AnnotationScheduledComplianceScanOperation),
+				op,
+				fmt.Sprintf("invalid operation value, valid values are: %s", dikiconstants.AnnotationOperationValueTrigger),
+			),
+		)
 	}
 
 	if len(allErrs) > 0 {

@@ -147,6 +147,30 @@ var _ = Describe("handler", func() {
 				Expect(resp.Result.Message).To(ContainSubstring("spec.successfulScansHistoryLimit"))
 				Expect(resp.Result.Message).To(ContainSubstring("spec.failedScansHistoryLimit"))
 			})
+
+			It("should allow creating with operation=trigger annotation", func() {
+				scheduledScan.Annotations = map[string]string{
+					"scheduledcompliancescan.diki.gardener.cloud/operation": "trigger",
+				}
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
+
+			It("should deny creating with an invalid operation annotation value", func() {
+				scheduledScan.Annotations = map[string]string{
+					"scheduledcompliancescan.diki.gardener.cloud/operation": "invalid-op",
+				}
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("scheduledcompliancescan.diki.gardener.cloud/operation"))
+			})
 		})
 
 		Context("test updating the ScheduledComplianceScan resource", func() {

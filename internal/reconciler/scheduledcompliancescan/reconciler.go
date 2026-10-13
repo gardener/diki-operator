@@ -18,6 +18,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	dikiconstants "github.com/gardener/diki-operator/internal/constants"
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
 
@@ -106,14 +107,14 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		}
 	}
 
-	on, ok := scheduledScan.Annotations[AnnotationScheduledComplianceScanTriggerNow]
+	on, ok := scheduledScan.Annotations[AnnotationScheduledComplianceScanOperation]
 	if ok {
-		if !shouldCreate && on == "true" {
+		if !shouldCreate && on == dikiconstants.AnnotationOperationValueTrigger {
 			shouldCreate = true
 		}
 
 		patch := client.MergeFrom(scheduledScan.DeepCopy())
-		delete(scheduledScan.Annotations, AnnotationScheduledComplianceScanTriggerNow)
+		delete(scheduledScan.Annotations, AnnotationScheduledComplianceScanOperation)
 
 		if err := r.Client.Patch(ctx, scheduledScan, patch); err != nil {
 			return reconcile.Result{}, fmt.Errorf("failed to trigger ComplianceScan: %w", err)

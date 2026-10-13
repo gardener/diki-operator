@@ -19,4 +19,8 @@ const (
 	LabelValueDiki = "diki"
 	// LabelValueDikiOperator is the managing operator value used for diki-operator managed resources.
 	LabelValueDikiOperator = "diki-operator"
+
+	// AnnotationOperationValueTrigger is the annotation value used to trigger an immediate ComplianceScan
+	// creation outside of the normal schedule.
+	AnnotationOperationValueTrigger = "trigger"
 )

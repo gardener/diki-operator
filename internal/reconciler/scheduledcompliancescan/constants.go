@@ -11,8 +11,7 @@ const (
 	// LabelScheduledComplianceScanUID is the label used to identify ComplianceScans
 	// created by a specific ScheduledComplianceScan by UID.
 	LabelScheduledComplianceScanUID = "scheduledcompliancescan.diki.gardener.cloud/uid"
-	// AnnotationScheduledComplianceScanTriggerNow is the annotation used to trigger an immediate
-	// ComplianceScan creation outside of the normal schedule.
-	// The annotation is removed after being processed to prevent re-triggering.
-	AnnotationScheduledComplianceScanTriggerNow = "scheduledcompliancescan.diki.gardener.cloud/trigger-now"
+	// AnnotationScheduledComplianceScanOperation is the annotation used to request an operation
+	// on a ScheduledComplianceScan. The annotation is removed after being processed to prevent re-triggering.
+	AnnotationScheduledComplianceScanOperation = "scheduledcompliancescan.diki.gardener.cloud/operation"
 )
