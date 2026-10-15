@@ -408,7 +408,7 @@ var _ = Describe("Controller", func() {
 			cr = &scheduledcompliancescan.Reconciler{Client: failingClient, Clock: fakeClock}
 
 			_, err := cr.Reconcile(ctx, request)
-			Expect(err).To(MatchError(ContainSubstring("failed to trigger ComplianceScan")))
+			Expect(err).To(MatchError(ContainSubstring("failed to patch ScheduledComplianceScan")))
 
 			childScans := &dikiv1alpha1.ComplianceScanList{}
 			Expect(failingClient.List(ctx, childScans, client.MatchingLabels{
