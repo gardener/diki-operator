@@ -48,10 +48,10 @@ func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) adm
 	}
 
 	annotationsPath := field.NewPath("metadata").Child("annotations")
-	if op, ok := scheduledScan.Annotations[scheduledcompliancescan.AnnotationScheduledComplianceScanOperation]; ok && op != dikiconstants.AnnotationOperationValueTrigger {
+	if annotationValue, ok := scheduledScan.Annotations[scheduledcompliancescan.AnnotationScheduledComplianceScanOperation]; ok && annotationValue != dikiconstants.AnnotationOperationValueTrigger {
 		allErrs = append(allErrs,
 			field.Invalid(annotationsPath.Key(scheduledcompliancescan.AnnotationScheduledComplianceScanOperation),
-				op,
+				annotationValue,
 				fmt.Sprintf("invalid operation value, valid values are: %s", dikiconstants.AnnotationOperationValueTrigger),
 			),
 		)

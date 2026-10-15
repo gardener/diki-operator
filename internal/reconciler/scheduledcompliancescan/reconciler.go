@@ -107,9 +107,9 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		}
 	}
 
-	on, ok := scheduledScan.Annotations[AnnotationScheduledComplianceScanOperation]
+	annotationValue, ok := scheduledScan.Annotations[AnnotationScheduledComplianceScanOperation]
 	if ok {
-		if !shouldCreate && on == dikiconstants.AnnotationOperationValueTrigger {
+		if !shouldCreate && annotationValue == dikiconstants.AnnotationOperationValueTrigger {
 			shouldCreate = true
 		}
 
@@ -117,7 +117,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		delete(scheduledScan.Annotations, AnnotationScheduledComplianceScanOperation)
 
 		if err := r.Client.Patch(ctx, scheduledScan, patch); err != nil {
-			return reconcile.Result{}, fmt.Errorf("failed to trigger ComplianceScan: %w", err)
+			return reconcile.Result{}, fmt.Errorf("failed to patch ScheduledComplianceScan: %w", err)
 		}
 	}
 
