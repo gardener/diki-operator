@@ -4,6 +4,7 @@ metadata:
   name: example-scheduledcompliancescan
 spec:
   schedule: "0 0 * * 0" # defaults to "0 0 * * 0" (weekly on Sunday at midnight)
+  timeZone: "UTC" # defaults to null
   successfulScansHistoryLimit: 3 # defaults to 3
   failedScansHistoryLimit: 1 # defaults to 1
   scanTemplate:

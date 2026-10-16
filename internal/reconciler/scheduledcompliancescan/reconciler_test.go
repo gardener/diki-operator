@@ -280,6 +280,71 @@ var _ = Describe("Controller", func() {
 		Expect(childScans.Items).To(HaveLen(1))
 	})
 
+	It("should prepend CRON_TZ when timeZone is set and schedule accordingly", func() {
+		// Schedule fires at 03:00 Asia/Kolkata (UTC+5:30, no DST).
+		// Clock is set to 21:35 UTC the previous day = 03:05, so the schedule is due.
+		// Without CRON_TZ the parser would use UTC and 03:00 UTC would not yet be due.
+		scheduledScan.Spec.Schedule = "0 3 * * *"
+		scheduledScan.Spec.TimeZone = ptr.To("Asia/Kolkata")
+		Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
+
+		// LastScheduleTime is the previous day's 03:00 = 2026-03-29 21:30 UTC.
+		scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: time.Date(2026, 3, 29, 21, 30, 0, 0, time.UTC)}
+		Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())
+
+		fakeClock = testclock.NewFakeClock(time.Date(2026, 3, 30, 21, 35, 0, 0, time.UTC))
+		cr = &scheduledcompliancescan.Reconciler{Client: fakeClient, Clock: fakeClock}
+
+		_, err := cr.Reconcile(ctx, request)
+		Expect(err).NotTo(HaveOccurred())
+
+		childScans := &dikiv1alpha1.ComplianceScanList{}
+		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+		})).To(Succeed())
+		Expect(childScans.Items).To(HaveLen(1))
+	})
+
+	It("should not prepend CRON_TZ when timeZone is nil and use parser default", func() {
+		// With nil timeZone no CRON_TZ= prefix is added; the parser uses local time.
+		// LastScheduleTime is set to 03:00 UTC today; clock is 03:30 UTC same day.
+		// Next 03:00 in any timezone is at least 20+ hours away, so no scan should fire.
+		// If CRON_TZ= were mistakenly prepended with any ahead-of-UTC timezone,
+		// the next firing would still be in the future since we just passed 03:00 UTC.
+		scheduledScan.Spec.Schedule = "0 3 * * *"
+		Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
+
+		today0300UTC := time.Date(2026, 3, 30, 3, 0, 0, 0, time.UTC)
+		scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: today0300UTC}
+		Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())
+
+		fakeClock = testclock.NewFakeClock(time.Date(2026, 3, 30, 3, 30, 0, 0, time.UTC))
+		cr = &scheduledcompliancescan.Reconciler{Client: fakeClient, Clock: fakeClock}
+
+		_, err := cr.Reconcile(ctx, request)
+		Expect(err).NotTo(HaveOccurred())
+
+		childScans := &dikiv1alpha1.ComplianceScanList{}
+		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+		})).To(Succeed())
+		Expect(childScans.Items).To(BeEmpty())
+	})
+
+	It("should return no error and create no scan when the cron schedule is invalid", func() {
+		scheduledScan.Spec.Schedule = "not-a-cron"
+		Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
+
+		_, err := cr.Reconcile(ctx, request)
+		Expect(err).NotTo(HaveOccurred())
+
+		childScans := &dikiv1alpha1.ComplianceScanList{}
+		Expect(fakeClient.List(ctx, childScans, client.MatchingLabels{
+			"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
+		})).To(Succeed())
+		Expect(childScans.Items).To(BeEmpty())
+	})
+
 	It("should not create a ComplianceScan when the schedule is not yet due and requeue correctly", func() {
 		lastSunday := time.Date(2026, 3, 22, 0, 0, 0, 0, time.UTC)
 		wednesday := time.Date(2026, 3, 25, 12, 0, 0, 0, time.UTC)

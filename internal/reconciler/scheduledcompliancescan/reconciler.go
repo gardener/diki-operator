@@ -90,9 +90,14 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return reconcile.Result{RequeueAfter: 1 * time.Minute}, nil
 	}
 
-	expr, err := ParseCronScheduleWithPanicRecovery(scheduledScan.Spec.Schedule)
+	schedule := scheduledScan.Spec.Schedule
+	if scheduledScan.Spec.TimeZone != nil {
+		schedule = fmt.Sprintf("CRON_TZ=%s %s", *scheduledScan.Spec.TimeZone, schedule)
+	}
+
+	expr, err := ParseCronScheduleWithPanicRecovery(schedule)
 	if err != nil {
-		log.Error(err, "Invalid cron expression", "schedule", scheduledScan.Spec.Schedule)
+		log.Error(err, "Invalid cron expression", "schedule", schedule)
 		return reconcile.Result{}, nil
 	}
 

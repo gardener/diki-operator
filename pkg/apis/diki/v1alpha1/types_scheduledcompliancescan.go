@@ -13,6 +13,7 @@ import (
 // +kubebuilder:resource:scope=Cluster,path=scheduledcompliancescans,shortName=scscan,singular=scheduledcompliancescan
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Schedule",type=string,JSONPath=`.spec.schedule`,description="Cron schedule of the compliance scan"
+// +kubebuilder:printcolumn:name="Time zone",type=string,JSONPath=`.spec.timeZone`,description="Time zone of the compliance scan"
 // +kubebuilder:printcolumn:name="Active",type=string,JSONPath=`.status.active.name`,description="Name of the currently active ComplianceScan"
 // +kubebuilder:printcolumn:name="Last Schedule",type=date,JSONPath=`.status.lastScheduleTime`,description="Last time a ComplianceScan was scheduled"
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`,description="Creation timestamp"
@@ -45,6 +46,10 @@ type ScheduledComplianceScanSpec struct {
 	// Schedule is a cron expression defining when the compliance scan should run.
 	// +optional
 	Schedule string `json:"schedule,omitempty"`
+	// TimeZone is the time zone name for the given schedule, following the IANA time zone standard.
+	// If not specified, the schedule is interpreted relative to the controller's local time.
+	// +optional
+	TimeZone *string `json:"timeZone,omitempty"`
 	// SuccessfulScansHistoryLimit is the number of completed compliance scans to keep.
 	// +optional
 	SuccessfulScansHistoryLimit *int32 `json:"successfulScansHistoryLimit,omitempty"`

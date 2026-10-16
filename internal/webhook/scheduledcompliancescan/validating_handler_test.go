@@ -133,6 +133,78 @@ var _ = Describe("handler", func() {
 				Expect(resp.Result.Message).To(ContainSubstring("spec.failedScansHistoryLimit"))
 			})
 
+			It("should allow creating with a valid IANA time zone", func() {
+				scheduledScan.Spec.TimeZone = ptr.To("Europe/Berlin")
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
+
+			It("should allow creating with \"Etc/UTC\" as time zone (common explicit UTC usage)", func() {
+				scheduledScan.Spec.TimeZone = ptr.To("Etc/UTC")
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
+
+			It("should allow creating without a time zone set", func() {
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
+
+			It("should deny creating with an empty string time zone", func() {
+				scheduledScan.Spec.TimeZone = ptr.To("")
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.timeZone"))
+			})
+
+			It("should deny creating with \"Local\" as time zone", func() {
+				scheduledScan.Spec.TimeZone = ptr.To("Local")
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.timeZone"))
+			})
+
+			It("should deny creating with an invalid time zone", func() {
+				scheduledScan.Spec.TimeZone = ptr.To("Not/AZone")
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.timeZone"))
+			})
+
+			It("should deny creating with both an invalid schedule and an invalid time zone", func() {
+				scheduledScan.Spec.Schedule = "not-a-cron"
+				scheduledScan.Spec.TimeZone = ptr.To("Not/AZone")
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.schedule"))
+				Expect(resp.Result.Message).To(ContainSubstring("spec.timeZone"))
+			})
+
 			It("should deny creating with multiple validation errors", func() {
 				scheduledScan.Spec.Schedule = "not-a-cron"
 				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](-1)
@@ -226,6 +298,38 @@ var _ = Describe("handler", func() {
 				resp := handler.Handle(ctx, request)
 				Expect(resp.Allowed).To(BeFalse())
 				Expect(resp.Result.Message).To(ContainSubstring("spec.failedScansHistoryLimit"))
+			})
+
+			It("should allow updating to a valid time zone", func() {
+				oldScheduledScan := scheduledScan.DeepCopy()
+				oldScheduledScanObj, err := runtime.Encode(encoder, oldScheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.OldObject.Raw = oldScheduledScanObj
+
+				scheduledScan.Spec.TimeZone = ptr.To("America/New_York")
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+				request.Operation = admissionv1.Update
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
+
+			It("should deny updating with an invalid time zone", func() {
+				oldScheduledScan := scheduledScan.DeepCopy()
+				oldScheduledScanObj, err := runtime.Encode(encoder, oldScheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.OldObject.Raw = oldScheduledScanObj
+
+				scheduledScan.Spec.TimeZone = ptr.To("Not/AZone")
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+				request.Operation = admissionv1.Update
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.timeZone"))
 			})
 
 			It("should deny updating with multiple validation errors", func() {

@@ -8,6 +8,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
+	"time"
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -39,6 +42,7 @@ func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) adm
 			allErrs = append(allErrs, field.Invalid(specPath.Child("schedule"), scheduledScan.Spec.Schedule, fmt.Sprintf("invalid cron expression: %s", err.Error())))
 		}
 	}
+	allErrs = append(allErrs, validateTimeZone(scheduledScan.Spec.TimeZone, specPath.Child("timeZone"))...)
 	if scheduledScan.Spec.SuccessfulScansHistoryLimit != nil && *scheduledScan.Spec.SuccessfulScansHistoryLimit < 0 {
 		allErrs = append(allErrs, field.Invalid(specPath.Child("successfulScansHistoryLimit"), *scheduledScan.Spec.SuccessfulScansHistoryLimit, "must not be negative"))
 	}
@@ -61,4 +65,37 @@ func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) adm
 	}
 
 	return admission.Allowed("")
+}
+
+var validTimeZoneCharacters = regexp.MustCompile(`^[A-Za-z\.\-_0-9+]{1,14}$`)
+
+// validateTimeZone was created by reusing validation from the kubernetes/kubernetes project
+// https://github.com/kubernetes/kubernetes/blob/19c504053ed551f6e5ab5b5fd7c3345a6dcd8593/pkg/apis/batch/validation/validation.go#L966
+func validateTimeZone(timeZone *string, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+	if timeZone == nil {
+		return allErrs
+	}
+
+	if len(*timeZone) == 0 {
+		allErrs = append(allErrs, field.Invalid(fldPath, timeZone, "timeZone must be nil or non-empty string"))
+		return allErrs
+	}
+
+	for _, part := range strings.Split(*timeZone, "/") {
+		if part == "." || part == ".." || strings.HasPrefix(part, "-") || !validTimeZoneCharacters.MatchString(part) {
+			allErrs = append(allErrs, field.Invalid(fldPath, timeZone, fmt.Sprintf("unknown time zone %s", *timeZone)))
+			return allErrs
+		}
+	}
+
+	if strings.EqualFold(*timeZone, "Local") {
+		allErrs = append(allErrs, field.Invalid(fldPath, timeZone, "timeZone must be an explicit time zone as defined in https://www.iana.org/time-zones"))
+	}
+
+	if _, err := time.LoadLocation(*timeZone); err != nil {
+		allErrs = append(allErrs, field.Invalid(fldPath, timeZone, err.Error()))
+	}
+
+	return allErrs
 }

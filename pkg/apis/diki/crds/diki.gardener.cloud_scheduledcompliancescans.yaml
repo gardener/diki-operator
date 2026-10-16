@@ -21,6 +21,10 @@ spec:
       jsonPath: .spec.schedule
       name: Schedule
       type: string
+    - description: Time zone of the compliance scan
+      jsonPath: .spec.timeZone
+      name: Time zone
+      type: string
     - description: Name of the currently active ComplianceScan
       jsonPath: .status.active.name
       name: Active
@@ -170,6 +174,11 @@ spec:
                   compliance scans to keep.
                 format: int32
                 type: integer
+              timeZone:
+                description: |-
+                  TimeZone is the time zone name for the given schedule, following the IANA time zone standard.
+                  If not specified, the schedule is interpreted relative to the controller's local time.
+                type: string
             required:
             - scanTemplate
             type: object
