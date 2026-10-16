@@ -414,10 +414,10 @@ var _ = Describe("Controller", func() {
 			Expect(failingClient.List(ctx, childScans, client.MatchingLabels{
 				"scheduledcompliancescan.diki.gardener.cloud/name": scheduledScan.Name,
 			})).To(Succeed())
-			Expect(childScans.Items).To(BeEmpty())
+			Expect(childScans.Items).To(HaveLen(1))
 		})
 
-		It("should not create a ComplianceScan and remove the annotation when operation is not trigger", func() {
+		It("should not create a ComplianceScan and not remove the annotation when operation is not trigger", func() {
 			scheduledScan.Annotations = map[string]string{
 				"scheduledcompliancescan.diki.gardener.cloud/operation": "not-trigger",
 			}
@@ -438,7 +438,7 @@ var _ = Describe("Controller", func() {
 			Expect(childScans.Items).To(BeEmpty())
 
 			Expect(fakeClient.Get(ctx, client.ObjectKey{Name: scheduledScan.Name}, scheduledScan)).To(Succeed())
-			Expect(scheduledScan.Annotations).NotTo(HaveKey("scheduledcompliancescan.diki.gardener.cloud/operation"))
+			Expect(scheduledScan.Annotations).To(HaveKeyWithValue("scheduledcompliancescan.diki.gardener.cloud/operation", "not-trigger"))
 		})
 	})
 

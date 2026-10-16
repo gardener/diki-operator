@@ -12,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	dikiconstants "github.com/gardener/diki-operator/internal/constants"
 	scheduledcompliancescan "github.com/gardener/diki-operator/internal/reconciler/scheduledcompliancescan"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 )
@@ -48,11 +47,11 @@ func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) adm
 	}
 
 	annotationsPath := field.NewPath("metadata").Child("annotations")
-	if annotationValue, ok := scheduledScan.Annotations[scheduledcompliancescan.AnnotationScheduledComplianceScanOperation]; ok && annotationValue != dikiconstants.AnnotationOperationValueTrigger {
+	if annotationValue, ok := scheduledScan.Annotations[scheduledcompliancescan.AnnotationScheduledComplianceScanOperation]; ok && annotationValue != scheduledcompliancescan.ScheduledComplianceScanOperationTrigger {
 		allErrs = append(allErrs,
-			field.Invalid(annotationsPath.Key(scheduledcompliancescan.AnnotationScheduledComplianceScanOperation),
+			field.NotSupported(annotationsPath.Key(scheduledcompliancescan.AnnotationScheduledComplianceScanOperation),
 				annotationValue,
-				fmt.Sprintf("invalid operation value, valid values are: %s", dikiconstants.AnnotationOperationValueTrigger),
+				[]string{scheduledcompliancescan.ScheduledComplianceScanOperationTrigger},
 			),
 		)
 	}
