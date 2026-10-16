@@ -46,6 +46,16 @@ func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) adm
 		allErrs = append(allErrs, field.Invalid(specPath.Child("failedScansHistoryLimit"), *scheduledScan.Spec.FailedScansHistoryLimit, "must not be negative"))
 	}
 
+	annotationsPath := field.NewPath("metadata").Child("annotations")
+	if annotationValue, ok := scheduledScan.Annotations[scheduledcompliancescan.AnnotationScheduledComplianceScanOperation]; ok && annotationValue != scheduledcompliancescan.ScheduledComplianceScanOperationTrigger {
+		allErrs = append(allErrs,
+			field.NotSupported(annotationsPath.Key(scheduledcompliancescan.AnnotationScheduledComplianceScanOperation),
+				annotationValue,
+				[]string{scheduledcompliancescan.ScheduledComplianceScanOperationTrigger},
+			),
+		)
+	}
+
 	if len(allErrs) > 0 {
 		return admission.Denied(allErrs.ToAggregate().Error())
 	}

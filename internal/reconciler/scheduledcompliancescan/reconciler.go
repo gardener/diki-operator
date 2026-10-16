@@ -96,10 +96,18 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		return reconcile.Result{}, nil
 	}
 
-	shouldCreate := false
-	if scheduledScan.Status.LastScheduleTime == nil {
+	var (
+		shouldCreate, removeOperationAnnotation bool
+		opValue, ok                             = scheduledScan.Annotations[AnnotationScheduledComplianceScanOperation]
+	)
+
+	switch {
+	case ok && opValue == ScheduledComplianceScanOperationTrigger:
 		shouldCreate = true
-	} else {
+		removeOperationAnnotation = true
+	case scheduledScan.Status.LastScheduleTime == nil:
+		shouldCreate = true
+	default:
 		nextSchedule := expr.Next(scheduledScan.Status.LastScheduleTime.Time)
 		if !now.Before(nextSchedule) {
 			shouldCreate = true
@@ -116,6 +124,15 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 		if err := r.setActiveScan(ctx, scheduledScan, childScan, now); err != nil {
 			return reconcile.Result{}, err
+		}
+	}
+
+	if removeOperationAnnotation {
+		patch := client.MergeFrom(scheduledScan.DeepCopy())
+		delete(scheduledScan.Annotations, AnnotationScheduledComplianceScanOperation)
+
+		if err := r.Client.Patch(ctx, scheduledScan, patch); err != nil {
+			return reconcile.Result{}, fmt.Errorf("failed to patch ScheduledComplianceScan: %w", err)
 		}
 	}
 
