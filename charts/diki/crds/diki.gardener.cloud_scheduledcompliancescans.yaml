@@ -21,9 +21,9 @@ spec:
       jsonPath: .spec.schedule
       name: Schedule
       type: string
-    - description: Time zone of the compliance scan
+    - description: Time zone of the schedule
       jsonPath: .spec.timeZone
-      name: Time zone
+      name: Timezone
       type: string
     - description: Name of the currently active ComplianceScan
       jsonPath: .status.active.name
