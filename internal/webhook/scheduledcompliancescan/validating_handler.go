@@ -38,7 +38,9 @@ func (h *ValidatingHandler) Handle(_ context.Context, req admission.Request) adm
 	specPath := field.NewPath("spec")
 
 	if scheduledScan.Spec.Schedule != "" {
-		if _, err := scheduledcompliancescan.ParseCronScheduleWithPanicRecovery(scheduledScan.Spec.Schedule); err != nil {
+		if strings.HasPrefix(scheduledScan.Spec.Schedule, "TZ=") || strings.HasPrefix(scheduledScan.Spec.Schedule, "CRON_TZ=") {
+			allErrs = append(allErrs, field.Forbidden(specPath.Child("schedule"), "TZ and CRON_TZ prefixes are not supported, use the timeZone field instead"))
+		} else if _, err := scheduledcompliancescan.ParseCronScheduleWithPanicRecovery(scheduledScan.Spec.Schedule); err != nil {
 			allErrs = append(allErrs, field.Invalid(specPath.Child("schedule"), scheduledScan.Spec.Schedule, fmt.Sprintf("invalid cron expression: %s", err.Error())))
 		}
 	}

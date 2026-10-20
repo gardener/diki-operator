@@ -111,6 +111,37 @@ var _ = Describe("handler", func() {
 				Expect(resp.Result.Message).To(ContainSubstring("spec.schedule"))
 			})
 
+			It("should allow creating with a valid schedule without TZ or CRON_TZ prefix", func() {
+				scheduledScan.Spec.Schedule = "0 6 * * 1"
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				Expect(handler.Handle(ctx, request)).To(Equal(responseAllowed))
+			})
+
+			It("should deny creating with a TZ prefix in schedule", func() {
+				scheduledScan.Spec.Schedule = "TZ=UTC 0 6 * * 1"
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.schedule"))
+			})
+
+			It("should deny creating with a CRON_TZ prefix in schedule", func() {
+				scheduledScan.Spec.Schedule = "CRON_TZ=UTC 0 6 * * 1"
+				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
+				Expect(err).ToNot(HaveOccurred())
+				request.Object.Raw = scheduledScanObj
+
+				resp := handler.Handle(ctx, request)
+				Expect(resp.Allowed).To(BeFalse())
+				Expect(resp.Result.Message).To(ContainSubstring("spec.schedule"))
+			})
+
 			It("should deny creating with a negative successfulScansHistoryLimit", func() {
 				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](-1)
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
@@ -207,6 +238,7 @@ var _ = Describe("handler", func() {
 
 			It("should deny creating with multiple validation errors", func() {
 				scheduledScan.Spec.Schedule = "not-a-cron"
+				scheduledScan.Spec.TimeZone = ptr.To("Not/AZone")
 				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](-1)
 				scheduledScan.Spec.FailedScansHistoryLimit = ptr.To[int32](-2)
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
@@ -216,6 +248,7 @@ var _ = Describe("handler", func() {
 				resp := handler.Handle(ctx, request)
 				Expect(resp.Allowed).To(BeFalse())
 				Expect(resp.Result.Message).To(ContainSubstring("spec.schedule"))
+				Expect(resp.Result.Message).To(ContainSubstring("spec.timeZone"))
 				Expect(resp.Result.Message).To(ContainSubstring("spec.successfulScansHistoryLimit"))
 				Expect(resp.Result.Message).To(ContainSubstring("spec.failedScansHistoryLimit"))
 			})
