@@ -38,6 +38,9 @@ type ScheduledComplianceScanList struct {
 type ScheduledComplianceScanSpec struct {
 	// Schedule is a cron expression defining when the compliance scan should run.
 	Schedule string
+	// TimeZone is the name of the timezone to use for the schedule, following the IANA time zone standard.
+	// If not specified, the schedule is interpreted relative to the controller's local time.
+	TimeZone *string
 	// SuccessfulScansHistoryLimit is the number of completed compliance scans to keep.
 	SuccessfulScansHistoryLimit *int32
 	// FailedScansHistoryLimit is the number of failed compliance scans to keep.

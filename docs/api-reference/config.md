@@ -1545,6 +1545,18 @@ string
 </tr>
 <tr>
 <td>
+<code>timeZone</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>TimeZone is the time zone name for the given schedule, following the IANA time zone standard.<br />If not specified, the schedule is interpreted relative to the controller's local time.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>successfulScansHistoryLimit</code></br>
 <em>
 integer
