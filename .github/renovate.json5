@@ -59,14 +59,10 @@
       "enabled": false
     },
     {
-      // Group g/g, g/g/pkg/apis and g/g/hack/tools since they come from the same repo.
+      // Group gardener/gardener, its pkg/apis and hack/tools since they come from the same repo.
       "groupName": "github.com/gardener/gardener",
       "matchDatasources": ["go"],
-      "matchPackageNames": [
-        "github.com/gardener/gardener",
-        "github.com/gardener/gardener/pkg/apis",
-        "github.com/gardener/gardener/hack/tools",
-      ],
+      "matchPackageNames": ["/^github\\.com\\/gardener\\/gardener(\\/pkg\\/apis|\\/hack\\/tools)?$/"],
     },
     {
       // Group ginkgo and gomega.
