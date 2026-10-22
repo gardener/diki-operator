@@ -92,7 +92,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/gardener/cert-management v0.23.0 // indirect
 	github.com/gardener/etcd-druid/api v0.38.2 // indirect
-	github.com/gardener/gardener/hack/tools v1.153.0 // indirect
+	github.com/gardener/gardener/hack/tools v1.153.2 // indirect
 	github.com/gardener/gardener/pkg/apis v1.153.0 // indirect
 	github.com/gardener/machine-controller-manager v0.63.0 // indirect
 	github.com/gardener/pvc-autoscaler v0.3.1 // indirect
