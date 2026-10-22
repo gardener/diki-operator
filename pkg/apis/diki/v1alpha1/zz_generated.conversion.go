@@ -13,8 +13,6 @@ import (
 	unsafe "unsafe"
 
 	diki "github.com/gardener/diki-operator/pkg/apis/diki"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -350,10 +348,7 @@ func RegisterConversions(s *runtime.Scheme) error {
 }
 
 func autoConvert_v1alpha1_CAConfigMapRef_To_diki_CAConfigMapRef(in *CAConfigMapRef, out *diki.CAConfigMapRef, s conversion.Scope) error {
-	if err := Convert_v1alpha1_ResourceReference_To_diki_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
-		return err
-	}
-	out.Key = (*string)(unsafe.Pointer(in.Key))
+	*out = *(*diki.CAConfigMapRef)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -363,10 +358,7 @@ func Convert_v1alpha1_CAConfigMapRef_To_diki_CAConfigMapRef(in *CAConfigMapRef, 
 }
 
 func autoConvert_diki_CAConfigMapRef_To_v1alpha1_CAConfigMapRef(in *diki.CAConfigMapRef, out *CAConfigMapRef, s conversion.Scope) error {
-	if err := Convert_diki_ResourceReference_To_v1alpha1_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
-		return err
-	}
-	out.Key = (*string)(unsafe.Pointer(in.Key))
+	*out = *(*CAConfigMapRef)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -430,8 +422,7 @@ func Convert_diki_ComplianceScanList_To_v1alpha1_ComplianceScanList(in *diki.Com
 }
 
 func autoConvert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in *ComplianceScanSpec, out *diki.ComplianceScanSpec, s conversion.Scope) error {
-	out.Rulesets = *(*[]diki.RulesetConfig)(unsafe.Pointer(&in.Rulesets))
-	out.Outputs = *(*[]diki.ReportOutputRef)(unsafe.Pointer(&in.Outputs))
+	*out = *(*diki.ComplianceScanSpec)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -441,8 +432,7 @@ func Convert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(in *Complian
 }
 
 func autoConvert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(in *diki.ComplianceScanSpec, out *ComplianceScanSpec, s conversion.Scope) error {
-	out.Rulesets = *(*[]RulesetConfig)(unsafe.Pointer(&in.Rulesets))
-	out.Outputs = *(*[]ReportOutputRef)(unsafe.Pointer(&in.Outputs))
+	*out = *(*ComplianceScanSpec)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -452,10 +442,7 @@ func Convert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(in *diki.Com
 }
 
 func autoConvert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus(in *ComplianceScanStatus, out *diki.ComplianceScanStatus, s conversion.Scope) error {
-	out.Conditions = *(*[]diki.Condition)(unsafe.Pointer(&in.Conditions))
-	out.Phase = diki.ComplianceScanPhase(in.Phase)
-	out.Rulesets = *(*[]diki.RulesetSummary)(unsafe.Pointer(&in.Rulesets))
-	out.Outputs = *(*[]diki.OutputStatus)(unsafe.Pointer(&in.Outputs))
+	*out = *(*diki.ComplianceScanStatus)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -465,10 +452,7 @@ func Convert_v1alpha1_ComplianceScanStatus_To_diki_ComplianceScanStatus(in *Comp
 }
 
 func autoConvert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus(in *diki.ComplianceScanStatus, out *ComplianceScanStatus, s conversion.Scope) error {
-	out.Conditions = *(*[]Condition)(unsafe.Pointer(&in.Conditions))
-	out.Phase = ComplianceScanPhase(in.Phase)
-	out.Rulesets = *(*[]RulesetSummary)(unsafe.Pointer(&in.Rulesets))
-	out.Outputs = *(*[]OutputStatus)(unsafe.Pointer(&in.Outputs))
+	*out = *(*ComplianceScanStatus)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -478,12 +462,7 @@ func Convert_diki_ComplianceScanStatus_To_v1alpha1_ComplianceScanStatus(in *diki
 }
 
 func autoConvert_v1alpha1_Condition_To_diki_Condition(in *Condition, out *diki.Condition, s conversion.Scope) error {
-	out.Type = diki.ConditionType(in.Type)
-	out.Status = diki.ConditionStatus(in.Status)
-	out.LastUpdateTime = in.LastUpdateTime
-	out.LastTransitionTime = in.LastTransitionTime
-	out.Reason = in.Reason
-	out.Message = in.Message
+	*out = *(*diki.Condition)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -493,12 +472,7 @@ func Convert_v1alpha1_Condition_To_diki_Condition(in *Condition, out *diki.Condi
 }
 
 func autoConvert_diki_Condition_To_v1alpha1_Condition(in *diki.Condition, out *Condition, s conversion.Scope) error {
-	out.Type = ConditionType(in.Type)
-	out.Status = ConditionStatus(in.Status)
-	out.LastUpdateTime = in.LastUpdateTime
-	out.LastTransitionTime = in.LastTransitionTime
-	out.Reason = in.Reason
-	out.Message = in.Message
+	*out = *(*Condition)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -534,11 +508,7 @@ func Convert_diki_CredentialsRef_To_v1alpha1_CredentialsRef(in *diki.Credentials
 }
 
 func autoConvert_v1alpha1_MTLSSecretRef_To_diki_MTLSSecretRef(in *MTLSSecretRef, out *diki.MTLSSecretRef, s conversion.Scope) error {
-	if err := Convert_v1alpha1_ResourceReference_To_diki_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
-		return err
-	}
-	out.CertKey = (*string)(unsafe.Pointer(in.CertKey))
-	out.PrivateKeyKey = (*string)(unsafe.Pointer(in.PrivateKeyKey))
+	*out = *(*diki.MTLSSecretRef)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -548,11 +518,7 @@ func Convert_v1alpha1_MTLSSecretRef_To_diki_MTLSSecretRef(in *MTLSSecretRef, out
 }
 
 func autoConvert_diki_MTLSSecretRef_To_v1alpha1_MTLSSecretRef(in *diki.MTLSSecretRef, out *MTLSSecretRef, s conversion.Scope) error {
-	if err := Convert_diki_ResourceReference_To_v1alpha1_ResourceReference(&in.ResourceReference, &out.ResourceReference, s); err != nil {
-		return err
-	}
-	out.CertKey = (*string)(unsafe.Pointer(in.CertKey))
-	out.PrivateKeyKey = (*string)(unsafe.Pointer(in.PrivateKeyKey))
+	*out = *(*MTLSSecretRef)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -562,7 +528,7 @@ func Convert_diki_MTLSSecretRef_To_v1alpha1_MTLSSecretRef(in *diki.MTLSSecretRef
 }
 
 func autoConvert_v1alpha1_Options_To_diki_Options(in *Options, out *diki.Options, s conversion.Scope) error {
-	out.ConfigMapRef = (*diki.OptionsConfigMapRef)(unsafe.Pointer(in.ConfigMapRef))
+	*out = *(*diki.Options)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -572,7 +538,7 @@ func Convert_v1alpha1_Options_To_diki_Options(in *Options, out *diki.Options, s 
 }
 
 func autoConvert_diki_Options_To_v1alpha1_Options(in *diki.Options, out *Options, s conversion.Scope) error {
-	out.ConfigMapRef = (*OptionsConfigMapRef)(unsafe.Pointer(in.ConfigMapRef))
+	*out = *(*Options)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -582,9 +548,7 @@ func Convert_diki_Options_To_v1alpha1_Options(in *diki.Options, out *Options, s 
 }
 
 func autoConvert_v1alpha1_OptionsConfigMapRef_To_diki_OptionsConfigMapRef(in *OptionsConfigMapRef, out *diki.OptionsConfigMapRef, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Namespace = in.Namespace
-	out.Key = (*string)(unsafe.Pointer(in.Key))
+	*out = *(*diki.OptionsConfigMapRef)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -594,9 +558,7 @@ func Convert_v1alpha1_OptionsConfigMapRef_To_diki_OptionsConfigMapRef(in *Option
 }
 
 func autoConvert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in *diki.OptionsConfigMapRef, out *OptionsConfigMapRef, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Namespace = in.Namespace
-	out.Key = (*string)(unsafe.Pointer(in.Key))
+	*out = *(*OptionsConfigMapRef)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -606,8 +568,7 @@ func Convert_diki_OptionsConfigMapRef_To_v1alpha1_OptionsConfigMapRef(in *diki.O
 }
 
 func autoConvert_v1alpha1_Output_To_diki_Output(in *Output, out *diki.Output, s conversion.Scope) error {
-	out.ConfigMap = (*diki.OutputConfigMap)(unsafe.Pointer(in.ConfigMap))
-	out.Webhook = (*diki.OutputWebhook)(unsafe.Pointer(in.Webhook))
+	*out = *(*diki.Output)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -617,8 +578,7 @@ func Convert_v1alpha1_Output_To_diki_Output(in *Output, out *diki.Output, s conv
 }
 
 func autoConvert_diki_Output_To_v1alpha1_Output(in *diki.Output, out *Output, s conversion.Scope) error {
-	out.ConfigMap = (*OutputConfigMap)(unsafe.Pointer(in.ConfigMap))
-	out.Webhook = (*OutputWebhook)(unsafe.Pointer(in.Webhook))
+	*out = *(*Output)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -628,8 +588,7 @@ func Convert_diki_Output_To_v1alpha1_Output(in *diki.Output, out *Output, s conv
 }
 
 func autoConvert_v1alpha1_OutputConfigMap_To_diki_OutputConfigMap(in *OutputConfigMap, out *diki.OutputConfigMap, s conversion.Scope) error {
-	out.Namespace = in.Namespace
-	out.NamePrefix = in.NamePrefix
+	*out = *(*diki.OutputConfigMap)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -639,8 +598,7 @@ func Convert_v1alpha1_OutputConfigMap_To_diki_OutputConfigMap(in *OutputConfigMa
 }
 
 func autoConvert_diki_OutputConfigMap_To_v1alpha1_OutputConfigMap(in *diki.OutputConfigMap, out *OutputConfigMap, s conversion.Scope) error {
-	out.Namespace = in.Namespace
-	out.NamePrefix = in.NamePrefix
+	*out = *(*OutputConfigMap)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -650,9 +608,7 @@ func Convert_diki_OutputConfigMap_To_v1alpha1_OutputConfigMap(in *diki.OutputCon
 }
 
 func autoConvert_v1alpha1_OutputStatus_To_diki_OutputStatus(in *OutputStatus, out *diki.OutputStatus, s conversion.Scope) error {
-	out.OutputName = in.OutputName
-	out.Phase = diki.OutputStatusPhase(in.Phase)
-	out.Details = in.Details
+	*out = *(*diki.OutputStatus)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -662,9 +618,7 @@ func Convert_v1alpha1_OutputStatus_To_diki_OutputStatus(in *OutputStatus, out *d
 }
 
 func autoConvert_diki_OutputStatus_To_v1alpha1_OutputStatus(in *diki.OutputStatus, out *OutputStatus, s conversion.Scope) error {
-	out.OutputName = in.OutputName
-	out.Phase = OutputStatusPhase(in.Phase)
-	out.Details = in.Details
+	*out = *(*OutputStatus)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -674,10 +628,7 @@ func Convert_diki_OutputStatus_To_v1alpha1_OutputStatus(in *diki.OutputStatus, o
 }
 
 func autoConvert_v1alpha1_OutputWebhook_To_diki_OutputWebhook(in *OutputWebhook, out *diki.OutputWebhook, s conversion.Scope) error {
-	out.URL = in.URL
-	out.Method = in.Method
-	out.CredentialsRef = (*diki.CredentialsRef)(unsafe.Pointer(in.CredentialsRef))
-	out.TLS = (*diki.TLSConfig)(unsafe.Pointer(in.TLS))
+	*out = *(*diki.OutputWebhook)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -687,10 +638,7 @@ func Convert_v1alpha1_OutputWebhook_To_diki_OutputWebhook(in *OutputWebhook, out
 }
 
 func autoConvert_diki_OutputWebhook_To_v1alpha1_OutputWebhook(in *diki.OutputWebhook, out *OutputWebhook, s conversion.Scope) error {
-	out.URL = in.URL
-	out.Method = in.Method
-	out.CredentialsRef = (*CredentialsRef)(unsafe.Pointer(in.CredentialsRef))
-	out.TLS = (*TLSConfig)(unsafe.Pointer(in.TLS))
+	*out = *(*OutputWebhook)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -748,7 +696,7 @@ func Convert_diki_ReportOutputList_To_v1alpha1_ReportOutputList(in *diki.ReportO
 }
 
 func autoConvert_v1alpha1_ReportOutputRef_To_diki_ReportOutputRef(in *ReportOutputRef, out *diki.ReportOutputRef, s conversion.Scope) error {
-	out.Name = in.Name
+	*out = *(*diki.ReportOutputRef)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -758,7 +706,7 @@ func Convert_v1alpha1_ReportOutputRef_To_diki_ReportOutputRef(in *ReportOutputRe
 }
 
 func autoConvert_diki_ReportOutputRef_To_v1alpha1_ReportOutputRef(in *diki.ReportOutputRef, out *ReportOutputRef, s conversion.Scope) error {
-	out.Name = in.Name
+	*out = *(*ReportOutputRef)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -768,9 +716,7 @@ func Convert_diki_ReportOutputRef_To_v1alpha1_ReportOutputRef(in *diki.ReportOut
 }
 
 func autoConvert_v1alpha1_ReportOutputSpec_To_diki_ReportOutputSpec(in *ReportOutputSpec, out *diki.ReportOutputSpec, s conversion.Scope) error {
-	if err := Convert_v1alpha1_Output_To_diki_Output(&in.Output, &out.Output, s); err != nil {
-		return err
-	}
+	*out = *(*diki.ReportOutputSpec)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -780,9 +726,7 @@ func Convert_v1alpha1_ReportOutputSpec_To_diki_ReportOutputSpec(in *ReportOutput
 }
 
 func autoConvert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(in *diki.ReportOutputSpec, out *ReportOutputSpec, s conversion.Scope) error {
-	if err := Convert_diki_Output_To_v1alpha1_Output(&in.Output, &out.Output, s); err != nil {
-		return err
-	}
+	*out = *(*ReportOutputSpec)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -792,8 +736,7 @@ func Convert_diki_ReportOutputSpec_To_v1alpha1_ReportOutputSpec(in *diki.ReportO
 }
 
 func autoConvert_v1alpha1_ResourceReference_To_diki_ResourceReference(in *ResourceReference, out *diki.ResourceReference, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Namespace = in.Namespace
+	*out = *(*diki.ResourceReference)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -803,8 +746,7 @@ func Convert_v1alpha1_ResourceReference_To_diki_ResourceReference(in *ResourceRe
 }
 
 func autoConvert_diki_ResourceReference_To_v1alpha1_ResourceReference(in *diki.ResourceReference, out *ResourceReference, s conversion.Scope) error {
-	out.Name = in.Name
-	out.Namespace = in.Namespace
+	*out = *(*ResourceReference)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -814,8 +756,7 @@ func Convert_diki_ResourceReference_To_v1alpha1_ResourceReference(in *diki.Resou
 }
 
 func autoConvert_v1alpha1_Rule_To_diki_Rule(in *Rule, out *diki.Rule, s conversion.Scope) error {
-	out.ID = in.ID
-	out.Name = in.Name
+	*out = *(*diki.Rule)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -825,8 +766,7 @@ func Convert_v1alpha1_Rule_To_diki_Rule(in *Rule, out *diki.Rule, s conversion.S
 }
 
 func autoConvert_diki_Rule_To_v1alpha1_Rule(in *diki.Rule, out *Rule, s conversion.Scope) error {
-	out.ID = in.ID
-	out.Name = in.Name
+	*out = *(*Rule)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -836,9 +776,7 @@ func Convert_diki_Rule_To_v1alpha1_Rule(in *diki.Rule, out *Rule, s conversion.S
 }
 
 func autoConvert_v1alpha1_RulesFindings_To_diki_RulesFindings(in *RulesFindings, out *diki.RulesFindings, s conversion.Scope) error {
-	out.Failed = *(*[]diki.Rule)(unsafe.Pointer(&in.Failed))
-	out.Errored = *(*[]diki.Rule)(unsafe.Pointer(&in.Errored))
-	out.Warning = *(*[]diki.Rule)(unsafe.Pointer(&in.Warning))
+	*out = *(*diki.RulesFindings)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -848,9 +786,7 @@ func Convert_v1alpha1_RulesFindings_To_diki_RulesFindings(in *RulesFindings, out
 }
 
 func autoConvert_diki_RulesFindings_To_v1alpha1_RulesFindings(in *diki.RulesFindings, out *RulesFindings, s conversion.Scope) error {
-	out.Failed = *(*[]Rule)(unsafe.Pointer(&in.Failed))
-	out.Errored = *(*[]Rule)(unsafe.Pointer(&in.Errored))
-	out.Warning = *(*[]Rule)(unsafe.Pointer(&in.Warning))
+	*out = *(*RulesFindings)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -860,10 +796,7 @@ func Convert_diki_RulesFindings_To_v1alpha1_RulesFindings(in *diki.RulesFindings
 }
 
 func autoConvert_v1alpha1_RulesResults_To_diki_RulesResults(in *RulesResults, out *diki.RulesResults, s conversion.Scope) error {
-	if err := Convert_v1alpha1_RulesSummary_To_diki_RulesSummary(&in.Summary, &out.Summary, s); err != nil {
-		return err
-	}
-	out.Rules = (*diki.RulesFindings)(unsafe.Pointer(in.Rules))
+	*out = *(*diki.RulesResults)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -873,10 +806,7 @@ func Convert_v1alpha1_RulesResults_To_diki_RulesResults(in *RulesResults, out *d
 }
 
 func autoConvert_diki_RulesResults_To_v1alpha1_RulesResults(in *diki.RulesResults, out *RulesResults, s conversion.Scope) error {
-	if err := Convert_diki_RulesSummary_To_v1alpha1_RulesSummary(&in.Summary, &out.Summary, s); err != nil {
-		return err
-	}
-	out.Rules = (*RulesFindings)(unsafe.Pointer(in.Rules))
+	*out = *(*RulesResults)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -886,12 +816,7 @@ func Convert_diki_RulesResults_To_v1alpha1_RulesResults(in *diki.RulesResults, o
 }
 
 func autoConvert_v1alpha1_RulesSummary_To_diki_RulesSummary(in *RulesSummary, out *diki.RulesSummary, s conversion.Scope) error {
-	out.Passed = in.Passed
-	out.Skipped = in.Skipped
-	out.Accepted = in.Accepted
-	out.Warning = in.Warning
-	out.Failed = in.Failed
-	out.Errored = in.Errored
+	*out = *(*diki.RulesSummary)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -901,12 +826,7 @@ func Convert_v1alpha1_RulesSummary_To_diki_RulesSummary(in *RulesSummary, out *d
 }
 
 func autoConvert_diki_RulesSummary_To_v1alpha1_RulesSummary(in *diki.RulesSummary, out *RulesSummary, s conversion.Scope) error {
-	out.Passed = in.Passed
-	out.Skipped = in.Skipped
-	out.Accepted = in.Accepted
-	out.Warning = in.Warning
-	out.Failed = in.Failed
-	out.Errored = in.Errored
+	*out = *(*RulesSummary)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -916,9 +836,7 @@ func Convert_diki_RulesSummary_To_v1alpha1_RulesSummary(in *diki.RulesSummary, o
 }
 
 func autoConvert_v1alpha1_RulesetConfig_To_diki_RulesetConfig(in *RulesetConfig, out *diki.RulesetConfig, s conversion.Scope) error {
-	out.ID = in.ID
-	out.Version = in.Version
-	out.Options = (*diki.RulesetOptions)(unsafe.Pointer(in.Options))
+	*out = *(*diki.RulesetConfig)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -928,9 +846,7 @@ func Convert_v1alpha1_RulesetConfig_To_diki_RulesetConfig(in *RulesetConfig, out
 }
 
 func autoConvert_diki_RulesetConfig_To_v1alpha1_RulesetConfig(in *diki.RulesetConfig, out *RulesetConfig, s conversion.Scope) error {
-	out.ID = in.ID
-	out.Version = in.Version
-	out.Options = (*RulesetOptions)(unsafe.Pointer(in.Options))
+	*out = *(*RulesetConfig)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -940,8 +856,7 @@ func Convert_diki_RulesetConfig_To_v1alpha1_RulesetConfig(in *diki.RulesetConfig
 }
 
 func autoConvert_v1alpha1_RulesetOptions_To_diki_RulesetOptions(in *RulesetOptions, out *diki.RulesetOptions, s conversion.Scope) error {
-	out.Ruleset = (*diki.Options)(unsafe.Pointer(in.Ruleset))
-	out.Rules = (*diki.Options)(unsafe.Pointer(in.Rules))
+	*out = *(*diki.RulesetOptions)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -951,8 +866,7 @@ func Convert_v1alpha1_RulesetOptions_To_diki_RulesetOptions(in *RulesetOptions, 
 }
 
 func autoConvert_diki_RulesetOptions_To_v1alpha1_RulesetOptions(in *diki.RulesetOptions, out *RulesetOptions, s conversion.Scope) error {
-	out.Ruleset = (*Options)(unsafe.Pointer(in.Ruleset))
-	out.Rules = (*Options)(unsafe.Pointer(in.Rules))
+	*out = *(*RulesetOptions)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -962,11 +876,7 @@ func Convert_diki_RulesetOptions_To_v1alpha1_RulesetOptions(in *diki.RulesetOpti
 }
 
 func autoConvert_v1alpha1_RulesetSummary_To_diki_RulesetSummary(in *RulesetSummary, out *diki.RulesetSummary, s conversion.Scope) error {
-	out.ID = in.ID
-	out.Version = in.Version
-	if err := Convert_v1alpha1_RulesResults_To_diki_RulesResults(&in.Results, &out.Results, s); err != nil {
-		return err
-	}
+	*out = *(*diki.RulesetSummary)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -976,11 +886,7 @@ func Convert_v1alpha1_RulesetSummary_To_diki_RulesetSummary(in *RulesetSummary, 
 }
 
 func autoConvert_diki_RulesetSummary_To_v1alpha1_RulesetSummary(in *diki.RulesetSummary, out *RulesetSummary, s conversion.Scope) error {
-	out.ID = in.ID
-	out.Version = in.Version
-	if err := Convert_diki_RulesResults_To_v1alpha1_RulesResults(&in.Results, &out.Results, s); err != nil {
-		return err
-	}
+	*out = *(*RulesetSummary)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -1044,12 +950,7 @@ func Convert_diki_ScheduledComplianceScanList_To_v1alpha1_ScheduledComplianceSca
 }
 
 func autoConvert_v1alpha1_ScheduledComplianceScanSpec_To_diki_ScheduledComplianceScanSpec(in *ScheduledComplianceScanSpec, out *diki.ScheduledComplianceScanSpec, s conversion.Scope) error {
-	out.Schedule = in.Schedule
-	out.SuccessfulScansHistoryLimit = (*int32)(unsafe.Pointer(in.SuccessfulScansHistoryLimit))
-	out.FailedScansHistoryLimit = (*int32)(unsafe.Pointer(in.FailedScansHistoryLimit))
-	if err := Convert_v1alpha1_ScheduledComplianceScanTemplate_To_diki_ScheduledComplianceScanTemplate(&in.ScanTemplate, &out.ScanTemplate, s); err != nil {
-		return err
-	}
+	*out = *(*diki.ScheduledComplianceScanSpec)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -1059,12 +960,7 @@ func Convert_v1alpha1_ScheduledComplianceScanSpec_To_diki_ScheduledComplianceSca
 }
 
 func autoConvert_diki_ScheduledComplianceScanSpec_To_v1alpha1_ScheduledComplianceScanSpec(in *diki.ScheduledComplianceScanSpec, out *ScheduledComplianceScanSpec, s conversion.Scope) error {
-	out.Schedule = in.Schedule
-	out.SuccessfulScansHistoryLimit = (*int32)(unsafe.Pointer(in.SuccessfulScansHistoryLimit))
-	out.FailedScansHistoryLimit = (*int32)(unsafe.Pointer(in.FailedScansHistoryLimit))
-	if err := Convert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledComplianceScanTemplate(&in.ScanTemplate, &out.ScanTemplate, s); err != nil {
-		return err
-	}
+	*out = *(*ScheduledComplianceScanSpec)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -1074,9 +970,7 @@ func Convert_diki_ScheduledComplianceScanSpec_To_v1alpha1_ScheduledComplianceSca
 }
 
 func autoConvert_v1alpha1_ScheduledComplianceScanStatus_To_diki_ScheduledComplianceScanStatus(in *ScheduledComplianceScanStatus, out *diki.ScheduledComplianceScanStatus, s conversion.Scope) error {
-	out.Active = (*v1.ObjectReference)(unsafe.Pointer(in.Active))
-	out.LastScheduleTime = (*metav1.Time)(unsafe.Pointer(in.LastScheduleTime))
-	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
+	*out = *(*diki.ScheduledComplianceScanStatus)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -1086,9 +980,7 @@ func Convert_v1alpha1_ScheduledComplianceScanStatus_To_diki_ScheduledComplianceS
 }
 
 func autoConvert_diki_ScheduledComplianceScanStatus_To_v1alpha1_ScheduledComplianceScanStatus(in *diki.ScheduledComplianceScanStatus, out *ScheduledComplianceScanStatus, s conversion.Scope) error {
-	out.Active = (*v1.ObjectReference)(unsafe.Pointer(in.Active))
-	out.LastScheduleTime = (*metav1.Time)(unsafe.Pointer(in.LastScheduleTime))
-	out.LastCompletionTime = (*metav1.Time)(unsafe.Pointer(in.LastCompletionTime))
+	*out = *(*ScheduledComplianceScanStatus)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -1098,9 +990,7 @@ func Convert_diki_ScheduledComplianceScanStatus_To_v1alpha1_ScheduledComplianceS
 }
 
 func autoConvert_v1alpha1_ScheduledComplianceScanTemplate_To_diki_ScheduledComplianceScanTemplate(in *ScheduledComplianceScanTemplate, out *diki.ScheduledComplianceScanTemplate, s conversion.Scope) error {
-	if err := Convert_v1alpha1_ComplianceScanSpec_To_diki_ComplianceScanSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
-	}
+	*out = *(*diki.ScheduledComplianceScanTemplate)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -1110,9 +1000,7 @@ func Convert_v1alpha1_ScheduledComplianceScanTemplate_To_diki_ScheduledComplianc
 }
 
 func autoConvert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledComplianceScanTemplate(in *diki.ScheduledComplianceScanTemplate, out *ScheduledComplianceScanTemplate, s conversion.Scope) error {
-	if err := Convert_diki_ComplianceScanSpec_To_v1alpha1_ComplianceScanSpec(&in.Spec, &out.Spec, s); err != nil {
-		return err
-	}
+	*out = *(*ScheduledComplianceScanTemplate)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -1122,8 +1010,7 @@ func Convert_diki_ScheduledComplianceScanTemplate_To_v1alpha1_ScheduledComplianc
 }
 
 func autoConvert_v1alpha1_TLSConfig_To_diki_TLSConfig(in *TLSConfig, out *diki.TLSConfig, s conversion.Scope) error {
-	out.CAConfigMapRef = (*diki.CAConfigMapRef)(unsafe.Pointer(in.CAConfigMapRef))
-	out.MTLSSecretRef = (*diki.MTLSSecretRef)(unsafe.Pointer(in.MTLSSecretRef))
+	*out = *(*diki.TLSConfig)(unsafe.Pointer(in))
 	return nil
 }
 
@@ -1133,8 +1020,7 @@ func Convert_v1alpha1_TLSConfig_To_diki_TLSConfig(in *TLSConfig, out *diki.TLSCo
 }
 
 func autoConvert_diki_TLSConfig_To_v1alpha1_TLSConfig(in *diki.TLSConfig, out *TLSConfig, s conversion.Scope) error {
-	out.CAConfigMapRef = (*CAConfigMapRef)(unsafe.Pointer(in.CAConfigMapRef))
-	out.MTLSSecretRef = (*MTLSSecretRef)(unsafe.Pointer(in.MTLSSecretRef))
+	*out = *(*TLSConfig)(unsafe.Pointer(in))
 	return nil
 }
 
