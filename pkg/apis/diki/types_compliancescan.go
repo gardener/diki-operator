@@ -43,7 +43,7 @@ type ComplianceScanSpec struct {
 	// DisableDefaultOutputs opts the compliance scan out of the operator's configured default outputs.
 	// If set to true, only the outputs referenced in Outputs are used.
 	// +optional
-	DisableDefaultOutputs bool
+	DisableDefaultOutputs *bool
 }
 
 // ReportOutputRef describes a reference to a report output.

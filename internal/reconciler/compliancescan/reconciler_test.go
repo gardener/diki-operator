@@ -2150,7 +2150,7 @@ waitForReport: true
 					},
 				},
 			}
-			complianceScan.Spec.DisableDefaultOutputs = true
+			complianceScan.Spec.DisableDefaultOutputs = ptr.To(true)
 
 			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 

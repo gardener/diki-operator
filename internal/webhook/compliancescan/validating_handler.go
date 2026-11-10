@@ -16,6 +16,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
@@ -83,7 +84,7 @@ func (h *ValidatingHandler) Handle(ctx context.Context, req admission.Request) a
 			}
 		}
 
-		if !complianceScan.Spec.DisableDefaultOutputs {
+		if !ptr.Deref(complianceScan.Spec.DisableDefaultOutputs, false) {
 			outputsPath := field.NewPath("spec", "outputs")
 			for oIdx, output := range complianceScan.Spec.Outputs {
 				if slices.ContainsFunc(h.DefaultOutputs, func(defaultOutput reportexporterv1alpha1.Output) bool {

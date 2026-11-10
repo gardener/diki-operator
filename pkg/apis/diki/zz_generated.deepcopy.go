@@ -112,6 +112,11 @@ func (in *ComplianceScanSpec) DeepCopyInto(out *ComplianceScanSpec) {
 		*out = make([]ReportOutputRef, len(*in))
 		copy(*out, *in)
 	}
+	if in.DisableDefaultOutputs != nil {
+		in, out := &in.DisableDefaultOutputs, &out.DisableDefaultOutputs
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 

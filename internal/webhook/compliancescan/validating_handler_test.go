@@ -611,7 +611,7 @@ var _ = Describe("validating handler", func() {
 				})
 
 				It("should allow a colliding output name when defaultOutputs are disabled", func() {
-					complianceScan.Spec.DisableDefaultOutputs = true
+					complianceScan.Spec.DisableDefaultOutputs = ptr.To(true)
 					complianceScan.Spec.Outputs = []v1alpha1.ReportOutputRef{
 						{Name: "default-output"},
 					}
