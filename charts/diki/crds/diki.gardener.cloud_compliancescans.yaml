@@ -50,6 +50,11 @@ spec:
           spec:
             description: Spec contains the specification of this compliance scan.
             properties:
+              disableDefaultOutputs:
+                description: |-
+                  DisableDefaultOutputs opts the compliance scan out of the operator's configured default outputs.
+                  If set to true, only the outputs referenced in Outputs are used.
+                type: boolean
               outputs:
                 description: Outputs describe the outputs of the compliance scan.
                 items:

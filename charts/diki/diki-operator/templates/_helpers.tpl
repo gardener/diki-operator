@@ -89,6 +89,10 @@ controllers:
         mountPath: {{ .Values.config.controllers.complianceScan.dikiRunner.targetKubeconfig.mountPath }}
         {{- end }}
       {{- end }}
+    {{- if .Values.config.controllers.complianceScan.defaultOutputs }}
+    defaultOutputs:
+{{ toYaml .Values.config.controllers.complianceScan.defaultOutputs | indent 4 }}
+    {{- end }}
 server:
   healthProbes:
     port: {{ .Values.config.server.healthProbes.port }}

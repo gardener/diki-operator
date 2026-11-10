@@ -10,6 +10,7 @@
 package v1alpha1
 
 import (
+	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	configv1alpha1 "k8s.io/component-base/config/v1alpha1"
@@ -45,6 +46,13 @@ func (in *ComplianceScanConfig) DeepCopyInto(out *ComplianceScanConfig) {
 		in, out := &in.BaseOptions, &out.BaseOptions
 		*out = new(BaseOptionsConfig)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.DefaultOutputs != nil {
+		in, out := &in.DefaultOutputs, &out.DefaultOutputs
+		*out = make([]reportexporterv1alpha1.Output, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }

@@ -7,6 +7,7 @@ package reconciler_test
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gardener/diki/pkg/config/merge"
@@ -35,6 +36,7 @@ import (
 	configv1alpha1 "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	dikiinstall "github.com/gardener/diki-operator/pkg/apis/diki/install"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
+	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 var _ = Describe("Controller", func() {
@@ -1976,6 +1978,274 @@ waitForReport: true
 
 			// Total keys: 1 (idx 1) + 1 (idx 2) + 4 (idx 3) = 6.
 			Expect(credsSecret.Data).To(HaveLen(6))
+		})
+
+		It("should inject defaultOutputs when there are no ReportOutputs", func() {
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: reportexporterv1alpha1.ExporterTypeConfigMap,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"namespace":"kube-system","namePrefix":"compliance-scan-report-"}`),
+					},
+				},
+			}
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(configMapList.Items[0].Data[compliancescan.ExporterConfigKey]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+complianceScanName: compliancescan
+kind: ReportExporterConfiguration
+outputs:
+  - config:
+      namePrefix: compliance-scan-report-
+      namespace: kube-system
+    name: central-reporting
+    type: ConfigMap
+reportPath: /report/report.json
+waitForReport: true
+`))
+		})
+
+		It("should append defaultOutputs after the resolved ReportOutputs", func() {
+			reportOutput := &dikiv1alpha1.ReportOutput{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "my-output",
+				},
+				Spec: dikiv1alpha1.ReportOutputSpec{
+					Output: dikiv1alpha1.Output{
+						ConfigMap: &dikiv1alpha1.OutputConfigMap{
+							Namespace:  "kube-system",
+							NamePrefix: "scan-report-",
+						},
+					},
+				},
+			}
+			Expect(fakeClient.Create(ctx, reportOutput)).To(Succeed())
+
+			complianceScan.Spec.Outputs = []dikiv1alpha1.ReportOutputRef{
+				{
+					Name: "my-output",
+				},
+			}
+
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: reportexporterv1alpha1.ExporterTypeConfigMap,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"namespace":"kube-system","namePrefix":"compliance-scan-report-"}`),
+					},
+				},
+			}
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(configMapList.Items[0].Data[compliancescan.ExporterConfigKey]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+complianceScanName: compliancescan
+kind: ReportExporterConfiguration
+outputs:
+  - config:
+      namePrefix: scan-report-
+      namespace: kube-system
+    name: my-output
+    type: ConfigMap
+  - config:
+      namePrefix: compliance-scan-report-
+      namespace: kube-system
+    name: central-reporting
+    type: ConfigMap
+reportPath: /report/report.json
+waitForReport: true
+`))
+		})
+
+		It("should resolve a webhook defaultOutput's refs into a mounted outputs credentials secret", func() {
+			caConfigMap := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "webhook-ca",
+					Namespace: "kube-system",
+				},
+				Data: map[string]string{
+					"ca.crt": "-----BEGIN CERTIFICATE-----\nFAKECACERT\n-----END CERTIFICATE-----",
+				},
+			}
+			Expect(fakeClient.Create(ctx, caConfigMap)).To(Succeed())
+
+			clientTLSSecret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "webhook-client-tls",
+					Namespace: "kube-system",
+				},
+				Data: map[string][]byte{
+					"tls.crt": []byte("-----BEGIN CERTIFICATE-----\nFAKECLIENTCERT\n-----END CERTIFICATE-----"),
+					"tls.key": []byte("-----BEGIN EC PRIVATE KEY-----\nFAKECLIENTKEY\n-----END EC PRIVATE KEY-----"),
+				},
+			}
+			Expect(fakeClient.Create(ctx, clientTLSSecret)).To(Succeed())
+
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: reportexporterv1alpha1.ExporterTypeWebhook,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","tls":{"caConfigMapRef":{"name":"webhook-ca","namespace":"kube-system"},"mtlsSecretRef":{"name":"webhook-client-tls","namespace":"kube-system"}}}`),
+					},
+				},
+			}
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(configMapList.Items[0].Data[compliancescan.ExporterConfigKey]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+complianceScanName: compliancescan
+kind: ReportExporterConfiguration
+outputs:
+  - config:
+      method: POST
+      tls:
+        caCertFile: /outputs-creds/0-ca.crt
+        clientCertFile: /outputs-creds/0-client.crt
+        clientKeyFile: /outputs-creds/0-client.key
+      url: https://diki-reports.example.com/v1/reports
+    name: central-reporting
+    type: Webhook
+reportPath: /report/report.json
+waitForReport: true
+`))
+
+			outputsCredsSecretList := &corev1.SecretList{}
+			Expect(fakeClient.List(ctx, outputsCredsSecretList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(outputsCredsSecretList.Items).To(HaveLen(1))
+
+			credsSecret := outputsCredsSecretList.Items[0]
+			Expect(string(credsSecret.Data["0-"+compliancescan.TLSCACertFileName])).To(ContainSubstring("FAKECACERT"))
+			Expect(string(credsSecret.Data["0-"+compliancescan.TLSClientCertFileName])).To(ContainSubstring("FAKECLIENTCERT"))
+			Expect(string(credsSecret.Data["0-"+compliancescan.TLSClientKeyFileName])).To(ContainSubstring("FAKECLIENTKEY"))
+		})
+
+		It("should inject multiple defaultOutputs preserving their order", func() {
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "output-a",
+					Type: reportexporterv1alpha1.ExporterTypeConfigMap,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"namespace":"kube-system","namePrefix":"a-"}`),
+					},
+				},
+				{
+					Name: "output-b",
+					Type: reportexporterv1alpha1.ExporterTypeConfigMap,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"namespace":"kube-system","namePrefix":"b-"}`),
+					},
+				},
+			}
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			exporterConfig := configMapList.Items[0].Data[compliancescan.ExporterConfigKey]
+			Expect(strings.Index(exporterConfig, "output-a")).To(BeNumerically("<", strings.Index(exporterConfig, "output-b")))
+		})
+
+		It("should not inject defaultOutputs when DisableDefaultOutputs is set", func() {
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: reportexporterv1alpha1.ExporterTypeConfigMap,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"namespace":"kube-system","namePrefix":"compliance-scan-report-"}`),
+					},
+				},
+			}
+			complianceScan.Spec.DisableDefaultOutputs = ptr.To(true)
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.List(ctx, configMapList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(configMapList.Items[0].Data[compliancescan.ExporterConfigKey]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+complianceScanName: compliancescan
+kind: ReportExporterConfiguration
+outputs: null
+reportPath: /report/report.json
+waitForReport: true
+`))
+		})
+
+		It("should set phase to Failed when a defaultOutput has an unsupported type", func() {
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: "Unsupported",
+					Config: runtime.RawExtension{
+						Raw: []byte(`{}`),
+					},
+				},
+			}
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+		})
+
+		It("should set phase to Failed when a webhook defaultOutput references a non-existent secret", func() {
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: reportexporterv1alpha1.ExporterTypeWebhook,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","tls":{"mtlsSecretRef":{"name":"nonexistent","namespace":"kube-system"}}}`),
+					},
+				},
+			}
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+
+			outputsCredsSecretList := &corev1.SecretList{}
+			Expect(fakeClient.List(ctx, outputsCredsSecretList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(outputsCredsSecretList.Items).To(BeEmpty())
 		})
 	})
 

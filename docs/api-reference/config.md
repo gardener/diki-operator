@@ -195,6 +195,18 @@ ComplianceScanSpec is the specification of a ComplianceScan.
 <p>Outputs describe the outputs of the compliance scan.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>disableDefaultOutputs</code></br>
+<em>
+boolean
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>DisableDefaultOutputs opts the compliance scan out of the operator's configured default outputs.<br />If set to true, only the outputs referenced in Outputs are used.</p>
+</td>
+</tr>
 
 </tbody>
 </table>

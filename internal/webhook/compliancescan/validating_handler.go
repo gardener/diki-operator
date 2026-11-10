@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 
 	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
@@ -15,11 +16,13 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	compscanreconciler "github.com/gardener/diki-operator/internal/reconciler/compliancescan"
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
+	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 // ValidatingHandler is an admission webhook handler that restricts creation or updates to
@@ -27,6 +30,9 @@ import (
 type ValidatingHandler struct {
 	Client  client.Client
 	Decoder admission.Decoder
+	// DefaultOutputs are the operator-configured default outputs.
+	// A ComplianceScan may not reference an output with any of their names.
+	DefaultOutputs []reportexporterv1alpha1.Output
 }
 
 var _ admission.Handler = &ValidatingHandler{}
@@ -75,6 +81,17 @@ func (h *ValidatingHandler) Handle(ctx context.Context, req admission.Request) a
 
 			if ruleset.Options.Rules != nil && ruleset.Options.Rules.ConfigMapRef != nil {
 				allErrs = append(allErrs, validateConfigMapReference(ctx, h.Client, ruleset.Options.Rules.ConfigMapRef, defaultRuleOptionsKey, ruleOptionsPath)...)
+			}
+		}
+
+		if !ptr.Deref(complianceScan.Spec.DisableDefaultOutputs, false) {
+			outputsPath := field.NewPath("spec", "outputs")
+			for oIdx, output := range complianceScan.Spec.Outputs {
+				if slices.ContainsFunc(h.DefaultOutputs, func(defaultOutput reportexporterv1alpha1.Output) bool {
+					return defaultOutput.Name == output.Name
+				}) {
+					allErrs = append(allErrs, field.Invalid(outputsPath.Index(oIdx).Child("name"), output.Name, "output name conflicts with an operator-configured default output"))
+				}
 			}
 		}
 
