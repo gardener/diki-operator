@@ -2072,13 +2072,36 @@ waitForReport: true
 `))
 		})
 
-		It("should inject a webhook defaultOutput with file-based config unchanged", func() {
+		It("should resolve a webhook defaultOutput's refs into a mounted outputs credentials secret", func() {
+			caConfigMap := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "webhook-ca",
+					Namespace: "kube-system",
+				},
+				Data: map[string]string{
+					"ca.crt": "-----BEGIN CERTIFICATE-----\nFAKECACERT\n-----END CERTIFICATE-----",
+				},
+			}
+			Expect(fakeClient.Create(ctx, caConfigMap)).To(Succeed())
+
+			clientTLSSecret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "webhook-client-tls",
+					Namespace: "kube-system",
+				},
+				Data: map[string][]byte{
+					"tls.crt": []byte("-----BEGIN CERTIFICATE-----\nFAKECLIENTCERT\n-----END CERTIFICATE-----"),
+					"tls.key": []byte("-----BEGIN EC PRIVATE KEY-----\nFAKECLIENTKEY\n-----END EC PRIVATE KEY-----"),
+				},
+			}
+			Expect(fakeClient.Create(ctx, clientTLSSecret)).To(Succeed())
+
 			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
 				{
 					Name: "central-reporting",
 					Type: reportexporterv1alpha1.ExporterTypeWebhook,
 					Config: runtime.RawExtension{
-						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","headersFile":"/creds/headers.json","tls":{"caCertFile":"/creds/ca.crt","clientCertFile":"/creds/client.crt","clientKeyFile":"/creds/client.key"}}`),
+						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","tls":{"caConfigMapRef":{"name":"webhook-ca","namespace":"kube-system"},"mtlsSecretRef":{"name":"webhook-client-tls","namespace":"kube-system"}}}`),
 					},
 				},
 			}
@@ -2096,18 +2119,28 @@ complianceScanName: compliancescan
 kind: ReportExporterConfiguration
 outputs:
   - config:
-      headersFile: /creds/headers.json
       method: POST
       tls:
-        caCertFile: /creds/ca.crt
-        clientCertFile: /creds/client.crt
-        clientKeyFile: /creds/client.key
+        caCertFile: /outputs-creds/0-ca.crt
+        clientCertFile: /outputs-creds/0-client.crt
+        clientKeyFile: /outputs-creds/0-client.key
       url: https://diki-reports.example.com/v1/reports
     name: central-reporting
     type: Webhook
 reportPath: /report/report.json
 waitForReport: true
 `))
+
+			outputsCredsSecretList := &corev1.SecretList{}
+			Expect(fakeClient.List(ctx, outputsCredsSecretList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(outputsCredsSecretList.Items).To(HaveLen(1))
+
+			credsSecret := outputsCredsSecretList.Items[0]
+			Expect(string(credsSecret.Data["0-"+compliancescan.TLSCACertFileName])).To(ContainSubstring("FAKECACERT"))
+			Expect(string(credsSecret.Data["0-"+compliancescan.TLSClientCertFileName])).To(ContainSubstring("FAKECLIENTCERT"))
+			Expect(string(credsSecret.Data["0-"+compliancescan.TLSClientKeyFileName])).To(ContainSubstring("FAKECLIENTKEY"))
 		})
 
 		It("should inject multiple defaultOutputs preserving their order", func() {
@@ -2167,6 +2200,52 @@ outputs: null
 reportPath: /report/report.json
 waitForReport: true
 `))
+		})
+
+		It("should set phase to Failed when a defaultOutput has an unsupported type", func() {
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: "Unsupported",
+					Config: runtime.RawExtension{
+						Raw: []byte(`{}`),
+					},
+				},
+			}
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+		})
+
+		It("should set phase to Failed when a webhook defaultOutput references a non-existent secret", func() {
+			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
+				{
+					Name: "central-reporting",
+					Type: reportexporterv1alpha1.ExporterTypeWebhook,
+					Config: runtime.RawExtension{
+						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","tls":{"mtlsSecretRef":{"name":"nonexistent","namespace":"kube-system"}}}`),
+					},
+				},
+			}
+
+			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
+
+			_, err := cr.Reconcile(ctx, request)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(complianceScan), complianceScan)).To(Succeed())
+			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
+
+			outputsCredsSecretList := &corev1.SecretList{}
+			Expect(fakeClient.List(ctx, outputsCredsSecretList,
+				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
+			)).To(Succeed())
+			Expect(outputsCredsSecretList.Items).To(BeEmpty())
 		})
 	})
 

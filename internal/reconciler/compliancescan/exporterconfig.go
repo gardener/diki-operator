@@ -67,11 +67,40 @@ func (r *Reconciler) buildExporterConfig(ctx context.Context, complianceScan *v1
 
 	if !ptr.Deref(complianceScan.Spec.DisableDefaultOutputs, false) {
 		for i := range r.Config.DefaultOutputs {
-			exporterConfig.Outputs = append(exporterConfig.Outputs, *r.Config.DefaultOutputs[i].DeepCopy())
+			outputIndex := len(complianceScan.Spec.Outputs) + i
+			output, outputCreds, err := r.convertDefaultOutput(ctx, outputIndex, &r.Config.DefaultOutputs[i])
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to convert default output %q: %w", r.Config.DefaultOutputs[i].Name, err)
+			}
+
+			exporterConfig.Outputs = append(exporterConfig.Outputs, *output)
+
+			if outputCreds != nil {
+				if outputsCreds == nil {
+					outputsCreds = make(map[string][]byte)
+				}
+				maps.Copy(outputsCreds, outputCreds)
+			}
 		}
 	}
 
 	return exporterConfig, outputsCreds, nil
+}
+
+func (r *Reconciler) convertDefaultOutput(ctx context.Context, outputIndex int, defaultOutput *reportexporterv1alpha1.Output) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
+	switch defaultOutput.Type {
+	case reportexporterv1alpha1.ExporterTypeConfigMap:
+		return defaultOutput.DeepCopy(), nil, nil
+	case reportexporterv1alpha1.ExporterTypeWebhook:
+		webhook := &v1alpha1.OutputWebhook{}
+		if err := json.Unmarshal(defaultOutput.Config.Raw, webhook); err != nil {
+			return nil, nil, fmt.Errorf("failed to unmarshal webhook config: %w", err)
+		}
+
+		return r.buildWebhookOutput(ctx, outputIndex, defaultOutput.Name, webhook)
+	default:
+		return nil, nil, fmt.Errorf("unsupported default output type %q", defaultOutput.Type)
+	}
 }
 
 func (r *Reconciler) convertReportOutput(ctx context.Context, outputIndex int, reportOutput *v1alpha1.ReportOutput) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
@@ -91,26 +120,30 @@ func (r *Reconciler) convertReportOutput(ctx context.Context, outputIndex int, r
 	}
 
 	if reportOutput.Spec.Output.Webhook != nil {
-		webhookConfig, outputCreds, err := r.resolveWebhookConfig(ctx, outputIndex, reportOutput.Spec.Output.Webhook)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to resolve webhook config: %w", err)
-		}
-
-		configBytes, err := json.Marshal(webhookConfig)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to marshal Webhook output config: %w", err)
-		}
-
-		return &reportexporterv1alpha1.Output{
-			Type: reportexporterv1alpha1.ExporterTypeWebhook,
-			Name: reportOutput.Name,
-			Config: runtime.RawExtension{
-				Raw: configBytes,
-			},
-		}, outputCreds, nil
+		return r.buildWebhookOutput(ctx, outputIndex, reportOutput.Name, reportOutput.Spec.Output.Webhook)
 	}
 
 	return nil, nil, fmt.Errorf("unsupported output type in ReportOutput %q", reportOutput.Name)
+}
+
+func (r *Reconciler) buildWebhookOutput(ctx context.Context, outputIndex int, name string, webhook *v1alpha1.OutputWebhook) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
+	webhookConfig, outputCreds, err := r.resolveWebhookConfig(ctx, outputIndex, webhook)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to resolve webhook config: %w", err)
+	}
+
+	configBytes, err := json.Marshal(webhookConfig)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal webhook config: %w", err)
+	}
+
+	return &reportexporterv1alpha1.Output{
+		Type: reportexporterv1alpha1.ExporterTypeWebhook,
+		Name: name,
+		Config: runtime.RawExtension{
+			Raw: configBytes,
+		},
+	}, outputCreds, nil
 }
 
 func (r *Reconciler) resolveWebhookConfig(ctx context.Context, outputIndex int, webhook *v1alpha1.OutputWebhook) (*reportexporterv1alpha1.WebhookOutputConfig, map[string][]byte, error) {
