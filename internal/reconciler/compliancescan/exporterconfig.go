@@ -104,7 +104,8 @@ func (r *Reconciler) convertDefaultOutput(ctx context.Context, outputIndex int, 
 }
 
 func (r *Reconciler) convertReportOutput(ctx context.Context, outputIndex int, reportOutput *v1alpha1.ReportOutput) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
-	if reportOutput.Spec.Output.ConfigMap != nil {
+	switch {
+	case reportOutput.Spec.Output.ConfigMap != nil:
 		configBytes, err := json.Marshal(reportOutput.Spec.Output.ConfigMap)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to marshal ConfigMap output config: %w", err)
@@ -117,13 +118,11 @@ func (r *Reconciler) convertReportOutput(ctx context.Context, outputIndex int, r
 				Raw: configBytes,
 			},
 		}, nil, nil
-	}
-
-	if reportOutput.Spec.Output.Webhook != nil {
+	case reportOutput.Spec.Output.Webhook != nil:
 		return r.buildWebhookOutput(ctx, outputIndex, reportOutput.Name, reportOutput.Spec.Output.Webhook)
+	default:
+		return nil, nil, fmt.Errorf("unsupported output type in ReportOutput %q", reportOutput.Name)
 	}
-
-	return nil, nil, fmt.Errorf("unsupported output type in ReportOutput %q", reportOutput.Name)
 }
 
 func (r *Reconciler) buildWebhookOutput(ctx context.Context, outputIndex int, name string, webhook *v1alpha1.OutputWebhook) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
