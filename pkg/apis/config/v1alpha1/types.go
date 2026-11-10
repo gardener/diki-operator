@@ -76,7 +76,7 @@ type ComplianceScanConfig struct {
 	// DefaultOutputs is a list of output configurations that are appended to the
 	// ReportOutput-derived outputs of every ComplianceScan. Each entry mirrors a
 	// report-exporter output (name, type, config) and its config is passed through
-	// to the exporter as-is, so any secret material must be provided inline.
+	// to the exporter as-is.
 	// +optional
 	DefaultOutputs []reportexporterv1alpha1.Output `json:"defaultOutputs,omitempty"`
 }

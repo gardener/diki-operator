@@ -1996,10 +1996,10 @@ waitForReport: true
 			_, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(string(secretList.Items[0].Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+			Expect(configMapList.Items[0].Data[compliancescan.ExporterConfigKey]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
 complianceScanName: compliancescan
 kind: ReportExporterConfiguration
 outputs:
@@ -2050,10 +2050,10 @@ waitForReport: true
 			_, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(string(secretList.Items[0].Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+			Expect(configMapList.Items[0].Data[compliancescan.ExporterConfigKey]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
 complianceScanName: compliancescan
 kind: ReportExporterConfiguration
 outputs:
@@ -2072,13 +2072,13 @@ waitForReport: true
 `))
 		})
 
-		It("should inject a webhook defaultOutput with inline config unchanged", func() {
+		It("should inject a webhook defaultOutput with file-based config unchanged", func() {
 			cr.Config.DefaultOutputs = []reportexporterv1alpha1.Output{
 				{
 					Name: "central-reporting",
 					Type: reportexporterv1alpha1.ExporterTypeWebhook,
 					Config: runtime.RawExtension{
-						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","headers":{"Authorization":"Bearer inline-token"}}`),
+						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","headersFile":"/creds/headers.json","tls":{"caCertFile":"/creds/ca.crt","clientCertFile":"/creds/client.crt","clientKeyFile":"/creds/client.key"}}`),
 					},
 				},
 			}
@@ -2088,17 +2088,20 @@ waitForReport: true
 			_, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(string(secretList.Items[0].Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+			Expect(configMapList.Items[0].Data[compliancescan.ExporterConfigKey]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
 complianceScanName: compliancescan
 kind: ReportExporterConfiguration
 outputs:
   - config:
-      headers:
-        Authorization: Bearer inline-token
+      headersFile: /creds/headers.json
       method: POST
+      tls:
+        caCertFile: /creds/ca.crt
+        clientCertFile: /creds/client.crt
+        clientKeyFile: /creds/client.key
       url: https://diki-reports.example.com/v1/reports
     name: central-reporting
     type: Webhook
@@ -2130,10 +2133,10 @@ waitForReport: true
 			_, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			exporterConfig := string(secretList.Items[0].Data["exporter-config.yaml"])
+			exporterConfig := configMapList.Items[0].Data[compliancescan.ExporterConfigKey]
 			Expect(strings.Index(exporterConfig, "output-a")).To(BeNumerically("<", strings.Index(exporterConfig, "output-b")))
 		})
 
@@ -2154,10 +2157,10 @@ waitForReport: true
 			_, err := cr.Reconcile(ctx, request)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(fakeClient.List(ctx, secretList,
+			Expect(fakeClient.List(ctx, configMapList,
 				client.MatchingLabels{"compliancescan.diki.gardener.cloud/name": "compliancescan"},
 			)).To(Succeed())
-			Expect(string(secretList.Items[0].Data["exporter-config.yaml"])).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
+			Expect(configMapList.Items[0].Data[compliancescan.ExporterConfigKey]).To(Equal(`apiVersion: exporter.diki.gardener.cloud/v1alpha1
 complianceScanName: compliancescan
 kind: ReportExporterConfiguration
 outputs: null
