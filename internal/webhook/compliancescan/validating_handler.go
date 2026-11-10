@@ -30,8 +30,8 @@ import (
 type ValidatingHandler struct {
 	Client  client.Client
 	Decoder admission.Decoder
-	// DefaultOutputNames are the names of the operator-configured default outputs.
-	// A ComplianceScan may not reference an output with any of these names.
+	// DefaultOutputs are the operator-configured default outputs.
+	// A ComplianceScan may not reference an output with any of their names.
 	DefaultOutputs []reportexporterv1alpha1.Output
 }
 
