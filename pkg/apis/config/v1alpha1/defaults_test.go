@@ -12,7 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	componentbaseconfigv1alpha1 "k8s.io/component-base/config/v1alpha1"
-	"k8s.io/utils/ptr"
 
 	. "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 )
@@ -245,7 +244,7 @@ var _ = Describe("Defaults", func() {
 				SetDefaults_LeaderElectionConfiguration(obj)
 
 				expectedLeaderElectionConfig := &componentbaseconfigv1alpha1.LeaderElectionConfiguration{
-					LeaderElect:       ptr.To(true),
+					LeaderElect:       new(true),
 					LeaseDuration:     metav1.Duration{Duration: 15 * time.Second},
 					RenewDeadline:     metav1.Duration{Duration: 10 * time.Second},
 					RetryPeriod:       metav1.Duration{Duration: 2 * time.Second},
@@ -257,7 +256,7 @@ var _ = Describe("Defaults", func() {
 			})
 
 			It("should not overwrite already set values for leader election", func() {
-				obj.LeaderElect = ptr.To(false)
+				obj.LeaderElect = new(bool)
 				obj.LeaseDuration = metav1.Duration{Duration: 30 * time.Second}
 				obj.RenewDeadline = metav1.Duration{Duration: 20 * time.Second}
 				obj.RetryPeriod = metav1.Duration{Duration: 5 * time.Second}
@@ -268,7 +267,7 @@ var _ = Describe("Defaults", func() {
 				SetDefaults_LeaderElectionConfiguration(obj)
 
 				expectedLeaderElectionConfig := &componentbaseconfigv1alpha1.LeaderElectionConfiguration{
-					LeaderElect:       ptr.To(false),
+					LeaderElect:       new(bool),
 					LeaseDuration:     metav1.Duration{Duration: 30 * time.Second},
 					RenewDeadline:     metav1.Duration{Duration: 20 * time.Second},
 					RetryPeriod:       metav1.Duration{Duration: 5 * time.Second},

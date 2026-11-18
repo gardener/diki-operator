@@ -16,7 +16,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/diki-operator/internal/constants"
@@ -54,8 +53,8 @@ func (r *Reconciler) deployComplianceScan(ctx context.Context, parent *v1alpha1.
 					Kind:               "ScheduledComplianceScan",
 					Name:               parent.Name,
 					UID:                parent.UID,
-					Controller:         ptr.To(true),
-					BlockOwnerDeletion: ptr.To(true),
+					Controller:         new(true),
+					BlockOwnerDeletion: new(true),
 				},
 			},
 		},

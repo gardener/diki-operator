@@ -15,7 +15,6 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/gardener/diki-operator/internal/constants"
@@ -124,15 +123,15 @@ func (r *Reconciler) getOwnerReference(job *batchv1.Job) []metav1.OwnerReference
 			Kind:               "Job",
 			Name:               job.Name,
 			UID:                job.UID,
-			Controller:         ptr.To(true),
-			BlockOwnerDeletion: ptr.To(true),
+			Controller:         new(true),
+			BlockOwnerDeletion: new(true),
 		},
 	}
 }
 
 func (r *Reconciler) startDikiRunJob(ctx context.Context, job *batchv1.Job) error {
 	jobPatch := client.MergeFrom(job.DeepCopy())
-	job.Spec.Suspend = ptr.To(false)
+	job.Spec.Suspend = new(false)
 	return r.SourceClient.Patch(ctx, job, jobPatch)
 }
 

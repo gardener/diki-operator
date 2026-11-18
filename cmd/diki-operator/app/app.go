@@ -29,7 +29,6 @@ import (
 	"k8s.io/component-base/version/verflag"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/clock"
-	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -122,7 +121,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		Metrics: metricsserver.Options{
 			BindAddress: net.JoinHostPort(cfg.Server.Metrics.BindAddress, strconv.Itoa(int(cfg.Server.Metrics.Port))),
 		},
-		GracefulShutdownTimeout: ptr.To(5 * time.Second),
+		GracefulShutdownTimeout: new(5 * time.Second),
 
 		LeaderElection:                *cfg.LeaderElection.LeaderElect,
 		LeaderElectionResourceLock:    cfg.LeaderElection.ResourceLock,
@@ -147,7 +146,7 @@ func run(ctx context.Context, log logr.Logger, cfg *configv1alpha1.DikiOperatorC
 		}),
 
 		Controller: controllerconfig.Controller{
-			RecoverPanic: ptr.To(true),
+			RecoverPanic: new(true),
 		},
 	})
 

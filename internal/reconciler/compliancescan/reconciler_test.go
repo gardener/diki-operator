@@ -24,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
@@ -578,7 +577,7 @@ var _ = Describe("Controller", func() {
 			),
 			Entry("Job is suspended",
 				nil,
-				ptr.To(true),
+				new(true),
 				reconcile.Result{},
 				dikiv1alpha1.ComplianceScanFailed,
 				MatchFields(IgnoreExtras, Fields{
@@ -990,14 +989,14 @@ var _ = Describe("Controller", func() {
 							ConfigMapRef: &dikiv1alpha1.OptionsConfigMapRef{
 								Name:      "options-configmap",
 								Namespace: "kube-system",
-								Key:       ptr.To("set-ruleset-options"),
+								Key:       new("set-ruleset-options"),
 							},
 						},
 						Rules: &dikiv1alpha1.Options{
 							ConfigMapRef: &dikiv1alpha1.OptionsConfigMapRef{
 								Name:      "options-configmap",
 								Namespace: "kube-system",
-								Key:       ptr.To("set-rule-options"),
+								Key:       new("set-rule-options"),
 							},
 						},
 					},
@@ -2183,7 +2182,7 @@ waitForReport: true
 					},
 				},
 			}
-			complianceScan.Spec.DisableDefaultOutputs = ptr.To(true)
+			complianceScan.Spec.DisableDefaultOutputs = new(true)
 
 			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 

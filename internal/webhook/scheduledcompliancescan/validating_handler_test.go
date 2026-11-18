@@ -15,7 +15,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/gardener/diki-operator/internal/webhook/scheduledcompliancescan"
@@ -74,8 +73,8 @@ var _ = Describe("handler", func() {
 			},
 			Spec: v1alpha1.ScheduledComplianceScanSpec{
 				Schedule:                    "0 0 * * 0",
-				SuccessfulScansHistoryLimit: ptr.To[int32](3),
-				FailedScansHistoryLimit:     ptr.To[int32](1),
+				SuccessfulScansHistoryLimit: new(int32(3)),
+				FailedScansHistoryLimit:     new(int32(1)),
 				ScanTemplate: v1alpha1.ScheduledComplianceScanTemplate{
 					Spec: v1alpha1.ComplianceScanSpec{
 						Rulesets: []v1alpha1.RulesetConfig{
@@ -143,7 +142,7 @@ var _ = Describe("handler", func() {
 			})
 
 			It("should deny creating with a negative successfulScansHistoryLimit", func() {
-				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](-1)
+				scheduledScan.Spec.SuccessfulScansHistoryLimit = new(int32(-1))
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -154,7 +153,7 @@ var _ = Describe("handler", func() {
 			})
 
 			It("should deny creating with a negative failedScansHistoryLimit", func() {
-				scheduledScan.Spec.FailedScansHistoryLimit = ptr.To[int32](-1)
+				scheduledScan.Spec.FailedScansHistoryLimit = new(int32(-1))
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -165,7 +164,7 @@ var _ = Describe("handler", func() {
 			})
 
 			It("should allow creating with a valid IANA time zone", func() {
-				scheduledScan.Spec.TimeZone = ptr.To("Europe/Berlin")
+				scheduledScan.Spec.TimeZone = new("Europe/Berlin")
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -174,7 +173,7 @@ var _ = Describe("handler", func() {
 			})
 
 			It("should allow creating with \"Etc/UTC\" as time zone (common explicit UTC usage)", func() {
-				scheduledScan.Spec.TimeZone = ptr.To("Etc/UTC")
+				scheduledScan.Spec.TimeZone = new("Etc/UTC")
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -191,7 +190,7 @@ var _ = Describe("handler", func() {
 			})
 
 			It("should deny creating with an empty string time zone", func() {
-				scheduledScan.Spec.TimeZone = ptr.To("")
+				scheduledScan.Spec.TimeZone = new(string)
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -202,7 +201,7 @@ var _ = Describe("handler", func() {
 			})
 
 			It("should deny creating with \"Local\" as time zone", func() {
-				scheduledScan.Spec.TimeZone = ptr.To("Local")
+				scheduledScan.Spec.TimeZone = new("Local")
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -213,7 +212,7 @@ var _ = Describe("handler", func() {
 			})
 
 			It("should deny creating with an invalid time zone", func() {
-				scheduledScan.Spec.TimeZone = ptr.To("Not/AZone")
+				scheduledScan.Spec.TimeZone = new("Not/AZone")
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -225,7 +224,7 @@ var _ = Describe("handler", func() {
 
 			It("should deny creating with both an invalid schedule and an invalid time zone", func() {
 				scheduledScan.Spec.Schedule = "not-a-cron"
-				scheduledScan.Spec.TimeZone = ptr.To("Not/AZone")
+				scheduledScan.Spec.TimeZone = new("Not/AZone")
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -238,9 +237,9 @@ var _ = Describe("handler", func() {
 
 			It("should deny creating with multiple validation errors", func() {
 				scheduledScan.Spec.Schedule = "not-a-cron"
-				scheduledScan.Spec.TimeZone = ptr.To("Not/AZone")
-				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](-1)
-				scheduledScan.Spec.FailedScansHistoryLimit = ptr.To[int32](-2)
+				scheduledScan.Spec.TimeZone = new("Not/AZone")
+				scheduledScan.Spec.SuccessfulScansHistoryLimit = new(int32(-1))
+				scheduledScan.Spec.FailedScansHistoryLimit = new(int32(-2))
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -322,7 +321,7 @@ var _ = Describe("handler", func() {
 				Expect(err).ToNot(HaveOccurred())
 				request.OldObject.Raw = oldScheduledScanObj
 
-				scheduledScan.Spec.FailedScansHistoryLimit = ptr.To[int32](-5)
+				scheduledScan.Spec.FailedScansHistoryLimit = new(int32(-5))
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -339,7 +338,7 @@ var _ = Describe("handler", func() {
 				Expect(err).ToNot(HaveOccurred())
 				request.OldObject.Raw = oldScheduledScanObj
 
-				scheduledScan.Spec.TimeZone = ptr.To("America/New_York")
+				scheduledScan.Spec.TimeZone = new("America/New_York")
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -354,7 +353,7 @@ var _ = Describe("handler", func() {
 				Expect(err).ToNot(HaveOccurred())
 				request.OldObject.Raw = oldScheduledScanObj
 
-				scheduledScan.Spec.TimeZone = ptr.To("Not/AZone")
+				scheduledScan.Spec.TimeZone = new("Not/AZone")
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -372,8 +371,8 @@ var _ = Describe("handler", func() {
 				request.OldObject.Raw = oldScheduledScanObj
 
 				scheduledScan.Spec.Schedule = "bad-cron"
-				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](-1)
-				scheduledScan.Spec.FailedScansHistoryLimit = ptr.To[int32](-2)
+				scheduledScan.Spec.SuccessfulScansHistoryLimit = new(int32(-1))
+				scheduledScan.Spec.FailedScansHistoryLimit = new(int32(-2))
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())
 				request.Object.Raw = scheduledScanObj
@@ -393,7 +392,7 @@ var _ = Describe("handler", func() {
 				request.OldObject.Raw = oldScheduledScanObj
 
 				scheduledScan.Spec.Schedule = "*/5 * * * *"
-				scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](5)
+				scheduledScan.Spec.SuccessfulScansHistoryLimit = new(int32(5))
 
 				scheduledScanObj, err := runtime.Encode(encoder, scheduledScan)
 				Expect(err).ToNot(HaveOccurred())

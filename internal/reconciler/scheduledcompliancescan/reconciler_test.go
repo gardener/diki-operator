@@ -17,7 +17,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	testclock "k8s.io/utils/clock/testing"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
@@ -59,8 +58,8 @@ var _ = Describe("Controller", func() {
 			},
 			Spec: dikiv1alpha1.ScheduledComplianceScanSpec{
 				Schedule:                    "0 0 * * 0",
-				SuccessfulScansHistoryLimit: ptr.To(int32(3)),
-				FailedScansHistoryLimit:     ptr.To(int32(1)),
+				SuccessfulScansHistoryLimit: new(int32(3)),
+				FailedScansHistoryLimit:     new(int32(1)),
 				ScanTemplate: dikiv1alpha1.ScheduledComplianceScanTemplate{
 					Spec: dikiv1alpha1.ComplianceScanSpec{
 						Rulesets: []dikiv1alpha1.RulesetConfig{
@@ -285,7 +284,7 @@ var _ = Describe("Controller", func() {
 		// Clock is set to 21:35 UTC the previous day = 03:05, so the schedule is due.
 		// Without CRON_TZ the parser would use UTC and 03:00 UTC would not yet be due.
 		scheduledScan.Spec.Schedule = "0 3 * * *"
-		scheduledScan.Spec.TimeZone = ptr.To("Asia/Kolkata")
+		scheduledScan.Spec.TimeZone = new("Asia/Kolkata")
 		Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
 
 		// LastScheduleTime is the previous day's 03:00 = 2026-03-29 21:30 UTC.
@@ -509,7 +508,7 @@ var _ = Describe("Controller", func() {
 
 	Context("history cleanup", func() {
 		It("should delete the oldest successful scans exceeding the limit", func() {
-			scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To(int32(2))
+			scheduledScan.Spec.SuccessfulScansHistoryLimit = new(int32(2))
 			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
 			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: baseTime}
 			Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())
@@ -577,8 +576,8 @@ var _ = Describe("Controller", func() {
 		})
 
 		It("should independently clean up successful and failed scans per their limits", func() {
-			scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To(int32(1))
-			scheduledScan.Spec.FailedScansHistoryLimit = ptr.To(int32(1))
+			scheduledScan.Spec.SuccessfulScansHistoryLimit = new(int32(1))
+			scheduledScan.Spec.FailedScansHistoryLimit = new(int32(1))
 			Expect(fakeClient.Update(ctx, scheduledScan)).To(Succeed())
 			scheduledScan.Status.LastScheduleTime = &metav1.Time{Time: baseTime}
 			Expect(fakeClient.Status().Update(ctx, scheduledScan)).To(Succeed())

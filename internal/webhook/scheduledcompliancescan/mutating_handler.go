@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
@@ -36,11 +35,11 @@ func (h *MutatingHandler) Handle(_ context.Context, req admission.Request) admis
 		needsMutation = true
 	}
 	if scheduledScan.Spec.SuccessfulScansHistoryLimit == nil {
-		scheduledScan.Spec.SuccessfulScansHistoryLimit = ptr.To(int32(3))
+		scheduledScan.Spec.SuccessfulScansHistoryLimit = new(int32(3))
 		needsMutation = true
 	}
 	if scheduledScan.Spec.FailedScansHistoryLimit == nil {
-		scheduledScan.Spec.FailedScansHistoryLimit = ptr.To(int32(1))
+		scheduledScan.Spec.FailedScansHistoryLimit = new(int32(1))
 		needsMutation = true
 	}
 
