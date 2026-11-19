@@ -93,7 +93,7 @@ require (
 	github.com/gardener/cert-management v0.23.0 // indirect
 	github.com/gardener/etcd-druid/api v0.39.2 // indirect
 	github.com/gardener/gardener/hack/tools v1.155.1 // indirect
-	github.com/gardener/gardener/pkg/apis v1.154.0 // indirect
+	github.com/gardener/gardener/pkg/apis v1.155.1 // indirect
 	github.com/gardener/machine-controller-manager v0.63.1 // indirect
 	github.com/gardener/pvc-autoscaler v0.3.3 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
