@@ -5,7 +5,6 @@
 package compliancescan
 
 import (
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
@@ -27,7 +26,7 @@ func AddToManager(mgr manager.Manager, defaultOutputs []reportexporterv1alpha1.O
 			Decoder:        admission.NewDecoder(mgr.GetScheme()),
 			DefaultOutputs: defaultOutputs,
 		},
-		RecoverPanic: ptr.To(true),
+		RecoverPanic: new(true),
 	}
 
 	mgr.GetWebhookServer().Register(ValidatingWebhookPath, webhook)

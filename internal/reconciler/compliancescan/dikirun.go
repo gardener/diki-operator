@@ -12,7 +12,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/component-base/version"
-	"k8s.io/utils/ptr"
 
 	"github.com/gardener/diki-operator/imagevector"
 	"github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
@@ -39,14 +38,14 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			Labels:    r.getLabels(complianceScan),
 		},
 		Spec: batchv1.JobSpec{
-			BackoffLimit: ptr.To(int32(0)),
-			Suspend:      ptr.To(true),
+			BackoffLimit: new(int32),
+			Suspend:      new(true),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: r.getLabels(complianceScan),
 				},
 				Spec: corev1.PodSpec{
-					ActiveDeadlineSeconds: ptr.To(int64(r.Config.DikiRunner.PodCompletionTimeout.Seconds())),
+					ActiveDeadlineSeconds: new(int64(r.Config.DikiRunner.PodCompletionTimeout.Seconds())),
 					Containers: []corev1.Container{
 						{
 							Name:  DikiScanContainerName,
@@ -69,9 +68,9 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 								},
 							},
 							SecurityContext: &corev1.SecurityContext{
-								AllowPrivilegeEscalation: ptr.To(false),
-								ReadOnlyRootFilesystem:   ptr.To(true),
-								Privileged:               ptr.To(false),
+								AllowPrivilegeEscalation: new(bool),
+								ReadOnlyRootFilesystem:   new(true),
+								Privileged:               new(bool),
 								Capabilities: &corev1.Capabilities{
 									Drop: []corev1.Capability{"ALL"},
 								},
@@ -96,9 +95,9 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 								},
 							},
 							SecurityContext: &corev1.SecurityContext{
-								AllowPrivilegeEscalation: ptr.To(false),
-								ReadOnlyRootFilesystem:   ptr.To(true),
-								Privileged:               ptr.To(false),
+								AllowPrivilegeEscalation: new(bool),
+								ReadOnlyRootFilesystem:   new(true),
+								Privileged:               new(bool),
 								Capabilities: &corev1.Capabilities{
 									Drop: []corev1.Capability{"ALL"},
 								},
@@ -113,7 +112,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 									LocalObjectReference: corev1.LocalObjectReference{
 										Name: dikiConfigMapName,
 									},
-									DefaultMode: ptr.To(int32(0440)),
+									DefaultMode: new(int32(0440)),
 								},
 							},
 						},
@@ -137,10 +136,10 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 						},
 					},
 					SecurityContext: &corev1.PodSecurityContext{
-						RunAsNonRoot: ptr.To(true),
-						FSGroup:      ptr.To(int64(65532)),
-						RunAsUser:    ptr.To(int64(65532)),
-						RunAsGroup:   ptr.To(int64(65532)),
+						RunAsNonRoot: new(true),
+						FSGroup:      new(int64(65532)),
+						RunAsUser:    new(int64(65532)),
+						RunAsGroup:   new(int64(65532)),
 						SeccompProfile: &corev1.SeccompProfile{
 							Type: corev1.SeccompProfileTypeRuntimeDefault,
 						},
@@ -168,7 +167,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 							Path: KubeconfigSecretKey,
 						},
 					},
-					Optional: ptr.To(false),
+					Optional: new(bool),
 				},
 			},
 		}
@@ -190,7 +189,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 							Path: TokenSecretKey,
 						},
 					},
-					Optional: ptr.To(false),
+					Optional: new(bool),
 				},
 			})
 		}
@@ -199,7 +198,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			Name: KubeconfigVolumeName,
 			VolumeSource: corev1.VolumeSource{
 				Projected: &corev1.ProjectedVolumeSource{
-					DefaultMode: ptr.To(int32(0440)),
+					DefaultMode: new(int32(0440)),
 					Sources:     projectedSources,
 				},
 			},
@@ -235,7 +234,7 @@ func (r *Reconciler) deployDikiRunJob(ctx context.Context, complianceScan *v1alp
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName:  outputsCredsSecretName,
-					DefaultMode: ptr.To(int32(0440)),
+					DefaultMode: new(int32(0440)),
 				},
 			},
 		})

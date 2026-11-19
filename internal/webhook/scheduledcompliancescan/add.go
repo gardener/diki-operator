@@ -5,7 +5,6 @@
 package scheduledcompliancescan
 
 import (
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -27,14 +26,14 @@ func AddToManager(mgr manager.Manager) error {
 		Handler: &ValidatingHandler{
 			Decoder: decoder,
 		},
-		RecoverPanic: ptr.To(true),
+		RecoverPanic: new(true),
 	})
 
 	mgr.GetWebhookServer().Register(MutatingWebhookPath, &admission.Webhook{
 		Handler: &MutatingHandler{
 			Decoder: decoder,
 		},
-		RecoverPanic: ptr.To(true),
+		RecoverPanic: new(true),
 	})
 
 	return nil

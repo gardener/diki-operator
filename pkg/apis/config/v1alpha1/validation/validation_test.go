@@ -13,7 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	componentbaseconfigv1alpha1 "k8s.io/component-base/config/v1alpha1"
-	"k8s.io/utils/ptr"
 
 	"github.com/gardener/diki-operator/pkg/apis/config/v1alpha1"
 	. "github.com/gardener/diki-operator/pkg/apis/config/v1alpha1/validation"
@@ -57,7 +56,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 				},
 			},
 			LeaderElection: &componentbaseconfigv1alpha1.LeaderElectionConfiguration{
-				LeaderElect:       ptr.To(true),
+				LeaderElect:       new(true),
 				LeaseDuration:     metav1.Duration{Duration: 15 * time.Second},
 				RenewDeadline:     metav1.Duration{Duration: 10 * time.Second},
 				RetryPeriod:       metav1.Duration{Duration: 2 * time.Second},
@@ -253,7 +252,7 @@ var _ = Describe("#ValidateDikiOperatorConfiguration", func() {
 			conf.Controllers.ComplianceScan.BaseOptions = &v1alpha1.BaseOptionsConfig{
 				ConfigMapRef: v1alpha1.ConfigMapRef{
 					Name: "diki-base-options",
-					Key:  ptr.To(""),
+					Key:  new(string),
 				},
 			}
 

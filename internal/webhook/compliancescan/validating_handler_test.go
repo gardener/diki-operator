@@ -17,7 +17,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
@@ -372,7 +371,7 @@ var _ = Describe("validating handler", func() {
 							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
 								Name:      "configmap",
 								Namespace: "kube-system",
-								Key:       ptr.To("key"),
+								Key:       new("key"),
 							},
 						},
 					}
@@ -403,7 +402,7 @@ var _ = Describe("validating handler", func() {
 							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
 								Name:      "configmap",
 								Namespace: "kube-system",
-								Key:       ptr.To("key"),
+								Key:       new("key"),
 							},
 						},
 					}
@@ -432,7 +431,7 @@ var _ = Describe("validating handler", func() {
 							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
 								Name:      "configmap",
 								Namespace: "kube-system",
-								Key:       ptr.To("no-key"),
+								Key:       new("no-key"),
 							},
 						},
 					}
@@ -460,7 +459,7 @@ var _ = Describe("validating handler", func() {
 							ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
 								Name:      "configmap",
 								Namespace: "kube-system",
-								Key:       ptr.To("no-key"),
+								Key:       new("no-key"),
 							},
 						},
 					}
@@ -550,7 +549,7 @@ var _ = Describe("validating handler", func() {
 						ConfigMapRef: &v1alpha1.OptionsConfigMapRef{
 							Name:      "configmap",
 							Namespace: "kube-system",
-							Key:       ptr.To("no-key"),
+							Key:       new("no-key"),
 						},
 					},
 				}
@@ -611,7 +610,7 @@ var _ = Describe("validating handler", func() {
 				})
 
 				It("should allow a colliding output name when defaultOutputs are disabled", func() {
-					complianceScan.Spec.DisableDefaultOutputs = ptr.To(true)
+					complianceScan.Spec.DisableDefaultOutputs = new(true)
 					complianceScan.Spec.Outputs = []v1alpha1.ReportOutputRef{
 						{Name: "default-output"},
 					}

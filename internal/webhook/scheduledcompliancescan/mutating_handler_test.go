@@ -14,7 +14,6 @@ import (
 	authenticationv1 "k8s.io/api/authentication/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	"github.com/gardener/diki-operator/internal/webhook/scheduledcompliancescan"
@@ -59,8 +58,8 @@ var _ = Describe("MutatingHandler", func() {
 
 		expected := scan.DeepCopy()
 		expected.Spec.Schedule = "0 0 * * 0"
-		expected.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](3)
-		expected.Spec.FailedScansHistoryLimit = ptr.To[int32](1)
+		expected.Spec.SuccessfulScansHistoryLimit = new(int32(3))
+		expected.Spec.FailedScansHistoryLimit = new(int32(1))
 
 		resp := handle(ctx, &request, handler, scan)
 		Expect(resp.Allowed).To(BeTrue())
@@ -72,8 +71,8 @@ var _ = Describe("MutatingHandler", func() {
 			ObjectMeta: metav1.ObjectMeta{Name: "test"},
 			Spec: v1alpha1.ScheduledComplianceScanSpec{
 				Schedule:                    "*/5 * * * *",
-				SuccessfulScansHistoryLimit: ptr.To[int32](10),
-				FailedScansHistoryLimit:     ptr.To[int32](5),
+				SuccessfulScansHistoryLimit: new(int32(10)),
+				FailedScansHistoryLimit:     new(int32(5)),
 				ScanTemplate: v1alpha1.ScheduledComplianceScanTemplate{
 					Spec: v1alpha1.ComplianceScanSpec{
 						Rulesets: []v1alpha1.RulesetConfig{{ID: "r1", Version: "v1"}},
@@ -101,8 +100,8 @@ var _ = Describe("MutatingHandler", func() {
 		}
 
 		expected := scan.DeepCopy()
-		expected.Spec.SuccessfulScansHistoryLimit = ptr.To[int32](3)
-		expected.Spec.FailedScansHistoryLimit = ptr.To[int32](1)
+		expected.Spec.SuccessfulScansHistoryLimit = new(int32(3))
+		expected.Spec.FailedScansHistoryLimit = new(int32(1))
 
 		resp := handle(ctx, &request, handler, scan)
 		Expect(resp.Allowed).To(BeTrue())
