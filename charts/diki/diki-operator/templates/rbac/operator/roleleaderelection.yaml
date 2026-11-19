@@ -24,6 +24,13 @@ rules:
   resources:
   - leases
   verbs:
-  - get
   - create
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  resourceNames:
+  - {{ include "leaderelection.id" . }}
+  verbs:
+  - get
   - update
