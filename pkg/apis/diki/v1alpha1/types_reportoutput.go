@@ -74,9 +74,8 @@ type OutputWebhook struct {
 	// +kubebuilder:default="POST"
 	// +kubebuilder:validation:Enum={"POST","PUT"}
 	Method string `json:"method,omitempty"`
-	// CredentialsRef is a reference to a Secret whose data at the given key contains a JSON object
-	// where keys are HTTP header names and values are the corresponding header values
-	// to include in the webhook request.
+	// CredentialsRef is a reference to a Secret whose data at the given key contains a bearer token
+	// to include in the Authorization header of the webhook request.
 	// +optional
 	CredentialsRef *CredentialsRef `json:"credentialsRef,omitempty"`
 	// TLS configures TLS settings for the webhook connection.
@@ -85,15 +84,16 @@ type OutputWebhook struct {
 	TLS *TLSConfig `json:"tls,omitempty"`
 }
 
-// CredentialsRef is a reference to a resource containing HTTP headers for webhook authentication.
+// CredentialsRef is a reference to a Secret containing a bearer token for webhook authentication.
 type CredentialsRef struct {
 	metav1.TypeMeta   `json:",inline"`
 	ResourceReference `json:",inline"`
 
-	// HeadersKey is the key within the Secret's data that contains the JSON-encoded headers map.
-	// Defaults to `headers`.
+	// BearerTokenKey is the key within the Secret's data that contains the bearer token.
+	// The token is sent in the Authorization header as `Bearer <token>`.
+	// Defaults to `token`.
 	// +optional
-	HeadersKey *string `json:"headersKey,omitempty"`
+	BearerTokenKey *string `json:"bearerTokenKey,omitempty"`
 }
 
 // ResourceReference is a reference to a namespaced Kubernetes resource.
@@ -114,9 +114,9 @@ type CAConfigMapRef struct {
 	Key *string `json:"key,omitempty"`
 }
 
-// MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+// ClientCertSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
 // and key for mutual TLS (mTLS) authentication.
-type MTLSSecretRef struct {
+type ClientCertSecretRef struct {
 	ResourceReference `json:",inline"`
 
 	// CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.
@@ -135,8 +135,8 @@ type TLSConfig struct {
 	// If not set, the system's root CA pool is used.
 	// +optional
 	CAConfigMapRef *CAConfigMapRef `json:"caConfigMapRef,omitempty"`
-	// MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+	// ClientCertSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
 	// and key for mutual TLS (mTLS) authentication.
 	// +optional
-	MTLSSecretRef *MTLSSecretRef `json:"mtlsSecretRef,omitempty"`
+	ClientCertSecretRef *ClientCertSecretRef `json:"clientCertSecretRef,omitempty"`
 }

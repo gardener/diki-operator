@@ -64,23 +64,23 @@ type OutputWebhook struct {
 	// This is useful when the receiving endpoint expects a specific method (e.g. PUT for upsert semantics).
 	// Defaults to "POST".
 	Method string
-	// CredentialsRef is a reference to a Secret whose data at the given key contains a JSON object
-	// where keys are HTTP header names and values are the corresponding header values
-	// to include in the webhook request.
+	// CredentialsRef is a reference to a Secret whose data at the given key contains a bearer token
+	// to include in the Authorization header of the webhook request.
 	CredentialsRef *CredentialsRef
 	// TLS configures TLS settings for the webhook connection.
 	// Only relevant when URL uses the HTTPS scheme.
 	TLS *TLSConfig
 }
 
-// CredentialsRef is a reference to a resource containing HTTP headers for webhook authentication.
+// CredentialsRef is a reference to a Secret containing a bearer token for webhook authentication.
 type CredentialsRef struct {
 	metav1.TypeMeta
 	ResourceReference
 
-	// HeadersKey is the key within the Secret's data that contains the JSON-encoded headers map.
-	// Defaults to `headers`.
-	HeadersKey *string
+	// BearerTokenKey is the key within the Secret's data that contains the bearer token.
+	// The token is sent in the Authorization header as `Bearer <token>`.
+	// Defaults to `token`.
+	BearerTokenKey *string
 }
 
 // ResourceReference is a reference to a namespaced Kubernetes resource.
@@ -100,9 +100,9 @@ type CAConfigMapRef struct {
 	Key *string
 }
 
-// MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+// ClientCertSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
 // and key for mutual TLS (mTLS) authentication.
-type MTLSSecretRef struct {
+type ClientCertSecretRef struct {
 	ResourceReference
 
 	// CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.
@@ -118,7 +118,7 @@ type TLSConfig struct {
 	// CAConfigMapRef is a reference to a ConfigMap containing a custom CA certificate bundle.
 	// If not set, the system's root CA pool is used.
 	CAConfigMapRef *CAConfigMapRef
-	// MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+	// ClientCertSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
 	// and key for mutual TLS (mTLS) authentication.
-	MTLSSecretRef *MTLSSecretRef
+	ClientCertSecretRef *ClientCertSecretRef
 }

@@ -82,6 +82,79 @@ string
 </table>
 
 
+<h3 id="clientcertsecretref">ClientCertSecretRef
+</h3>
+
+
+<p>
+(<em>Appears on:</em><a href="#tlsconfig">TLSConfig</a>)
+</p>
+
+<p>
+ClientCertSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
+and key for mutual TLS (mTLS) authentication.
+</p>
+
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>namespace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Namespace is the namespace of the resource.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>certKey</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.<br />Defaults to `tls.crt`.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>privateKeyKey</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>PrivateKeyKey is the key within the Secret's data that contains the PEM-encoded client private key.<br />Defaults to `tls.key`.</p>
+</td>
+</tr>
+
+</tbody>
+</table>
+
+
 <h3 id="compliancescan">ComplianceScan
 </h3>
 
@@ -414,7 +487,7 @@ ConditionType is an alias for string representing the type of a condition.
 </p>
 
 <p>
-CredentialsRef is a reference to a resource containing HTTP headers for webhook authentication.
+CredentialsRef is a reference to a Secret containing a bearer token for webhook authentication.
 </p>
 
 <table>
@@ -450,87 +523,14 @@ string
 </tr>
 <tr>
 <td>
-<code>headersKey</code></br>
+<code>bearerTokenKey</code></br>
 <em>
 string
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>HeadersKey is the key within the Secret's data that contains the JSON-encoded headers map.<br />Defaults to `headers`.</p>
-</td>
-</tr>
-
-</tbody>
-</table>
-
-
-<h3 id="mtlssecretref">MTLSSecretRef
-</h3>
-
-
-<p>
-(<em>Appears on:</em><a href="#tlsconfig">TLSConfig</a>)
-</p>
-
-<p>
-MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate
-and key for mutual TLS (mTLS) authentication.
-</p>
-
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-
-<tr>
-<td>
-<code>name</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Name is the name of the resource.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>namespace</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Namespace is the namespace of the resource.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>certKey</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>CertKey is the key within the Secret's data that contains the PEM-encoded client certificate.<br />Defaults to `tls.crt`.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>privateKeyKey</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>PrivateKeyKey is the key within the Secret's data that contains the PEM-encoded client private key.<br />Defaults to `tls.key`.</p>
+<p>BearerTokenKey is the key within the Secret's data that contains the bearer token.<br />The token is sent in the Authorization header as `Bearer <token>`.<br />Defaults to `token`.</p>
 </td>
 </tr>
 
@@ -861,7 +861,7 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>CredentialsRef is a reference to a Secret whose data at the given key contains a JSON object<br />where keys are HTTP header names and values are the corresponding header values<br />to include in the webhook request.</p>
+<p>CredentialsRef is a reference to a Secret whose data at the given key contains a bearer token<br />to include in the Authorization header of the webhook request.</p>
 </td>
 </tr>
 <tr>
@@ -1004,7 +1004,7 @@ ReportOutputSpec is the specification of a ReportOutput.
 
 
 <p>
-(<em>Appears on:</em><a href="#caconfigmapref">CAConfigMapRef</a>, <a href="#credentialsref">CredentialsRef</a>, <a href="#mtlssecretref">MTLSSecretRef</a>)
+(<em>Appears on:</em><a href="#caconfigmapref">CAConfigMapRef</a>, <a href="#clientcertsecretref">ClientCertSecretRef</a>, <a href="#credentialsref">CredentialsRef</a>)
 </p>
 
 <p>
@@ -1741,14 +1741,14 @@ TLSConfig configures TLS settings for output types that make outbound HTTPS conn
 </tr>
 <tr>
 <td>
-<code>mtlsSecretRef</code></br>
+<code>clientCertSecretRef</code></br>
 <em>
-<a href="#mtlssecretref">MTLSSecretRef</a>
+<a href="#clientcertsecretref">ClientCertSecretRef</a>
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>MTLSSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate<br />and key for mutual TLS (mTLS) authentication.</p>
+<p>ClientCertSecretRef is a reference to a Kubernetes TLS Secret containing a client certificate<br />and key for mutual TLS (mTLS) authentication.</p>
 </td>
 </tr>
 

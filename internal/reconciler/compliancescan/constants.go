@@ -57,8 +57,8 @@ const (
 	TLSClientCertFileName = "client.crt"
 	// TLSClientKeyFileName is the filename for the client key in the outputs credentials volume.
 	TLSClientKeyFileName = "client.key"
-	// WebhookHeadersFileName is the base filename suffix for the webhook auth headers JSON file in the outputs credentials volume.
-	WebhookHeadersFileName = "headers.json"
+	// WebhookBearerTokenFileName is the base filename suffix for the webhook bearer token file in the outputs credentials volume.
+	WebhookBearerTokenFileName = "token"
 
 	// RuleOptionsSuffix is the suffix appended to ruleset IDs when looking up rule options in ConfigMaps.
 	RuleOptionsSuffix = "-rules"

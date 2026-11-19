@@ -136,7 +136,7 @@ var _ = Describe("WebhookExporter", func() {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
-	It("should set headers from a headers file", func() {
+	It("should set the Authorization header from a bearer token file", func() {
 		var receivedHeaders http.Header
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			receivedHeaders = r.Header.Clone()
@@ -144,61 +144,37 @@ var _ = Describe("WebhookExporter", func() {
 		}))
 		defer server.Close()
 
-		headersFile, err := os.CreateTemp("", "headers-*.json")
+		tokenFile, err := os.CreateTemp("", "token-*")
 		Expect(err).ToNot(HaveOccurred())
-		defer func() { _ = os.Remove(headersFile.Name()) }()
-		_, err = headersFile.WriteString(`{"Authorization":"Bearer my-secret-token","X-Custom":"value"}`)
+		defer func() { _ = os.Remove(tokenFile.Name()) }()
+		_, err = tokenFile.WriteString("my-secret-token\n")
 		Expect(err).ToNot(HaveOccurred())
-		Expect(headersFile.Close()).To(Succeed())
+		Expect(tokenFile.Close()).To(Succeed())
 
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
-			URL:         server.URL,
-			HeadersFile: headersFile.Name(),
+			URL:             server.URL,
+			BearerTokenFile: tokenFile.Name(),
 		})
 
 		_, err = exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(receivedHeaders.Get("Authorization")).To(Equal("Bearer my-secret-token"))
-		Expect(receivedHeaders.Get("X-Custom")).To(Equal("value"))
 	})
 
-	It("should return an error when the headers file does not exist", func() {
+	It("should return an error when the bearer token file does not exist", func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 		defer server.Close()
 
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
-			URL:         server.URL,
-			HeadersFile: "/nonexistent/headers.json",
+			URL:             server.URL,
+			BearerTokenFile: "/nonexistent/token",
 		})
 
 		_, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("failed to read headers file"))
-	})
-
-	It("should return an error when the headers file contains invalid JSON", func() {
-		headersFile, err := os.CreateTemp("", "headers-*.json")
-		Expect(err).ToNot(HaveOccurred())
-		defer func() { _ = os.Remove(headersFile.Name()) }()
-		_, err = headersFile.WriteString("not valid json")
-		Expect(err).ToNot(HaveOccurred())
-		Expect(headersFile.Close()).To(Succeed())
-
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
-		defer server.Close()
-
-		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
-			URL:         server.URL,
-			HeadersFile: headersFile.Name(),
-		})
-
-		_, err = exporter.Export(ctx, *dikiReport)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(ContainSubstring("failed to parse headers file"))
+		Expect(err.Error()).To(ContainSubstring("failed to read bearer token file"))
 	})
 
 	It("should return an error when the server responds with a non-2xx status", func() {
