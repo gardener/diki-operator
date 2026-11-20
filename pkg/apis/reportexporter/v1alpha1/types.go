@@ -51,8 +51,8 @@ const (
 	ExporterTypeWebhook OutputType = "Webhook"
 )
 
-// WebhookOutputConfig is the resolved configuration for a webhook output.
-// All secrets are resolved by the operator at reconciliation time.
+// WebhookOutputConfig is the configuration for a webhook output.
+// The file-path fields point at files mounted into the report-exporter.
 type WebhookOutputConfig struct {
 	// URL is the destination endpoint to which the report will be sent.
 	URL string `json:"url"`

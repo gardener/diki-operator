@@ -73,10 +73,8 @@ type ComplianceScanConfig struct {
 	// complete DikiConfig YAML under the specified key (defaults to "config.yaml").
 	// +optional
 	BaseOptions *BaseOptionsConfig `json:"baseOptions,omitempty"`
-	// DefaultOutputs is a list of output configurations that are appended to the
-	// ReportOutput-derived outputs of every ComplianceScan. Each entry mirrors a
-	// report-exporter output (name, type, config) and its config is passed through
-	// to the exporter as-is.
+	// DefaultOutputs is a list of report-exporter outputs that are appended to the
+	// ReportOutput-derived outputs of every ComplianceScan.
 	// +optional
 	DefaultOutputs []reportexporterv1alpha1.Output `json:"defaultOutputs,omitempty"`
 }
