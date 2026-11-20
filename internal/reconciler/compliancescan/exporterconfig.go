@@ -108,7 +108,7 @@ func convertDefaultOutput(outputIndex int, defaultOutput *reportexporterv1alpha1
 
 		outputCreds, err := resolveDefaultWebhookFiles(outputIndex, webhookConfig)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("failed to resolve webhook config: %w", err)
 		}
 
 		configBytes, err := json.Marshal(webhookConfig)
