@@ -72,18 +72,12 @@ func (w *Exporter) Export(ctx context.Context, report dikireport.Report) (any, e
 
 	req.Header.Set("Content-Type", "application/json")
 
-	if len(w.Config.HeadersFile) != 0 {
-		headersData, err := os.ReadFile(w.Config.HeadersFile)
+	if len(w.Config.BearerTokenFile) != 0 {
+		token, err := os.ReadFile(w.Config.BearerTokenFile)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read headers file: %w", err)
+			return nil, fmt.Errorf("failed to read bearer token file: %w", err)
 		}
-		headers := make(map[string]string)
-		if err := json.Unmarshal(headersData, &headers); err != nil {
-			return nil, fmt.Errorf("failed to parse headers file as JSON map: %w", err)
-		}
-		for key, value := range headers {
-			req.Header.Set(key, value)
-		}
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", string(bytes.TrimSpace(token))))
 	}
 
 	resp, err := httpClient.Do(req)

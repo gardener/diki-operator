@@ -17,7 +17,7 @@ spec:
       credentialsRef:
         apiVersion: v1
         kind: Secret
-        name: webhook-headers
+        name: webhook-token
         namespace: kube-system
       tls:
         caConfigMapRef:
@@ -31,7 +31,7 @@ spec:
 |-------|------|----------|---------|-------------|
 | `url` | string | **Yes** | - | The destination endpoint URL. Must use the `https://` scheme. |
 | `method` | string | No | `POST` | The HTTP method used to send the report. Allowed values: `POST`, `PUT`. |
-| `credentialsRef` | [CredentialsRef](#credentialsref) | No | - | Reference to a resource containing HTTP headers to include in the request. |
+| `credentialsRef` | [CredentialsRef](#credentialsref) | No | - | Reference to a Secret containing a bearer token to send in the `Authorization` header. |
 | `tls` | [TLSConfig](#tlsconfig) | No | - | TLS settings for HTTPS connections. |
 
 ### CredentialsRef
@@ -39,17 +39,17 @@ spec:
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `apiVersion` | string | **Yes** | - | API version of the referenced resource (e.g. `v1`). |
-| `kind` | string | **Yes** | - | Kind of the referenced resource (e.g. `Secret`). |
+| `kind` | string | **Yes** | - | Kind of the referenced resource. Only `Secret` is supported. |
 | `name` | string | **Yes** | - | Name of the resource. |
 | `namespace` | string | **Yes** | - | Namespace of the resource. |
-| `headersKey` | string | No | `headers` | The key within the resource's data that contains the JSON-encoded headers. |
+| `bearerTokenKey` | string | No | `token` | The key within the Secret's data that contains the bearer token. |
 
 ### TLSConfig
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `caConfigMapRef` | [CAConfigMapRef](#caconfigmapref) | No | - | Reference to a ConfigMap containing a PEM-encoded CA certificate bundle. If not set, the system root CA pool is used. |
-| `mtlsSecretRef` | [MTLSSecretRef](#mtlssecretref) | No | - | Reference to a Kubernetes TLS Secret containing a client certificate and key for mutual TLS (mTLS) authentication. |
+| `clientCertSecretRef` | [ClientCertSecretRef](#clientcertsecretref) | No | - | Reference to a Kubernetes TLS Secret containing a client certificate and key for mutual TLS (mTLS) authentication. |
 
 ### CAConfigMapRef
 
@@ -59,7 +59,7 @@ spec:
 | `namespace` | string | **Yes** | - | Namespace of the ConfigMap. |
 | `key` | string | No | `ca.crt` | The key within the ConfigMap's data that contains the PEM-encoded CA certificate(s). |
 
-### MTLSSecretRef
+### ClientCertSecretRef
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
@@ -70,23 +70,17 @@ spec:
 
 ## Credentials Secret Format
 
-The Secret referenced by `credentialsRef` must contain a JSON object at the specified key, where keys are HTTP header names and values are the corresponding header values:
+The Secret referenced by `credentialsRef` must contain the bearer token at the specified key. The token is sent in the `Authorization` header as `Bearer <token>`:
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: webhook-headers
+  name: webhook-token
   namespace: kube-system
 stringData:
-  headers: |
-    {
-      "Authorization": "Bearer <token>",
-      "X-Custom-Header": "custom-value"
-    }
+  token: "<token>"
 ```
-
-This supports any authentication scheme (Bearer tokens, Basic Auth, API keys, etc.) by setting the appropriate headers.
 
 ## Behavior
 
@@ -166,7 +160,7 @@ spec:
         caConfigMapRef:
           name: internal-ca
           namespace: kube-system
-        mtlsSecretRef:
+        clientCertSecretRef:
           name: webhook-client-tls
           namespace: kube-system
 ```
@@ -189,7 +183,7 @@ Custom key names can be specified if the Secret uses non-standard keys:
 
 ```yaml
 tls:
-  mtlsSecretRef:
+  clientCertSecretRef:
     name: webhook-client-tls
     namespace: kube-system
     certKey: client.crt

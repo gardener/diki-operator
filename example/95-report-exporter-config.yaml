@@ -17,7 +17,7 @@ outputs:
   config:
     url: "https://compliance-api.corp.example.com/v1/reports"
     method: POST
-    headersFile: /creds/headers.json
+    bearerTokenFile: /creds/token
     tls:
       caCertFile: /creds/ca.crt
       clientCertFile: /creds/client.crt

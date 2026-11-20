@@ -1396,7 +1396,7 @@ waitForReport: true
 					Namespace: "kube-system",
 				},
 				Data: map[string][]byte{
-					"headers": []byte(`{"Authorization":"Bearer token-123","X-Custom":"value"}`),
+					"token": []byte("token-123"),
 				},
 			}
 			Expect(fakeClient.Create(ctx, credentialsSecret)).To(Succeed())
@@ -1438,8 +1438,8 @@ waitForReport: true
 			Expect(exporterConfig).To(ContainSubstring("type: Webhook"))
 			Expect(exporterConfig).To(ContainSubstring("name: my-webhook-output"))
 			Expect(exporterConfig).To(ContainSubstring("url: https://example.com/reports"))
-			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/0-" + compliancescan.WebhookHeadersFileName))
-			Expect(exporterConfig).NotTo(ContainSubstring("Bearer token-123"))
+			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/0-" + compliancescan.WebhookBearerTokenFileName))
+			Expect(exporterConfig).NotTo(ContainSubstring("token-123"))
 
 			outputsCredsSecretList := &corev1.SecretList{}
 			Expect(fakeClient.List(ctx, outputsCredsSecretList,
@@ -1448,8 +1448,8 @@ waitForReport: true
 			Expect(len(outputsCredsSecretList.Items)).To(Equal(1))
 
 			outputsCredsSecret := outputsCredsSecretList.Items[0]
-			Expect(outputsCredsSecret.Data).To(HaveKey("0-" + compliancescan.WebhookHeadersFileName))
-			Expect(string(outputsCredsSecret.Data["0-"+compliancescan.WebhookHeadersFileName])).To(ContainSubstring("Bearer token-123"))
+			Expect(outputsCredsSecret.Data).To(HaveKey("0-" + compliancescan.WebhookBearerTokenFileName))
+			Expect(string(outputsCredsSecret.Data["0-"+compliancescan.WebhookBearerTokenFileName])).To(ContainSubstring("token-123"))
 		})
 
 		It("should create exporter config with resolved webhook TLS config", func() {
@@ -1546,19 +1546,19 @@ waitForReport: true
 			Expect(complianceScan.Status.Phase).To(Equal(dikiv1alpha1.ComplianceScanFailed))
 		})
 
-		It("should use a custom headersKey when specified", func() {
+		It("should use a custom bearerTokenKey when specified", func() {
 			credentialsSecret := &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "webhook-creds-custom-key",
 					Namespace: "kube-system",
 				},
 				Data: map[string][]byte{
-					"my-headers": []byte(`{"Authorization":"Bearer custom-key-token"}`),
+					"my-token": []byte("custom-key-token"),
 				},
 			}
 			Expect(fakeClient.Create(ctx, credentialsSecret)).To(Succeed())
 
-			customKey := "my-headers"
+			customKey := "my-token"
 			reportOutput := &dikiv1alpha1.ReportOutput{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "default-kind-webhook",
@@ -1569,7 +1569,7 @@ waitForReport: true
 							URL: "https://example.com/reports",
 							CredentialsRef: &dikiv1alpha1.CredentialsRef{
 								ResourceReference: dikiv1alpha1.ResourceReference{Name: "webhook-creds-custom-key", Namespace: "kube-system"},
-								HeadersKey:        &customKey,
+								BearerTokenKey:    &customKey,
 							},
 						},
 					},
@@ -1592,7 +1592,7 @@ waitForReport: true
 			Expect(len(configMapList.Items)).To(Equal(1))
 
 			exporterConfig := configMapList.Items[0].Data["exporter-config.yaml"]
-			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/0-" + compliancescan.WebhookHeadersFileName))
+			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/0-" + compliancescan.WebhookBearerTokenFileName))
 			Expect(exporterConfig).NotTo(ContainSubstring("custom-key-token"))
 
 			outputsCredsSecretList := &corev1.SecretList{}
@@ -1601,7 +1601,7 @@ waitForReport: true
 			)).To(Succeed())
 			Expect(len(outputsCredsSecretList.Items)).To(Equal(1))
 			outputsCredsSecret := outputsCredsSecretList.Items[0]
-			Expect(string(outputsCredsSecret.Data["0-"+compliancescan.WebhookHeadersFileName])).To(ContainSubstring("custom-key-token"))
+			Expect(string(outputsCredsSecret.Data["0-"+compliancescan.WebhookBearerTokenFileName])).To(ContainSubstring("custom-key-token"))
 		})
 
 		It("should create exporter config with resolved webhook mTLS config", func() {
@@ -1643,7 +1643,7 @@ waitForReport: true
 										Namespace: "kube-system",
 									},
 								},
-								MTLSSecretRef: &dikiv1alpha1.MTLSSecretRef{
+								ClientCertSecretRef: &dikiv1alpha1.ClientCertSecretRef{
 									ResourceReference: dikiv1alpha1.ResourceReference{
 										Name:      "my-client-tls",
 										Namespace: "kube-system",
@@ -1702,7 +1702,7 @@ waitForReport: true
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "https://secure.example.com/reports",
 							TLS: &dikiv1alpha1.TLSConfig{
-								MTLSSecretRef: &dikiv1alpha1.MTLSSecretRef{
+								ClientCertSecretRef: &dikiv1alpha1.ClientCertSecretRef{
 									ResourceReference: dikiv1alpha1.ResourceReference{
 										Name:      "nonexistent-tls",
 										Namespace: "kube-system",
@@ -1751,7 +1751,7 @@ waitForReport: true
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "https://secure.example.com/reports",
 							TLS: &dikiv1alpha1.TLSConfig{
-								MTLSSecretRef: &dikiv1alpha1.MTLSSecretRef{
+								ClientCertSecretRef: &dikiv1alpha1.ClientCertSecretRef{
 									ResourceReference: dikiv1alpha1.ResourceReference{
 										Name:      "my-custom-tls",
 										Namespace: "kube-system",
@@ -1813,29 +1813,29 @@ waitForReport: true
 			}
 			Expect(fakeClient.Create(ctx, configMapOutput)).To(Succeed())
 
-			// Output 1: webhook with headers only
-			headersSecret := &corev1.Secret{
-				ObjectMeta: metav1.ObjectMeta{Name: "multi-headers-secret", Namespace: "kube-system"},
+			// Output 1: webhook with bearer token only
+			tokenSecret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{Name: "multi-token-secret", Namespace: "kube-system"},
 				Data: map[string][]byte{
-					"headers": []byte(`{"Authorization":"Bearer token-for-output-1"}`),
+					"token": []byte("token-for-output-1"),
 				},
 			}
-			Expect(fakeClient.Create(ctx, headersSecret)).To(Succeed())
+			Expect(fakeClient.Create(ctx, tokenSecret)).To(Succeed())
 
-			headersOnlyOutput := &dikiv1alpha1.ReportOutput{
-				ObjectMeta: metav1.ObjectMeta{Name: "multi-headers-webhook"},
+			tokenOnlyOutput := &dikiv1alpha1.ReportOutput{
+				ObjectMeta: metav1.ObjectMeta{Name: "multi-token-webhook"},
 				Spec: dikiv1alpha1.ReportOutputSpec{
 					Output: dikiv1alpha1.Output{
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "https://api.example.com/output1",
 							CredentialsRef: &dikiv1alpha1.CredentialsRef{
-								ResourceReference: dikiv1alpha1.ResourceReference{Name: "multi-headers-secret", Namespace: "kube-system"},
+								ResourceReference: dikiv1alpha1.ResourceReference{Name: "multi-token-secret", Namespace: "kube-system"},
 							},
 						},
 					},
 				},
 			}
-			Expect(fakeClient.Create(ctx, headersOnlyOutput)).To(Succeed())
+			Expect(fakeClient.Create(ctx, tokenOnlyOutput)).To(Succeed())
 
 			// Output 2: webhook with TLS (CA only)
 			caConfigMap := &corev1.ConfigMap{
@@ -1863,14 +1863,14 @@ waitForReport: true
 			}
 			Expect(fakeClient.Create(ctx, tlsOnlyOutput)).To(Succeed())
 
-			// Output 3: webhook with headers + mTLS
-			headersAndMTLSSecret := &corev1.Secret{
-				ObjectMeta: metav1.ObjectMeta{Name: "multi-auth-headers", Namespace: "kube-system"},
+			// Output 3: webhook with bearer token + mTLS
+			tokenAndMTLSSecret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{Name: "multi-auth-token", Namespace: "kube-system"},
 				Data: map[string][]byte{
-					"headers": []byte(`{"Authorization":"Bearer token-for-output-3"}`),
+					"token": []byte("token-for-output-3"),
 				},
 			}
-			Expect(fakeClient.Create(ctx, headersAndMTLSSecret)).To(Succeed())
+			Expect(fakeClient.Create(ctx, tokenAndMTLSSecret)).To(Succeed())
 
 			clientTLSSecret := &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{Name: "multi-client-tls", Namespace: "kube-system"},
@@ -1888,13 +1888,13 @@ waitForReport: true
 						Webhook: &dikiv1alpha1.OutputWebhook{
 							URL: "https://mtls.example.com/output3",
 							CredentialsRef: &dikiv1alpha1.CredentialsRef{
-								ResourceReference: dikiv1alpha1.ResourceReference{Name: "multi-auth-headers", Namespace: "kube-system"},
+								ResourceReference: dikiv1alpha1.ResourceReference{Name: "multi-auth-token", Namespace: "kube-system"},
 							},
 							TLS: &dikiv1alpha1.TLSConfig{
 								CAConfigMapRef: &dikiv1alpha1.CAConfigMapRef{
 									ResourceReference: dikiv1alpha1.ResourceReference{Name: "multi-ca", Namespace: "kube-system"},
 								},
-								MTLSSecretRef: &dikiv1alpha1.MTLSSecretRef{
+								ClientCertSecretRef: &dikiv1alpha1.ClientCertSecretRef{
 									ResourceReference: dikiv1alpha1.ResourceReference{Name: "multi-client-tls", Namespace: "kube-system"},
 								},
 							},
@@ -1906,9 +1906,9 @@ waitForReport: true
 
 			complianceScan.Spec.Outputs = []dikiv1alpha1.ReportOutputRef{
 				{Name: "multi-configmap-output"}, // index 0 — no creds
-				{Name: "multi-headers-webhook"},  // index 1 — headers only
+				{Name: "multi-token-webhook"},    // index 1 — bearer token only
 				{Name: "multi-tls-webhook"},      // index 2 — TLS only
-				{Name: "multi-mtls-webhook"},     // index 3 — headers + mTLS
+				{Name: "multi-mtls-webhook"},     // index 3 — bearer token + mTLS
 			}
 			Expect(fakeClient.Create(ctx, complianceScan)).To(Succeed())
 
@@ -1926,16 +1926,16 @@ waitForReport: true
 
 			// All four outputs are present.
 			Expect(exporterConfig).To(ContainSubstring("name: multi-configmap-output"))
-			Expect(exporterConfig).To(ContainSubstring("name: multi-headers-webhook"))
+			Expect(exporterConfig).To(ContainSubstring("name: multi-token-webhook"))
 			Expect(exporterConfig).To(ContainSubstring("name: multi-tls-webhook"))
 			Expect(exporterConfig).To(ContainSubstring("name: multi-mtls-webhook"))
 
-			// Index 1: headers path uses "1-".
-			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/1-" + compliancescan.WebhookHeadersFileName))
+			// Index 1: bearer token path uses "1-".
+			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/1-" + compliancescan.WebhookBearerTokenFileName))
 			// Index 2: CA cert path uses "2-".
 			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/2-" + compliancescan.TLSCACertFileName))
-			// Index 3: headers + CA + client cert/key all use "3-".
-			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/3-" + compliancescan.WebhookHeadersFileName))
+			// Index 3: bearer token + CA + client cert/key all use "3-".
+			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/3-" + compliancescan.WebhookBearerTokenFileName))
 			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/3-" + compliancescan.TLSCACertFileName))
 			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/3-" + compliancescan.TLSClientCertFileName))
 			Expect(exporterConfig).To(ContainSubstring(compliancescan.OutputsCredsMountPath + "/3-" + compliancescan.TLSClientKeyFileName))
@@ -1954,20 +1954,20 @@ waitForReport: true
 			credsSecret := outputsCredsSecretList.Items[0]
 
 			// Index 0 (ConfigMap output) contributes no keys.
-			Expect(credsSecret.Data).NotTo(HaveKey("0-" + compliancescan.WebhookHeadersFileName))
+			Expect(credsSecret.Data).NotTo(HaveKey("0-" + compliancescan.WebhookBearerTokenFileName))
 			Expect(credsSecret.Data).NotTo(HaveKey("0-" + compliancescan.TLSCACertFileName))
 
-			// Index 1: headers key with correct content.
-			Expect(credsSecret.Data).To(HaveKey("1-" + compliancescan.WebhookHeadersFileName))
-			Expect(string(credsSecret.Data["1-"+compliancescan.WebhookHeadersFileName])).To(ContainSubstring("token-for-output-1"))
+			// Index 1: bearer token key with correct content.
+			Expect(credsSecret.Data).To(HaveKey("1-" + compliancescan.WebhookBearerTokenFileName))
+			Expect(string(credsSecret.Data["1-"+compliancescan.WebhookBearerTokenFileName])).To(ContainSubstring("token-for-output-1"))
 
 			// Index 2: CA cert key with correct content.
 			Expect(credsSecret.Data).To(HaveKey("2-" + compliancescan.TLSCACertFileName))
 			Expect(string(credsSecret.Data["2-"+compliancescan.TLSCACertFileName])).To(ContainSubstring("MULTICA"))
 
-			// Index 3: headers, CA cert, client cert, and client key all present.
-			Expect(credsSecret.Data).To(HaveKey("3-" + compliancescan.WebhookHeadersFileName))
-			Expect(string(credsSecret.Data["3-"+compliancescan.WebhookHeadersFileName])).To(ContainSubstring("token-for-output-3"))
+			// Index 3: bearer token, CA cert, client cert, and client key all present.
+			Expect(credsSecret.Data).To(HaveKey("3-" + compliancescan.WebhookBearerTokenFileName))
+			Expect(string(credsSecret.Data["3-"+compliancescan.WebhookBearerTokenFileName])).To(ContainSubstring("token-for-output-3"))
 			Expect(credsSecret.Data).To(HaveKey("3-" + compliancescan.TLSCACertFileName))
 			Expect(string(credsSecret.Data["3-"+compliancescan.TLSCACertFileName])).To(ContainSubstring("MULTICA"))
 			Expect(credsSecret.Data).To(HaveKey("3-" + compliancescan.TLSClientCertFileName))
@@ -2100,7 +2100,7 @@ waitForReport: true
 					Name: "central-reporting",
 					Type: reportexporterv1alpha1.ExporterTypeWebhook,
 					Config: runtime.RawExtension{
-						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","tls":{"caConfigMapRef":{"name":"webhook-ca","namespace":"kube-system"},"mtlsSecretRef":{"name":"webhook-client-tls","namespace":"kube-system"}}}`),
+						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","tls":{"caConfigMapRef":{"name":"webhook-ca","namespace":"kube-system"},"clientCertSecretRef":{"name":"webhook-client-tls","namespace":"kube-system"}}}`),
 					},
 				},
 			}
@@ -2227,7 +2227,7 @@ waitForReport: true
 					Name: "central-reporting",
 					Type: reportexporterv1alpha1.ExporterTypeWebhook,
 					Config: runtime.RawExtension{
-						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","tls":{"mtlsSecretRef":{"name":"nonexistent","namespace":"kube-system"}}}`),
+						Raw: []byte(`{"url":"https://diki-reports.example.com/v1/reports","method":"POST","tls":{"clientCertSecretRef":{"name":"nonexistent","namespace":"kube-system"}}}`),
 					},
 				},
 			}

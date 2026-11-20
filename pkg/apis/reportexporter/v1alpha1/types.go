@@ -60,10 +60,10 @@ type WebhookOutputConfig struct {
 	// The report payload is always sent as the full JSON body regardless of the method.
 	// This is useful when the receiving endpoint expects a specific method (e.g. PUT for upsert semantics).
 	Method string `json:"method"`
-	// HeadersFile is the path to a file containing a JSON object where keys are HTTP header names
-	// and values are the corresponding header values to include in the webhook request.
+	// BearerTokenFile is the path to a file containing a bearer token to include in the
+	// Authorization header of the webhook request as `Bearer <token>`.
 	// +optional
-	HeadersFile string `json:"headersFile,omitempty"`
+	BearerTokenFile string `json:"bearerTokenFile,omitempty"`
 	// TLS contains resolved TLS settings for the webhook connection.
 	// +optional
 	TLS *TLSConfig `json:"tls,omitempty"`

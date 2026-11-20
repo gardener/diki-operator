@@ -9,15 +9,15 @@ spec:
       credentialsRef:
         apiVersion: v1
         kind: Secret
-        name: webhook-headers
+        name: webhook-token
         namespace: kube-system
-        headersKey: headers
+        bearerTokenKey: token
       tls:
         caConfigMapRef:
           name: webhook-ca
           namespace: kube-system
           key: ca.crt
-        mtlsSecretRef:
+        clientCertSecretRef:
           name: webhook-client-tls
           namespace: kube-system
           certKey: tls.crt

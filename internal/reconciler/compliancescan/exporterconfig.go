@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	// defaultHeadersKey is the default key used in a credentials Secret when HeadersKey is not specified.
-	defaultHeadersKey = "headers"
+	// defaultBearerTokenKey is the default key used in a credentials Secret when BearerTokenKey is not specified.
+	defaultBearerTokenKey = "token"
 	// defaultCAKey is the default key used in a CA ConfigMap when Key is not specified.
 	defaultCAKey = "ca.crt"
 	// defaultClientCertKey is the default key used in a client TLS Secret for the certificate.
@@ -153,18 +153,18 @@ func (r *Reconciler) resolveWebhookConfig(ctx context.Context, outputIndex int, 
 
 	var outputCreds map[string][]byte
 
-	// Resolve headers from CredentialsRef.
+	// Resolve bearer token from CredentialsRef.
 	if webhook.CredentialsRef != nil {
 		switch webhook.CredentialsRef.Kind {
 		case "Secret", "":
-			headersJSON, err := r.resolveHeadersJSONFromSecret(ctx, webhook.CredentialsRef)
+			token, err := r.resolveBearerTokenFromSecret(ctx, webhook.CredentialsRef)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to resolve credentials: %w", err)
 			}
-			fileName := fmt.Sprintf("%d-%s", outputIndex, WebhookHeadersFileName)
+			fileName := fmt.Sprintf("%d-%s", outputIndex, WebhookBearerTokenFileName)
 			outputCreds = make(map[string][]byte)
-			outputCreds[fileName] = headersJSON
-			config.HeadersFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, fileName)
+			outputCreds[fileName] = token
+			config.BearerTokenFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, fileName)
 		default:
 			return nil, nil, fmt.Errorf("unsupported credentialsRef kind %q, only Secret is supported for webhook output", webhook.CredentialsRef.Kind)
 		}
@@ -205,13 +205,13 @@ func (r *Reconciler) resolveTLSConfig(ctx context.Context, outputIndex int, tls 
 		tlsConfig.CACertFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, fileName)
 	}
 
-	if tls.MTLSSecretRef != nil {
-		secret, err := r.getSecret(ctx, &tls.MTLSSecretRef.ResourceReference)
+	if tls.ClientCertSecretRef != nil {
+		secret, err := r.getSecret(ctx, &tls.ClientCertSecretRef.ResourceReference)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve mTLS secret: %w", err)
 		}
 
-		clientCert, err := readSecretKey(secret, ptr.Deref(tls.MTLSSecretRef.CertKey, defaultClientCertKey))
+		clientCert, err := readSecretKey(secret, ptr.Deref(tls.ClientCertSecretRef.CertKey, defaultClientCertKey))
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve client certificate: %w", err)
 		}
@@ -219,7 +219,7 @@ func (r *Reconciler) resolveTLSConfig(ctx context.Context, outputIndex int, tls 
 		tlsCreds[certFileName] = clientCert
 		tlsConfig.ClientCertFile = fmt.Sprintf("%s/%s", OutputsCredsMountPath, certFileName)
 
-		clientKey, err := readSecretKey(secret, ptr.Deref(tls.MTLSSecretRef.PrivateKeyKey, defaultClientKeyKey))
+		clientKey, err := readSecretKey(secret, ptr.Deref(tls.ClientCertSecretRef.PrivateKeyKey, defaultClientKeyKey))
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve client key: %w", err)
 		}
@@ -236,24 +236,18 @@ func (r *Reconciler) resolveTLSConfig(ctx context.Context, outputIndex int, tls 
 	return tlsCreds, nil
 }
 
-func (r *Reconciler) resolveHeadersJSONFromSecret(ctx context.Context, ref *v1alpha1.CredentialsRef) ([]byte, error) {
+func (r *Reconciler) resolveBearerTokenFromSecret(ctx context.Context, ref *v1alpha1.CredentialsRef) ([]byte, error) {
 	secret, err := r.getSecret(ctx, &ref.ResourceReference)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := readSecretKey(secret, ptr.Deref(ref.HeadersKey, defaultHeadersKey))
+	token, err := readSecretKey(secret, ptr.Deref(ref.BearerTokenKey, defaultBearerTokenKey))
 	if err != nil {
 		return nil, err
 	}
 
-	// Validate that the value is a valid JSON object map before storing it.
-	headers := make(map[string]string)
-	if err := json.Unmarshal(data, &headers); err != nil {
-		return nil, fmt.Errorf("failed to parse credentials as JSON map: %w", err)
-	}
-
-	return data, nil
+	return token, nil
 }
 
 func (r *Reconciler) getSecret(ctx context.Context, ref *v1alpha1.ResourceReference) (*corev1.Secret, error) {
