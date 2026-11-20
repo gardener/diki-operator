@@ -5,10 +5,12 @@
 package reconciler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"maps"
+	"os"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -68,14 +70,14 @@ func (r *Reconciler) buildExporterConfig(ctx context.Context, complianceScan *v1
 	if !ptr.Deref(complianceScan.Spec.DisableDefaultOutputs, false) {
 		for i := range r.Config.DefaultOutputs {
 			outputIndex := len(complianceScan.Spec.Outputs) + i
-			output, outputCreds, err := r.convertDefaultOutput(ctx, outputIndex, &r.Config.DefaultOutputs[i])
+			output, outputCreds, err := convertDefaultOutput(outputIndex, &r.Config.DefaultOutputs[i])
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to convert default output %q: %w", r.Config.DefaultOutputs[i].Name, err)
 			}
 
 			exporterConfig.Outputs = append(exporterConfig.Outputs, *output)
 
-			if outputCreds != nil {
+			if len(outputCreds) != 0 {
 				if outputsCreds == nil {
 					outputsCreds = make(map[string][]byte)
 				}
@@ -87,20 +89,90 @@ func (r *Reconciler) buildExporterConfig(ctx context.Context, complianceScan *v1
 	return exporterConfig, outputsCreds, nil
 }
 
-func (r *Reconciler) convertDefaultOutput(ctx context.Context, outputIndex int, defaultOutput *reportexporterv1alpha1.Output) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
+// convertDefaultOutput converts an operator-configured default output into a report-exporter output.
+//
+// Unlike ReportOutput resources, default outputs never reference Kubernetes resources; their config is the
+// report-exporter's native output config. For webhook outputs, any files it references are read from the
+// operator's own filesystem and returned as outputs credentials to be mounted into the report-exporter, with the
+// config's path fields rewritten to the mounted location. The config is decoded strictly to reject malformed or
+// unsupported configurations.
+func convertDefaultOutput(outputIndex int, defaultOutput *reportexporterv1alpha1.Output) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
 	switch defaultOutput.Type {
 	case reportexporterv1alpha1.ExporterTypeConfigMap:
 		return defaultOutput.DeepCopy(), nil, nil
 	case reportexporterv1alpha1.ExporterTypeWebhook:
-		webhook := &v1alpha1.OutputWebhook{}
-		if err := json.Unmarshal(defaultOutput.Config.Raw, webhook); err != nil {
-			return nil, nil, fmt.Errorf("failed to unmarshal webhook config: %w", err)
+		webhookConfig := &reportexporterv1alpha1.WebhookOutputConfig{}
+		if err := decodeStrict(defaultOutput.Config.Raw, webhookConfig); err != nil {
+			return nil, nil, fmt.Errorf("invalid webhook config: %w", err)
 		}
 
-		return r.buildWebhookOutput(ctx, outputIndex, defaultOutput.Name, webhook)
+		outputCreds, err := resolveDefaultWebhookFiles(outputIndex, webhookConfig)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to resolve webhook config: %w", err)
+		}
+
+		configBytes, err := json.Marshal(webhookConfig)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to marshal webhook config: %w", err)
+		}
+
+		return &reportexporterv1alpha1.Output{
+			Type: reportexporterv1alpha1.ExporterTypeWebhook,
+			Name: defaultOutput.Name,
+			Config: runtime.RawExtension{
+				Raw: configBytes,
+			},
+		}, outputCreds, nil
 	default:
 		return nil, nil, fmt.Errorf("unsupported default output type %q", defaultOutput.Type)
 	}
+}
+
+// resolveDefaultWebhookFiles reads the operator-local files referenced by a default webhook output's config,
+// returns their contents keyed by the outputs-creds file name, and rewrites each referenced path field in the
+// config to the corresponding mounted location under OutputsCredsMountPath. Empty path fields are left untouched.
+func resolveDefaultWebhookFiles(outputIndex int, config *reportexporterv1alpha1.WebhookOutputConfig) (map[string][]byte, error) {
+	outputCreds := make(map[string][]byte)
+
+	readIntoCreds := func(srcPath, baseName string, dst *string) error {
+		if len(srcPath) == 0 {
+			return nil
+		}
+		data, err := os.ReadFile(srcPath) // #nosec G304 -- path is from trusted operator configuration
+		if err != nil {
+			return fmt.Errorf("failed to read file %q: %w", srcPath, err)
+		}
+
+		fileName := fmt.Sprintf("%d-%s", outputIndex, baseName)
+		outputCreds[fileName] = data
+		*dst = fmt.Sprintf("%s/%s", OutputsCredsMountPath, fileName)
+		return nil
+	}
+
+	if err := readIntoCreds(config.BearerTokenFile, WebhookBearerTokenFileName, &config.BearerTokenFile); err != nil {
+		return nil, err
+	}
+
+	if config.TLS != nil {
+		if err := readIntoCreds(config.TLS.CACertFile, TLSCACertFileName, &config.TLS.CACertFile); err != nil {
+			return nil, err
+		}
+		if err := readIntoCreds(config.TLS.ClientCertFile, TLSClientCertFileName, &config.TLS.ClientCertFile); err != nil {
+			return nil, err
+		}
+		if err := readIntoCreds(config.TLS.ClientKeyFile, TLSClientKeyFileName, &config.TLS.ClientKeyFile); err != nil {
+			return nil, err
+		}
+	}
+
+	return outputCreds, nil
+}
+
+// decodeStrict unmarshals JSON into obj, rejecting unknown fields.
+func decodeStrict(data []byte, obj any) error {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	return dec.Decode(obj)
 }
 
 func (r *Reconciler) convertReportOutput(ctx context.Context, outputIndex int, reportOutput *v1alpha1.ReportOutput) (*reportexporterv1alpha1.Output, map[string][]byte, error) {
