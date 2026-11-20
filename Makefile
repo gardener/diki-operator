@@ -91,11 +91,11 @@ sast-report: $(GOSEC)
 
 .PHONY: test
 test: $(REPORT_COLLECTOR)
-	@bash $(HACK_DIR)/test.sh ./cmd/... ./pkg/... ./internal/...
+	@bash $(GARDENER_HACK_DIR)/test.sh ./cmd/... ./pkg/... ./internal/...
 
 .PHONY: test-cov
 test-cov:
-	@bash $(HACK_DIR)/test-cover.sh ./cmd/... ./pkg/... ./internal/...
+	@bash $(GARDENER_HACK_DIR)/test-cover.sh ./cmd/... ./pkg/... ./internal/...
 
 .PHONY: test-clean
 test-clean:
