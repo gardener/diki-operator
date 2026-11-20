@@ -167,6 +167,8 @@ spec:
                         description: |-
                           URL is the destination endpoint to which the report will be sent.
                           Must use the HTTPS scheme.
+                          The URL may contain the template variable `{{ .ComplianceScanMeta.UID }}`,
+                          which is replaced with the UID of the compliance scan when the report is exported.
                         pattern: ^https://
                         type: string
                     required:
