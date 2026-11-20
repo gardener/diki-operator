@@ -142,7 +142,7 @@ func (d *ReportExporter) createOutputs(complianceScan *dikiv1alpha1.ComplianceSc
 				return nil, fmt.Errorf("failed to unmarshal WebhookOutput: %w", err)
 			}
 
-			outputs[output.Name] = webhook.NewExporter(webhookConfig)
+			outputs[output.Name] = webhook.NewExporter(webhookConfig, complianceScan)
 		default:
 			return nil, fmt.Errorf("unsupported output type: %s", output.Type)
 		}

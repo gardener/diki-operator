@@ -25,18 +25,28 @@ import (
 	dikireport "github.com/gardener/diki/pkg/report"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs/webhook"
+	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
 var _ = Describe("WebhookExporter", func() {
 	var (
-		ctx        = context.Background()
-		dikiReport *dikireport.Report
+		ctx            = context.Background()
+		dikiReport     *dikireport.Report
+		complianceScan *dikiv1alpha1.ComplianceScan
 	)
 
 	BeforeEach(func() {
+		complianceScan = &dikiv1alpha1.ComplianceScan{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-scan",
+				UID:  types.UID("test-uid-1234"),
+			},
+		}
 		dikiReport = &dikireport.Report{
 			Providers: []dikireport.Provider{
 				{
@@ -69,7 +79,7 @@ var _ = Describe("WebhookExporter", func() {
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL:    server.URL,
 			Method: http.MethodPost,
-		})
+		}, complianceScan)
 
 		details, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
@@ -86,6 +96,85 @@ var _ = Describe("WebhookExporter", func() {
 		Expect(receivedReport).To(Equal(*dikiReport))
 	})
 
+	It("should substitute the ComplianceScanMeta.UID template variable in the URL", func() {
+		var requestedPath string
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestedPath = r.URL.Path
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: server.URL + "/reports/{{ .ComplianceScanMeta.UID }}",
+		}, complianceScan)
+
+		details, err := exporter.Export(ctx, *dikiReport)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(requestedPath).To(Equal("/reports/" + string(complianceScan.UID)))
+
+		webhookDetails, ok := details.(*webhook.ExportDetails)
+		Expect(ok).To(BeTrue())
+		Expect(webhookDetails.URL).To(Equal(server.URL + "/reports/" + string(complianceScan.UID)))
+	})
+
+	It("should substitute the UID regardless of template whitespace", func() {
+		var requestedPath string
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestedPath = r.URL.Path
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: server.URL + "/reports/{{.ComplianceScanMeta.UID}}",
+		}, complianceScan)
+
+		_, err := exporter.Export(ctx, *dikiReport)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(requestedPath).To(Equal("/reports/" + string(complianceScan.UID)))
+	})
+
+	It("should leave a URL without template actions unchanged", func() {
+		var requestedPath string
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requestedPath = r.URL.Path
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: server.URL + "/reports",
+		}, complianceScan)
+
+		details, err := exporter.Export(ctx, *dikiReport)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(requestedPath).To(Equal("/reports"))
+
+		webhookDetails, ok := details.(*webhook.ExportDetails)
+		Expect(ok).To(BeTrue())
+		Expect(webhookDetails.URL).To(Equal(server.URL + "/reports"))
+	})
+
+	It("should return an error when the URL references an unsupported template variable", func() {
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: "https://example.com/reports/{{ .ComplianceScanMeta.Bogus }}",
+		}, complianceScan)
+
+		_, err := exporter.Export(ctx, *dikiReport)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("failed to render webhook URL"))
+	})
+
+	It("should return an error when the URL template is malformed", func() {
+		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
+			URL: "https://example.com/reports/{{ .ComplianceScanMeta.UID",
+		}, complianceScan)
+
+		_, err := exporter.Export(ctx, *dikiReport)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(ContainSubstring("failed to render webhook URL"))
+	})
+
 	It("should omit responseBody when the server returns an empty body", func() {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusNoContent)
@@ -94,7 +183,7 @@ var _ = Describe("WebhookExporter", func() {
 
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
-		})
+		}, complianceScan)
 
 		details, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
@@ -114,7 +203,7 @@ var _ = Describe("WebhookExporter", func() {
 
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
-		})
+		}, complianceScan)
 
 		_, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
@@ -130,7 +219,7 @@ var _ = Describe("WebhookExporter", func() {
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL:    server.URL,
 			Method: http.MethodPut,
-		})
+		}, complianceScan)
 
 		_, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
@@ -154,7 +243,7 @@ var _ = Describe("WebhookExporter", func() {
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL:             server.URL,
 			BearerTokenFile: tokenFile.Name(),
-		})
+		}, complianceScan)
 
 		_, err = exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
@@ -170,7 +259,7 @@ var _ = Describe("WebhookExporter", func() {
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL:             server.URL,
 			BearerTokenFile: "/nonexistent/token",
-		})
+		}, complianceScan)
 
 		_, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).To(HaveOccurred())
@@ -186,7 +275,7 @@ var _ = Describe("WebhookExporter", func() {
 
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
-		})
+		}, complianceScan)
 
 		_, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).To(HaveOccurred())
@@ -202,7 +291,7 @@ var _ = Describe("WebhookExporter", func() {
 
 		exporter := webhook.NewExporter(reportexporterv1alpha1.WebhookOutputConfig{
 			URL: server.URL,
-		})
+		}, complianceScan)
 
 		_, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).To(HaveOccurred())
@@ -273,7 +362,7 @@ var _ = Describe("WebhookExporter", func() {
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				CACertFile: caCertFile.Name(),
 			},
-		})
+		}, complianceScan)
 
 		details, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
@@ -294,7 +383,7 @@ var _ = Describe("WebhookExporter", func() {
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				CACertFile: "/nonexistent/ca.crt",
 			},
-		})
+		}, complianceScan)
 
 		_, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).To(HaveOccurred())
@@ -319,7 +408,7 @@ var _ = Describe("WebhookExporter", func() {
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				CACertFile: caCertFile.Name(),
 			},
-		})
+		}, complianceScan)
 
 		_, err = exporter.Export(ctx, *dikiReport)
 		Expect(err).To(HaveOccurred())
@@ -426,7 +515,7 @@ var _ = Describe("WebhookExporter", func() {
 				ClientCertFile: clientCertFile.Name(),
 				ClientKeyFile:  clientKeyFile.Name(),
 			},
-		})
+		}, complianceScan)
 
 		details, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).ToNot(HaveOccurred())
@@ -502,7 +591,7 @@ var _ = Describe("WebhookExporter", func() {
 			TLS: &reportexporterv1alpha1.TLSConfig{
 				CACertFile: caCertFile.Name(),
 			},
-		})
+		}, complianceScan)
 
 		_, err = exporter.Export(ctx, *dikiReport)
 		Expect(err).To(HaveOccurred())
@@ -516,7 +605,7 @@ var _ = Describe("WebhookExporter", func() {
 				ClientCertFile: "/nonexistent/client.crt",
 				ClientKeyFile:  "/nonexistent/client.key",
 			},
-		})
+		}, complianceScan)
 
 		_, err := exporter.Export(ctx, *dikiReport)
 		Expect(err).To(HaveOccurred())

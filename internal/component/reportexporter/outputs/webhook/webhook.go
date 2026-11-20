@@ -14,11 +14,13 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"text/template"
 	"time"
 
 	dikireport "github.com/gardener/diki/pkg/report"
 
 	"github.com/gardener/diki-operator/internal/component/reportexporter/outputs"
+	dikiv1alpha1 "github.com/gardener/diki-operator/pkg/apis/diki/v1alpha1"
 	reportexporterv1alpha1 "github.com/gardener/diki-operator/pkg/apis/reportexporter/v1alpha1"
 )
 
@@ -26,7 +28,8 @@ var _ outputs.Output = &Exporter{}
 
 // Exporter is responsible for exporting the Diki report via an HTTP webhook.
 type Exporter struct {
-	Config reportexporterv1alpha1.WebhookOutputConfig
+	Config         reportexporterv1alpha1.WebhookOutputConfig
+	ComplianceScan *dikiv1alpha1.ComplianceScan
 }
 
 // ExportDetails contains the details of the webhook export.
@@ -37,9 +40,10 @@ type ExportDetails struct {
 }
 
 // NewExporter creates a new instance of Exporter.
-func NewExporter(config reportexporterv1alpha1.WebhookOutputConfig) *Exporter {
+func NewExporter(config reportexporterv1alpha1.WebhookOutputConfig, complianceScan *dikiv1alpha1.ComplianceScan) *Exporter {
 	return &Exporter{
-		Config: config,
+		Config:         config,
+		ComplianceScan: complianceScan,
 	}
 }
 
@@ -50,6 +54,11 @@ func (w *Exporter) Type() reportexporterv1alpha1.OutputType {
 
 // Export exports the Diki report via an HTTP webhook.
 func (w *Exporter) Export(ctx context.Context, report dikireport.Report) (any, error) {
+	url, err := w.renderURL()
+	if err != nil {
+		return nil, fmt.Errorf("failed to render webhook URL: %w", err)
+	}
+
 	reportJSON, err := json.Marshal(report)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal report to JSON: %w", err)
@@ -65,7 +74,7 @@ func (w *Exporter) Export(ctx context.Context, report dikireport.Report) (any, e
 		method = http.MethodPost
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, w.Config.URL, bytes.NewReader(reportJSON))
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewReader(reportJSON))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
@@ -94,7 +103,7 @@ func (w *Exporter) Export(ctx context.Context, report dikireport.Report) (any, e
 	}
 
 	details := &ExportDetails{
-		URL:        w.Config.URL,
+		URL:        url,
 		StatusCode: resp.StatusCode,
 	}
 
@@ -103,6 +112,27 @@ func (w *Exporter) Export(ctx context.Context, report dikireport.Report) (any, e
 	}
 
 	return details, nil
+}
+
+// renderURL renders the configured URL as a Go text/template against the compliance scan
+// metadata. A URL without any template actions is returned unchanged. Referencing an
+// unsupported field (e.g. {{ .ComplianceScanMeta.Name }}) results in an error.
+func (w *Exporter) renderURL() (string, error) {
+	tmpl, err := template.New("webhookURL").Option("missingkey=error").Parse(w.Config.URL)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, reportexporterv1alpha1.WebhookURLTemplateContext{
+		ComplianceScanMeta: reportexporterv1alpha1.ComplianceScanMeta{
+			UID: string(w.ComplianceScan.UID),
+		},
+	}); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
 
 func (w *Exporter) buildHTTPClient() (*http.Client, error) {
