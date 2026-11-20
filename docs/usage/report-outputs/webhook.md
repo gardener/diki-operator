@@ -29,7 +29,7 @@ spec:
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `url` | string | **Yes** | - | The destination endpoint URL. Must use the `https://` scheme. |
+| `url` | string | **Yes** | - | The destination endpoint URL. Must use the `https://` scheme. Supports the `{{ .ComplianceScanMeta.UID }}` [template variable](#url-template-variables). |
 | `method` | string | No | `POST` | The HTTP method used to send the report. Allowed values: `POST`, `PUT`. |
 | `credentialsRef` | [CredentialsRef](#credentialsref) | No | - | Reference to a Secret containing a bearer token to send in the `Authorization` header. |
 | `tls` | [TLSConfig](#tlsconfig) | No | - | TLS settings for HTTPS connections. |
@@ -80,6 +80,29 @@ metadata:
   namespace: kube-system
 stringData:
   token: "<token>"
+```
+
+## URL Template Variables
+
+The `url` is rendered as a [Go text/template](https://pkg.go.dev/text/template) by the report-exporter when the report is exported. This lets the destination endpoint embed the identity of the compliance scan.
+
+The following variable is supported:
+
+| Variable | Replaced with |
+|----------|---------------|
+| `{{ .ComplianceScanMeta.UID }}` | The UID of the compliance scan. |
+
+Any surrounding whitespace inside the `{{ }}` delimiters is allowed (e.g. `{{.ComplianceScanMeta.UID}}`). A URL without any `{{ }}` actions is used verbatim. Referencing an unsupported variable makes the report export fail.
+
+```yaml
+apiVersion: diki.gardener.cloud/v1alpha1
+kind: ReportOutput
+metadata:
+  name: per-scan-webhook
+spec:
+  output:
+    webhook:
+      url: "https://compliance-api.corp.example.com/v1/reports/{{ .ComplianceScanMeta.UID }}"
 ```
 
 ## Behavior

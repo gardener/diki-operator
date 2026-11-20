@@ -64,6 +64,8 @@ type OutputConfigMap struct {
 type OutputWebhook struct {
 	// URL is the destination endpoint to which the report will be sent.
 	// Must use the HTTPS scheme.
+	// The URL may contain the template variable `{{ .ComplianceScanMeta.UID }}`,
+	// which is replaced with the UID of the compliance scan when the report is exported.
 	// +kubebuilder:validation:Pattern=`^https://`
 	URL string `json:"url"`
 	// Method is the HTTP method used to send the report.

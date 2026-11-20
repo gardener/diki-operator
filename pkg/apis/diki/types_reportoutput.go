@@ -58,6 +58,8 @@ type OutputConfigMap struct {
 // OutputWebhook contains the configuration for exporting the report via an HTTP webhook.
 type OutputWebhook struct {
 	// URL is the destination endpoint to which the report will be sent.
+	// The URL may contain the template variable `{{ .ComplianceScanMeta.UID }}`,
+	// which is replaced with the UID of the compliance scan when the report is exported.
 	URL string
 	// Method is the HTTP method used to send the report.
 	// The report payload is always sent as the full JSON body regardless of the method.
