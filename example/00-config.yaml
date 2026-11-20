@@ -30,6 +30,14 @@ kind: DikiOperatorConfiguration
 #       config:
 #         namespace: kube-system
 #         namePrefix: default-report-
+#     - name: central-webhook
+#       type: Webhook
+#       config:
+#         url: https://compliance-api.corp.example.com/v1/reports
+#         method: POST
+#         # bearerTokenFile: /etc/diki-operator/outputs/central-webhook/token
+#         # tls:
+#         #   caCertFile: /etc/diki-operator/outputs/central-webhook/ca.crt
 # server:
 #   healthProbes:
 #     port: 8081
