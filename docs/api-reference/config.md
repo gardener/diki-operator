@@ -837,7 +837,7 @@ string
 </em>
 </td>
 <td>
-<p>URL is the destination endpoint to which the report will be sent.<br />Must use the HTTPS scheme.</p>
+<p>URL is the destination endpoint to which the report will be sent.<br />Must use the HTTPS scheme.<br />The URL may contain the template variable `\{\{ .ComplianceScanMeta.UID \}\}`,<br />which is replaced with the UID of the compliance scan when the report is exported.</p>
 </td>
 </tr>
 <tr>

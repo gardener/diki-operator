@@ -55,6 +55,8 @@ const (
 // The file-path fields point at files mounted into the report-exporter.
 type WebhookOutputConfig struct {
 	// URL is the destination endpoint to which the report will be sent.
+	// The URL may contain the template variable `{{ .ComplianceScanMeta.UID }}`,
+	// which is replaced with the UID of the compliance scan when the report is exported.
 	URL string `json:"url"`
 	// Method is the HTTP method used to send the report.
 	// The report payload is always sent as the full JSON body regardless of the method.
@@ -77,4 +79,16 @@ type TLSConfig struct {
 	ClientCertFile string `json:"clientCertFile,omitempty"`
 	// ClientKeyFile is the path to a file containing a PEM-encoded client private key for mTLS.
 	ClientKeyFile string `json:"clientKeyFile,omitempty"`
+}
+
+// WebhookURLTemplateContext is the data available to a webhook URL template.
+type WebhookURLTemplateContext struct {
+	// ComplianceScanMeta carries identity of the compliance scan the report belongs to.
+	ComplianceScanMeta ComplianceScanMeta
+}
+
+// ComplianceScanMeta exposes compliance scan metadata usable in a webhook URL template.
+type ComplianceScanMeta struct {
+	// UID is the UID of the compliance scan.
+	UID string
 }
